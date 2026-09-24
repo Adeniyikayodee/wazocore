@@ -8,14 +8,20 @@ use clap::{Parser, Subcommand};
 use memmap2::Mmap;
 use tokenizers::Tokenizer;
 
-use atlas_rt::forward::{KvCache, Plan, step};
+use atlas_rt::forward::{Kernels, KvCache, Plan, step};
 use atlas_rt::weights::weights;
 use atlas_rt::{chat, ops};
 use atlas_satl::format;
 
 #[derive(Parser)]
-#[command(about = "N-ATLAS CPU runtime (scalar reference path)")]
+#[command(about = "N-ATLAS CPU runtime")]
 struct Cli {
+    /// Worker threads (default: all logical CPUs)
+    #[arg(long, global = true)]
+    threads: Option<usize>,
+    /// Use the scalar single-threaded reference kernels
+    #[arg(long, global = true)]
+    reference: bool,
     #[command(subcommand)]
     cmd: Cmd,
 }
@@ -52,10 +58,18 @@ enum Cmd {
 type AnyError = Box<dyn std::error::Error>;
 
 fn main() -> ExitCode {
-    let result = match Cli::parse().cmd {
-        Cmd::Logits { model, tokens, all } => logits(&model, &tokens, all),
+    let cli = Cli::parse();
+    if let Some(n) = cli.threads
+        && let Err(e) = rayon::ThreadPoolBuilder::new().num_threads(n).build_global()
+    {
+        eprintln!("error: thread pool: {e}");
+        return ExitCode::FAILURE;
+    }
+    let kernels = if cli.reference { Kernels::Reference } else { Kernels::Fast };
+    let result = match cli.cmd {
+        Cmd::Logits { model, tokens, all } => logits(&model, &tokens, all, kernels),
         Cmd::Generate { model, tokenizer, prompt, system, max_tokens, ctx } => {
-            generate(&model, &tokenizer, &system, &prompt, max_tokens, ctx)
+            generate(&model, &tokenizer, &system, &prompt, max_tokens, ctx, kernels)
         }
     };
     match result {
@@ -75,10 +89,10 @@ fn open(path: &Path) -> Result<(format::Header, u64, Mmap), AnyError> {
     Ok((header, data, map))
 }
 
-fn logits(model: &Path, tokens: &[u32], all: bool) -> Result<(), AnyError> {
+fn logits(model: &Path, tokens: &[u32], all: bool, kernels: Kernels) -> Result<(), AnyError> {
     let (header, data, map) = open(model)?;
     let w = weights(&header, &map[data as usize..])?;
-    let plan = Plan::dense(&w.config, ops::rope_inv_freq(&w.config)?);
+    let plan = Plan::dense(&w.config, ops::rope_inv_freq(&w.config)?, kernels);
     let mut kv = KvCache::new(&w.config, tokens.len());
     let per_pos = tokens.iter().map(|&t| step(&w, &plan, &mut kv, t)).collect::<Result<Vec<_>, _>>()?;
     let out: Vec<&Vec<f32>> = if all { per_pos.iter().collect() } else { per_pos.last().into_iter().collect() };
@@ -86,10 +100,18 @@ fn logits(model: &Path, tokens: &[u32], all: bool) -> Result<(), AnyError> {
     Ok(())
 }
 
-fn generate(model: &Path, tok_path: &Path, system: &str, user: &str, max_tokens: usize, ctx: usize) -> Result<(), AnyError> {
+fn generate(
+    model: &Path,
+    tok_path: &Path,
+    system: &str,
+    user: &str,
+    max_tokens: usize,
+    ctx: usize,
+    kernels: Kernels,
+) -> Result<(), AnyError> {
     let (header, data, map) = open(model)?;
     let w = weights(&header, &map[data as usize..])?;
-    let plan = Plan::dense(&w.config, ops::rope_inv_freq(&w.config)?);
+    let plan = Plan::dense(&w.config, ops::rope_inv_freq(&w.config)?, kernels);
     let tok = Tokenizer::from_file(tok_path).map_err(|e| format!("{}: {e}", tok_path.display()))?;
     let text = chat::prompt(system, user);
     let ids = tok.encode(text, false).map_err(|e| e.to_string())?.get_ids().to_vec();
@@ -124,3 +146,4 @@ fn generate(model: &Path, tok_path: &Path, system: &str, user: &str, max_tokens:
     );
     Ok(())
 }
+

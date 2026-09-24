@@ -107,6 +107,7 @@ dependencies = [
  "clap",
  "half",
  "memmap2",
+ "rayon",
  "serde_json",
  "tokenizers",
 ]

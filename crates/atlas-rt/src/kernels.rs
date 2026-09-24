@@ -1,4 +1,4 @@
-//! Scalar reference kernels: the bit-exact spec that NEON/AVX2 paths are
+//! Scalar reference kernels: the spec that the fast kernels (`fast`) are
 //! tested against (PROJECT-PLAN-B §3.4). Fixed reduction order.
 
 use half::f16;
@@ -8,7 +8,7 @@ use atlas_satl::format::Codec;
 
 use crate::weights::{Columns, Rows};
 
-fn f16_at(b: &[u8], i: usize) -> f32 {
+pub(crate) fn f16_at(b: &[u8], i: usize) -> f32 {
     f16::from_le_bytes([b[i], b[i + 1]]).to_f32()
 }
 
@@ -36,7 +36,7 @@ fn axpy_f32(y: &mut [f32], xj: f32, part: &[u8]) {
     y.iter_mut().zip(w).for_each(|(yi, &b)| *yi += xj * f32::from_le_bytes(b));
 }
 
-fn part_bytes(codec: &Codec, rows: usize) -> usize {
+pub(crate) fn part_bytes(codec: &Codec, rows: usize) -> usize {
     match codec {
         Codec::Q4 { group } => atlas_satl::codec::q4_bytes(rows, *group),
         Codec::Q8 { group } => atlas_satl::codec::q8_bytes(rows, *group),
@@ -46,7 +46,7 @@ fn part_bytes(codec: &Codec, rows: usize) -> usize {
 
 /// Input-sparse GEMV: y = Σ_{j ∈ active} x[j] · W[:, j]. Output is the
 /// concatenation of all parts (e.g. [q; k; v]).
-pub fn columns_gemv(w: &Columns, x: &[f32], active: &[u32]) -> Vec<f32> {
+pub fn columns_gemv_ref(w: &Columns, x: &[f32], active: &[u32]) -> Vec<f32> {
     let rows = &w.rows[..w.parts];
     let total: usize = rows.iter().sum();
     let mut y = vec![0.0f32; total];
@@ -71,7 +71,7 @@ pub fn columns_gemv(w: &Columns, x: &[f32], active: &[u32]) -> Vec<f32> {
     y
 }
 
-fn dot_q8(row: &[u8], x: &[f32], group: usize) -> f32 {
+pub(crate) fn dot_q8(row: &[u8], x: &[f32], group: usize) -> f32 {
     row.chunks_exact(2 + group)
         .zip(x.chunks_exact(group))
         .map(|(b, xs)| {
@@ -81,24 +81,27 @@ fn dot_q8(row: &[u8], x: &[f32], group: usize) -> f32 {
         .sum()
 }
 
-fn dot_f32(row: &[u8], x: &[f32]) -> f32 {
+pub(crate) fn dot_f32(row: &[u8], x: &[f32]) -> f32 {
     let (w, _) = row.as_chunks::<4>();
     w.iter().zip(x).map(|(&b, &xi)| f32::from_le_bytes(b) * xi).sum()
 }
 
-fn row_bytes<'a>(w: &Rows<'a>, r: usize) -> &'a [u8] {
+pub(crate) fn row_bytes<'a>(w: &Rows<'a>, r: usize) -> &'a [u8] {
     &w.data[r * w.stride..(r + 1) * w.stride]
 }
 
+/// One row's dot product with `x`.
+pub(crate) fn row_dot(w: &Rows, r: usize, x: &[f32]) -> f32 {
+    match w.codec {
+        Codec::Q8 { group } => dot_q8(row_bytes(w, r), x, group),
+        Codec::F32 => dot_f32(row_bytes(w, r), x),
+        Codec::Q4 { .. } => unreachable!("rows are never q4; rejected at load"),
+    }
+}
+
 /// Dense row-major GEMV (lm_head).
-pub fn rows_gemv(w: &Rows, x: &[f32]) -> Vec<f32> {
-    (0..w.count)
-        .map(|r| match w.codec {
-            Codec::Q8 { group } => dot_q8(row_bytes(w, r), x, group),
-            Codec::F32 => dot_f32(row_bytes(w, r), x),
-            Codec::Q4 { .. } => unreachable!("rows are never q4; rejected at load"),
-        })
-        .collect()
+pub fn rows_gemv_ref(w: &Rows, x: &[f32]) -> Vec<f32> {
+    (0..w.count).map(|r| row_dot(w, r, x)).collect()
 }
 
 /// One decoded row (embedding lookup).
@@ -145,7 +148,7 @@ mod tests {
         let w = Columns { count: n, stride, codec: Codec::Q4 { group: 64 }, rows: [split, rows - split, 0], parts: 2, data: &data };
         let x = wave(n, 5.0);
         let active: Vec<u32> = vec![0, 3, 4, 9];
-        let y = columns_gemv(&w, &x, &active);
+        let y = columns_gemv_ref(&w, &x, &active);
         let deq: Vec<Vec<f32>> = cols
             .iter()
             .map(|c| [decode_q4(&encode_q4(&c[..split], 64).unwrap(), split, 64).unwrap(), decode_q4(&encode_q4(&c[split..], 64).unwrap(), rows - split, 64).unwrap()].concat())
@@ -163,12 +166,12 @@ mod tests {
         let data: Vec<u8> = cols.iter().flatten().flat_map(|v| v.to_le_bytes()).collect();
         let w = Columns { count: n, stride: rows * 4, codec: Codec::F32, rows: [rows, 0, 0], parts: 1, data: &data };
         let x = [1.0, -2.0, 0.5];
-        let y = columns_gemv(&w, &x, &[0, 1, 2]);
+        let y = columns_gemv_ref(&w, &x, &[0, 1, 2]);
         for r in 0..rows {
             let expect: f32 = (0..n).map(|j| x[j] * cols[j][r]).sum();
             assert!((y[r] - expect).abs() < 1e-7);
         }
-        assert_eq!(columns_gemv(&w, &x, &[]), vec![0.0; rows]);
+        assert_eq!(columns_gemv_ref(&w, &x, &[]), vec![0.0; rows]);
     }
 
     #[test]
@@ -178,7 +181,7 @@ mod tests {
         let data: Vec<u8> = rows_f.iter().flat_map(|r| encode_q8(r, 32).unwrap()).collect();
         let w = Rows { count, cols, stride: data.len() / count, codec: Codec::Q8 { group: 32 }, data: &data };
         let x = wave(cols, 9.0);
-        let y = rows_gemv(&w, &x);
+        let y = rows_gemv_ref(&w, &x);
         for r in 0..count {
             let dq = row(&w, r);
             let expect: f32 = dq.iter().zip(&x).map(|(a, b)| a * b).sum();

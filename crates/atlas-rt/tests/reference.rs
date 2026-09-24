@@ -3,7 +3,7 @@
 
 use std::fs;
 
-use atlas_rt::forward::{KvCache, Plan, step};
+use atlas_rt::forward::{Kernels, KvCache, Plan, step};
 use atlas_rt::ops::{argmax, rope_inv_freq, softmax};
 use atlas_rt::weights::weights;
 use atlas_satl::format::decode_prefix;
@@ -29,10 +29,14 @@ fn reference() -> Reference {
 }
 
 fn run(satl: &str, tokens: &[u32]) -> Vec<Vec<f32>> {
+    run_with(satl, tokens, Kernels::Reference)
+}
+
+fn run_with(satl: &str, tokens: &[u32], kernels: Kernels) -> Vec<Vec<f32>> {
     let bytes = fs::read(format!("{DIR}/{satl}")).unwrap();
     let (header, data) = decode_prefix(&bytes).unwrap();
     let w = weights(&header, &bytes[data as usize..]).unwrap();
-    let plan = Plan::dense(&w.config, rope_inv_freq(&w.config).unwrap());
+    let plan = Plan::dense(&w.config, rope_inv_freq(&w.config).unwrap(), kernels);
     let mut kv = KvCache::new(&w.config, tokens.len());
     tokens.iter().map(|&t| step(&w, &plan, &mut kv, t).unwrap()).collect()
 }
@@ -63,4 +67,17 @@ fn q4_path_stays_close_to_pytorch() {
     let agree = ours.iter().zip(&r.logits).filter(|(a, b)| argmax(a) == argmax(b)).count();
     eprintln!("q4 vs torch: mean KL {mean_kl:.5} nats, top-1 agreement {agree}/{}", r.tokens.len());
     assert!(mean_kl < 0.05, "mean KL {mean_kl}");
+}
+
+/// Int8 activations change logits slightly; the fast path must stay far
+/// closer to the f32 reference than q4 weights are to PyTorch (0.038 nats).
+#[test]
+fn fast_kernels_stay_close_to_reference_end_to_end() {
+    let r = reference();
+    let (slow, quick) = (run("tiny-q4.satl", &r.tokens), run_with("tiny-q4.satl", &r.tokens, Kernels::Fast));
+    let kls: Vec<f64> = quick.iter().zip(&slow).map(|(a, b)| kl(b, a)).collect();
+    let mean = kls.iter().sum::<f64>() / kls.len() as f64;
+    let agree = quick.iter().zip(&slow).filter(|(a, b)| argmax(a) == argmax(b)).count();
+    eprintln!("fast vs reference: mean KL {mean:.2e} nats, top-1 {agree}/{}", r.tokens.len());
+    assert!(mean < 1e-3, "mean KL {mean}");
 }
