@@ -387,6 +387,9 @@ Hypothesis: most of Yoruba's, Hausa's and Igbo's extra tokens continue a word al
 | S7 | **Quality breadth**: chrF++ and AfriMMLU through atlas-rt | Per-language tables at the chosen sparsity |
 | S8 | **Packaging**: README with N-ATLaS attribution, LICENSE/NOTICE, hosted `.satl` + profiles, tester kit (testers run the report card and the speed benchmark on their own machines), outreach message, docs, video script | A tester goes from zero to a report card and a speed comparison in < 15 minutes |
 
+### Step log
+- **S1 done (24 Sep), with one shortfall accepted.** Batched prefill equals stepwise decode bit for bit, and NEON equals its scalar spec. Prefill runs at 11–13 tok/s on 6 threads on the throttled M4 (about 2.8× decode), **below the ≥ 20 tok/s target**. Profiling shows about a third of thread time idle (serial per-token work) and about 15% in per-token folding. Accepted because S1 is only an enabler: S2/S3 runs take hours, not days.
+
 ### Cut (stated as limitations, not attempted)
 Storage streaming beyond the atlas-sim G1 decision · Android / Tier C · Pi 5 measurements (left for testers) · human A/B and the code-switching set (replaced by automatic metrics) · C ABI · **our own chat server or offline-runner product** (already solved by llama.cpp, Ollama and LM Studio).
 
