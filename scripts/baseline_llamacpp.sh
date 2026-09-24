@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # llama.cpp baseline for one device (PROJECT-PLAN-B §6, P0).
 #
-#   scripts/baseline_llamacpp.sh LABEL MODEL.gguf THREADS [PROMPTS]
+#   scripts/baseline_llamacpp.sh LABEL MODEL.gguf THREADS PROBE_MANIFEST.json [PROMPTS]
 #
 # 1. llama-bench: synthetic pp512 / tg128, 5 reps, at 1..THREADS-style list.
 # 2. llama-server (one slot: a single edge user) + atlas_trace.llamacpp_baseline:
@@ -10,7 +10,8 @@
 # Outputs go to results/baseline/LABEL-*.json.
 set -euo pipefail
 
-label=${1:?label}; model=${2:?model.gguf}; threads=${3:?threads}; prompts=${4:-10}
+label=${1:?label}; model=${2:?model.gguf}; threads=${3:?threads}
+manifest=${4:?atlas-probe manifest of this machine}; prompts=${5:-10}
 root=$(cd "$(dirname "$0")/.." && pwd)
 bin="$root/vendor/llama.cpp/build-cpu/bin"
 out="$root/results/baseline"; mkdir -p "$out"
@@ -21,7 +22,10 @@ llama_commit=$(git -C "$root/vendor/llama.cpp" rev-parse HEAD)
 
 echo "== llama-bench ($label)" >&2
 "$bin/llama-bench" -m "$model" -t "1,$threads" -p 512 -n 128 -r 5 -ngl 0 -o json \
-    > "$out/$label-llama-bench.json"
+    > "$out/$label-llama-bench.raw.json"
+python3 -c 'import json, sys; b, m, d = sys.argv[1:]; json.dump({"llama_bench": json.load(open(b)), "hardware": json.load(open(m))}, open(d, "w"), indent=2)' \
+    "$out/$label-llama-bench.raw.json" "$manifest" "$out/$label-llama-bench.json"
+rm "$out/$label-llama-bench.raw.json"
 
 echo "== llama-server ($label, $threads threads)" >&2
 case "$(uname)" in
@@ -49,7 +53,8 @@ cat > "$meta" <<EOF
   "model_sha256": "$model_sha",
   "threads": $threads,
   "ctx": 2048,
-  "server_slots": 1
+  "server_slots": 1,
+  "hardware": $(cat "$manifest")
 }
 EOF
 
