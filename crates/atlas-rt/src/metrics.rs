@@ -18,6 +18,29 @@ pub fn nll(logits: &[f32], token: usize) -> f64 {
     -log_softmax(logits)[token]
 }
 
+/// One perplexity chunk: the tokens to run and which predictions count.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct PplChunk {
+    pub tokens: Vec<u32>,
+    /// (logit position, target token) pairs within the chunk.
+    pub scored: Vec<(usize, u32)>,
+}
+
+/// llama.cpp's perplexity protocol: split `tokens` into chunks of `n_ctx`,
+/// replace each chunk's first token with `bos`, and score predictions for
+/// the second half of the chunk.
+pub fn ppl_chunks(tokens: &[u32], n_ctx: usize, max_chunks: usize, bos: u32) -> Vec<PplChunk> {
+    tokens
+        .chunks_exact(n_ctx)
+        .take(max_chunks)
+        .map(|c| {
+            let tokens: Vec<u32> = std::iter::once(bos).chain(c[1..].iter().copied()).collect();
+            let scored = (n_ctx / 2..n_ctx - 1).map(|i| (i, tokens[i + 1])).collect();
+            PplChunk { tokens, scored }
+        })
+        .collect()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -35,6 +58,16 @@ mod tests {
         let p = [3.0f32.ln(), 0.0];
         let want = 0.75 * (0.75f64 / 0.5).ln() + 0.25 * (0.25f64 / 0.5).ln();
         assert!((kl(&p, &[0.0, 0.0]) - want).abs() < 1e-6);
+    }
+
+    #[test]
+    fn ppl_chunks_follow_llama_cpp() {
+        let toks: Vec<u32> = (10..30).collect();
+        let c = ppl_chunks(&toks, 8, 10, 1);
+        assert_eq!(c.len(), 2); // 20 tokens -> 2 full chunks of 8
+        assert_eq!(c[1].tokens, vec![1, 19, 20, 21, 22, 23, 24, 25]);
+        assert_eq!(c[0].scored, vec![(4, 15), (5, 16), (6, 17)]);
+        assert_eq!(ppl_chunks(&toks, 8, 1, 1).len(), 1);
     }
 
     #[test]

@@ -22,6 +22,9 @@ struct Cli {
     /// Use the scalar single-threaded reference kernels
     #[arg(long, global = true)]
     reference: bool,
+    /// atlas-probe manifest of this machine, embedded in result files
+    #[arg(long, global = true)]
+    manifest: Option<PathBuf>,
     #[command(subcommand)]
     cmd: Cmd,
 }
@@ -70,6 +73,22 @@ enum Cmd {
         #[arg(long)]
         out: PathBuf,
     },
+    /// Perplexity with llama.cpp's protocol (chunks of n_ctx, BOS first,
+    /// second half scored), for comparison with llama-perplexity
+    Perplexity {
+        #[arg(long)]
+        model: PathBuf,
+        #[arg(long)]
+        tokenizer: PathBuf,
+        #[arg(long)]
+        text: PathBuf,
+        #[arg(long, default_value_t = 256)]
+        ctx: usize,
+        #[arg(long, default_value_t = 6)]
+        chunks: usize,
+        #[arg(long)]
+        out: PathBuf,
+    },
     /// Time each kernel of layer 0 and lm_head in isolation
     Kernels {
         #[arg(long)]
@@ -99,6 +118,13 @@ fn main() -> ExitCode {
         return ExitCode::FAILURE;
     }
     let kernels = if cli.reference { Kernels::Reference } else { Kernels::Fast };
+    let hardware = match cli.manifest.as_deref().map(read_manifest).transpose() {
+        Ok(h) => h.unwrap_or(serde_json::Value::Null),
+        Err(e) => {
+            eprintln!("error: manifest: {e}");
+            return ExitCode::FAILURE;
+        }
+    };
     let result = match cli.cmd {
         Cmd::Logits { model, tokens, all } => logits(&model, &tokens, all, kernels),
         Cmd::Generate { model, tokenizer, prompt, system, max_tokens, ctx } => {
@@ -106,7 +132,12 @@ fn main() -> ExitCode {
         }
         Cmd::Bench { model, tokens, warmup } => bench(&model, tokens, warmup, kernels),
         Cmd::Kernels { model, reps } => kernel_bench(&model, reps, kernels),
-        Cmd::Compare { model, tokenizer, text, label, tokens, out } => compare(&model, &tokenizer, &text, &label, tokens, &out),
+        Cmd::Compare { model, tokenizer, text, label, tokens, out } => {
+            compare(&model, &tokenizer, &text, &label, tokens, &out, &hardware)
+        }
+        Cmd::Perplexity { model, tokenizer, text, ctx, chunks, out } => {
+            perplexity(&model, &tokenizer, &text, ctx, chunks, kernels, &out, &hardware)
+        }
     };
     match result {
         Ok(()) => ExitCode::SUCCESS,
@@ -277,7 +308,15 @@ fn kernel_bench(model: &Path, reps: usize, kernels: Kernels) -> Result<(), AnyEr
 /// Runs the reference and fast kernels teacher-forced over the same tokens
 /// and reports per-token KL(reference ‖ fast), top-1 agreement and the NLL
 /// of the true next token under each.
-fn compare(model: &Path, tok_path: &Path, text: &Path, label: &str, n: usize, out: &Path) -> Result<(), AnyError> {
+fn compare(
+    model: &Path,
+    tok_path: &Path,
+    text: &Path,
+    label: &str,
+    n: usize,
+    out: &Path,
+    hardware: &serde_json::Value,
+) -> Result<(), AnyError> {
     use atlas_rt::metrics::{kl, nll};
     let (header, data, map) = open(model)?;
     let w = weights(&header, &map[data as usize..])?;
@@ -317,6 +356,7 @@ fn compare(model: &Path, tok_path: &Path, text: &Path, label: &str, n: usize, ou
         "nll_reference": mean(&nll_ref),
         "nll_fast": mean(&nll_fast),
         "kl_per_token": kls,
+        "hardware": hardware,
     });
     std::fs::write(out, serde_json::to_string_pretty(&report)? + "\n")?;
     eprintln!(
@@ -330,3 +370,62 @@ fn compare(model: &Path, tok_path: &Path, text: &Path, label: &str, n: usize, ou
     Ok(())
 }
 
+fn read_manifest(path: &Path) -> Result<serde_json::Value, AnyError> {
+    let bytes = std::fs::read(path).map_err(|e| format!("{}: {e}", path.display()))?;
+    Ok(serde_json::from_slice(&bytes)?)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn perplexity(
+    model: &Path,
+    tok_path: &Path,
+    text: &Path,
+    n_ctx: usize,
+    max_chunks: usize,
+    kernels: Kernels,
+    out: &Path,
+    hardware: &serde_json::Value,
+) -> Result<(), AnyError> {
+    use atlas_rt::metrics::{nll, ppl_chunks};
+    const BOS: u32 = 128_000;
+    let (header, data, map) = open(model)?;
+    let w = weights(&header, &map[data as usize..])?;
+    let plan = Plan::dense(&w.config, ops::rope_inv_freq(&w.config)?, kernels);
+    let tok = Tokenizer::from_file(tok_path).map_err(|e| format!("{}: {e}", tok_path.display()))?;
+    let body = std::fs::read_to_string(text)?;
+    let ids: Vec<u32> = std::iter::once(BOS)
+        .chain(tok.encode(body, false).map_err(|e| e.to_string())?.get_ids().iter().copied())
+        .collect();
+    let t0 = Instant::now();
+    let per_chunk = ppl_chunks(&ids, n_ctx, max_chunks, BOS)
+        .iter()
+        .map(|c| {
+            let mut kv = KvCache::new(&w.config, n_ctx);
+            let logits = c.tokens.iter().map(|&t| step(&w, &plan, &mut kv, t)).collect::<Result<Vec<_>, _>>()?;
+            Ok(c.scored.iter().map(|&(i, target)| nll(&logits[i], target as usize)).collect::<Vec<f64>>())
+        })
+        .collect::<Result<Vec<_>, AnyError>>()?;
+    let nlls: Vec<f64> = per_chunk.concat();
+    let mean = nlls.iter().sum::<f64>() / nlls.len() as f64;
+    let ppl = mean.exp();
+    let chunk_ppl: Vec<f64> = per_chunk.iter().map(|c| (c.iter().sum::<f64>() / c.len() as f64).exp()).collect();
+    let report = serde_json::json!({
+        "engine": "atlas-rt",
+        "kernels": format!("{kernels:?}"),
+        "model": model.display().to_string(),
+        "model_source_files": header.source.files,
+        "text": text.display().to_string(),
+        "text_tokens": ids.len(),
+        "n_ctx": n_ctx,
+        "chunks": per_chunk.len(),
+        "scored_tokens": nlls.len(),
+        "mean_nll": mean,
+        "ppl": ppl,
+        "chunk_ppl": chunk_ppl,
+        "seconds": t0.elapsed().as_secs_f64(),
+        "hardware": hardware,
+    });
+    std::fs::write(out, serde_json::to_string_pretty(&report)? + "\n")?;
+    eprintln!("{}: PPL {ppl:.4} over {} tokens ({} chunks)", text.display(), nlls.len(), per_chunk.len());
+    Ok(())
+}
