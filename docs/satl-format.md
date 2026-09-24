@@ -40,6 +40,12 @@ its own length in advance.
 }
 ```
 
+`q4_fit` (optional) records how q4 parameters were chosen:
+- `"search"`: weighted least-squares fit over candidate scales, the converter default.
+- `"min-max"`: the default in files written before this field existed.
+
+The byte layout is identical either way.
+
 `rope_layout: hf_rotate_half` records that the q/k projections use Hugging Face's
 permuted layout, so RoPE must rotate the halves `(x[i], x[i + d/2])`.
 

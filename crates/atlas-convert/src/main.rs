@@ -42,8 +42,8 @@ enum Cmd {
         /// Lossless f32 everywhere (reference files for runtime validation)
         #[arg(long)]
         f32: bool,
-        /// q4 parameter fit: min-max, or search (least-squares, same format)
-        #[arg(long, default_value = "min-max", value_parser = ["min-max", "search"])]
+        /// q4 parameter fit: search (least-squares; closes the gap to Q4_K_M) or min-max
+        #[arg(long, default_value = "search", value_parser = ["min-max", "search"])]
         q4_fit: String,
         /// Skip SHA-256 of source files (tests only; breaks provenance)
         #[arg(long)]
