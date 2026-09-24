@@ -5,11 +5,11 @@ from atlas_trace.llamacpp_baseline import make_prompts, run, summarize_all
 CORPUS = {lang: [f"{lang} sentence {i}" for i in range(3)] for lang in ("en", "yo", "ha", "ig")}
 
 
-def test_prompts_cover_every_target_with_parallel_sources():
+def test_prompts_interleave_languages_with_parallel_sources():
     ps = make_prompts(CORPUS, 2)
-    assert [p.lang for p in ps] == ["en", "en", "yo", "yo", "ha", "ha", "ig", "ig"]
-    assert "yo sentence 1" in ps[1].text  # English target translates from Yoruba
-    assert "en sentence 0" in ps[2].text and "into Yoruba" in ps[2].text
+    assert [p.lang for p in ps] == ["en", "yo", "ha", "ig", "en", "yo", "ha", "ig"]
+    assert "yo sentence 1" in ps[4].text  # English target translates from Yoruba
+    assert "en sentence 0" in ps[1].text and "into Yoruba" in ps[1].text
 
 
 def test_run_discards_warmup_and_summarizes():

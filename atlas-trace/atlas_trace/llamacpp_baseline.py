@@ -72,14 +72,19 @@ def build_prompt(target: str, source_lang: str, source_text: str) -> str:
 
 
 def make_prompts(corpus: dict[str, Sequence[str]], n: int) -> list[Prompt]:
-    """en targets translate from yo; every other target translates from en."""
+    """en targets translate from yo; every other target translates from en.
+
+    Languages are interleaved (sentence i in every language, then i + 1) so
+    drift in device speed over the run (thermals, background load) spreads
+    evenly across languages instead of masquerading as a language effect.
+    """
     def source(target: str) -> str:
         return "yo" if target == "en" else "en"
 
     return [
         Prompt(t, i, build_prompt(t, source(t), corpus[source(t)][i]))
-        for t in NAMES
         for i in range(n)
+        for t in NAMES
     ]
 
 
