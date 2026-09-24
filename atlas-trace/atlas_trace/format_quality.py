@@ -79,17 +79,22 @@ def main(argv: Sequence[str]) -> int:
     ap.add_argument("--chunks", type=int, default=12)
     ap.add_argument("--threads", type=int, default=6)
     ap.add_argument("--manifest", type=Path, required=True)
+    ap.add_argument("--reuse", type=Path, help="earlier result file: reuse its Q8_0 and Q4_K_M chunk NLLs (deterministic)")
     ap.add_argument("--out", type=Path, required=True)
     args = ap.parse_args(argv)
 
     args.out.parent.mkdir(parents=True, exist_ok=True)
+    reused = {r["lang"]: r["chunk_nll"] for r in json.loads(args.reuse.read_text())["languages"]} if args.reuse else {}
     rows = []
     for lang, code in LANGS.items():
         text = args.flores / "devtest" / f"{code}.devtest"
-        print(f"{lang}: Q8_0", file=sys.stderr)
-        q8 = run_llama(args.llama, args.q8, text, args.ctx, args.chunks, args.threads)
-        print(f"{lang}: Q4_K_M", file=sys.stderr)
-        q4km = run_llama(args.llama, args.q4km, text, args.ctx, args.chunks, args.threads)
+        if lang in reused:
+            q8, q4km = reused[lang]["q8_0"], reused[lang]["q4_k_m"]
+        else:
+            print(f"{lang}: Q8_0", file=sys.stderr)
+            q8 = run_llama(args.llama, args.q8, text, args.ctx, args.chunks, args.threads)
+            print(f"{lang}: Q4_K_M", file=sys.stderr)
+            q4km = run_llama(args.llama, args.q4km, text, args.ctx, args.chunks, args.threads)
         print(f"{lang}: .satl", file=sys.stderr)
         raw = args.out.with_name(f"{args.out.stem}-{lang}-atlas.json")
         satl = run_atlas(args.atlas, args.satl, args.tokenizer, text, args.ctx, args.chunks,
