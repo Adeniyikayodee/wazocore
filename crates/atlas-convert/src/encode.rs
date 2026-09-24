@@ -86,9 +86,9 @@ fn gather_columns(m: &Matrix, cols: Range<usize>) -> Vec<Vec<f32>> {
     (0..width).map(|k| (0..m.rows).map(|r| flat[r * width + k]).collect()).collect()
 }
 
-fn encode_values(codec: &Codec, values: &[f32]) -> Result<Vec<u8>, EncodeError> {
+fn encode_values(codec: &Codec, values: &[f32], fit: codec::Fit) -> Result<Vec<u8>, EncodeError> {
     Ok(match codec {
-        Codec::Q4 { group } => codec::encode_q4(values, *group)?,
+        Codec::Q4 { group } => codec::encode_q4_with(values, *group, fit)?,
         Codec::Q8 { group } => codec::encode_q8(values, *group)?,
         Codec::F32 => codec::encode_f32(values),
     })
@@ -103,7 +103,7 @@ fn decode_values(codec: &Codec, bytes: &[u8], len: usize) -> Result<Vec<f32>, En
 }
 
 /// Bytes for columns `range` of a `Columns` tensor, each padded to `stride`.
-pub fn encode_columns(kind: &Kind, parts: &[Matrix], range: Range<usize>) -> Result<Vec<u8>, EncodeError> {
+pub fn encode_columns(kind: &Kind, parts: &[Matrix], range: Range<usize>, fit: codec::Fit) -> Result<Vec<u8>, EncodeError> {
     let Kind::Columns { parts: specs, codec, stride, column_bytes, .. } = kind else {
         return Err(EncodeError::CodecMismatch("encode_columns needs a columns tensor"));
     };
@@ -117,7 +117,7 @@ pub fn encode_columns(kind: &Kind, parts: &[Matrix], range: Range<usize>) -> Res
         let per_part: Vec<Vec<Vec<f32>>> = parts.iter().map(|m| gather_columns(m, block.clone())).collect();
         for k in 0..block.len() {
             for col in &per_part {
-                out.extend(encode_values(codec, &col[k])?);
+                out.extend(encode_values(codec, &col[k], fit)?);
             }
             out.resize(out.len() + stride - column_bytes, 0);
         }
@@ -130,7 +130,7 @@ pub fn encode_rows(kind: &Kind, m: &Matrix, range: Range<usize>) -> Result<Vec<u
     let Kind::Rows { codec, .. } = kind else {
         return Err(EncodeError::CodecMismatch("encode_rows needs a rows tensor"));
     };
-    range.map(|r| encode_values(codec, &m.row(r))).collect::<Result<Vec<_>, _>>().map(|rows| rows.concat())
+    range.map(|r| encode_values(codec, &m.row(r), codec::Fit::MinMax)).collect::<Result<Vec<_>, _>>().map(|rows| rows.concat())
 }
 
 pub fn encode_vector(m: &Matrix) -> Vec<u8> {
@@ -185,10 +185,10 @@ mod tests {
             column_bytes,
             stride: 128,
         };
-        let seg = encode_columns(&kind, &[ma, mb], 0..cols).unwrap();
+        let seg = encode_columns(&kind, &[ma, mb], 0..cols, codec::Fit::MinMax).unwrap();
         assert_eq!(seg.len(), cols * 128);
         // Encoding a sub-range yields exactly that slice of the full segment.
-        assert_eq!(encode_columns(&kind, &[ma, mb], 33..35).unwrap(), seg[33 * 128..35 * 128]);
+        assert_eq!(encode_columns(&kind, &[ma, mb], 33..35, codec::Fit::MinMax).unwrap(), seg[33 * 128..35 * 128]);
         for j in [0, 17, 39] {
             let dec = decode_column(&kind, &seg, j).unwrap();
             let src_a: Vec<f32> = (0..rows_a).map(|r| ma.get(r, j)).collect();

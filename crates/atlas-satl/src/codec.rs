@@ -44,14 +44,70 @@ pub fn q4_bytes(rows: usize, group: usize) -> usize {
     rows / 2 + rows / group * 4
 }
 
+/// How a q4 group's (scale, min) is chosen. The stored format is identical;
+/// only the encoder's choice differs.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum Fit {
+    /// scale = (max − min) / 15, min = min.
+    MinMax,
+    /// Search candidate scales and least-squares-fit (scale, min) to the
+    /// resulting codes under weights |x| + rms(x), keeping the best weighted
+    /// error (the approach of llama.cpp's k-quants).
+    Search,
+}
+
 /// (scale, min) as stored, i.e. already rounded to f16, so the encoder
 /// quantises against exactly what the decoder will use.
-fn q4_params(group: &[f32]) -> (f16, f16) {
+fn q4_params(group: &[f32], fit: Fit) -> (f16, f16) {
     let lo = group.iter().copied().fold(f32::INFINITY, f32::min);
     let hi = group.iter().copied().fold(f32::NEG_INFINITY, f32::max);
-    let min = f16::from_f32(lo);
-    let scale = f16::from_f32((hi - min.to_f32()).max(0.0) / 15.0);
-    (scale, min)
+    match fit {
+        Fit::MinMax => {
+            let min = f16::from_f32(lo);
+            (f16::from_f32((hi - min.to_f32()).max(0.0) / 15.0), min)
+        }
+        Fit::Search => {
+            let (scale, min) = search_params(group, lo, hi);
+            (f16::from_f32(scale), f16::from_f32(min))
+        }
+    }
+}
+
+/// Weighted squared error of reconstructing `x` with codes from (scale, min).
+fn weighted_error(x: &[f32], w: &[f32], scale: f32, min: f32) -> f32 {
+    x.iter().zip(w).map(|(&v, &wi)| {
+        let e = scale * q4_code(v, scale, min) as f32 + min - v;
+        wi * e * e
+    }).sum()
+}
+
+/// Candidate inverse scales around 15 / (max − min); for each, fixes the
+/// codes and solves the weighted least-squares (scale, min) for them.
+fn search_params(x: &[f32], lo: f32, hi: f32) -> (f32, f32) {
+    const NMAX: f32 = 15.0;
+    let range = hi - lo;
+    if range <= 0.0 {
+        return (0.0, lo);
+    }
+    let rms = (x.iter().map(|v| v * v).sum::<f32>() / x.len() as f32).sqrt();
+    let w: Vec<f32> = x.iter().map(|v| rms + v.abs()).collect();
+    let start = (range / NMAX, lo);
+    let candidates = (0..=20).filter_map(|step| {
+        let iscale = (NMAX - 1.0 + 0.1 * step as f32) / range;
+        let codes: Vec<f32> = x.iter().map(|&v| ((v - lo) * iscale).round().clamp(0.0, NMAX)).collect();
+        let (sw, sl, sl2, sx, sxl) = codes.iter().zip(x).zip(&w).fold((0.0f32, 0.0, 0.0, 0.0, 0.0), |a, ((&l, &v), &wi)| {
+            (a.0 + wi, a.1 + wi * l, a.2 + wi * l * l, a.3 + wi * v, a.4 + wi * v * l)
+        });
+        let det = sw * sl2 - sl * sl;
+        let scale = (sw * sxl - sx * sl) / det;
+        let min = (sl2 * sx - sl * sxl) / det;
+        (det > 0.0 && scale > 0.0 && scale.is_finite() && min.is_finite()).then_some((scale, min))
+    });
+    std::iter::once(start)
+        .chain(candidates)
+        .map(|(s, m)| (weighted_error(x, &w, s, m), (s, m)))
+        .fold((f32::INFINITY, start), |best, (e, sm)| if e < best.0 { (e, sm) } else { best })
+        .1
 }
 
 fn q4_code(w: f32, scale: f32, min: f32) -> u8 {
@@ -60,8 +116,13 @@ fn q4_code(w: f32, scale: f32, min: f32) -> u8 {
 
 /// 4-bit asymmetric, `group` rows per (scale, min): nibbles, then params.
 pub fn encode_q4(values: &[f32], group: usize) -> Result<Vec<u8>, CodecError> {
+    encode_q4_with(values, group, Fit::MinMax)
+}
+
+/// `encode_q4` with an explicit parameter fit.
+pub fn encode_q4_with(values: &[f32], group: usize, fit: Fit) -> Result<Vec<u8>, CodecError> {
     check_group(values.len(), group)?;
-    let params: Vec<(f16, f16)> = values.chunks(group).map(q4_params).collect();
+    let params: Vec<(f16, f16)> = values.chunks(group).map(|g| q4_params(g, fit)).collect();
     let codes: Vec<u8> = values
         .chunks(group)
         .zip(&params)
@@ -173,11 +234,34 @@ mod tests {
         assert_eq!(enc.len(), q4_bytes(512, 64));
         let dec = decode_q4(&enc, 512, 64).unwrap();
         for (g, dg) in xs.chunks(64).zip(dec.chunks(64)) {
-            let (s, _) = q4_params(g);
+            let (s, _) = q4_params(g, Fit::MinMax);
             let half_step = s.to_f32() / 2.0 + 1e-3; // plus f16 rounding of min
             assert!(g.iter().zip(dg).all(|(a, b)| (a - b).abs() <= half_step));
         }
         assert!(error_stats(&xs, &dec).rel_rmse < 0.1);
+    }
+
+    /// Heavy-tailed weight-like values (a few outliers per group).
+    fn weights_like(n: usize, seed: u64) -> Vec<f32> {
+        (0..n as u64)
+            .map(|i| {
+                let h = (i.wrapping_mul(6364136223846793005) ^ seed.wrapping_mul(1442695040888963407)) >> 33;
+                let u = (h % 10_000) as f32 / 10_000.0 - 0.5;
+                if h.is_multiple_of(37) { u * 0.3 } else { u * 0.04 }
+            })
+            .collect()
+    }
+
+    #[test]
+    fn search_fit_beats_min_max_and_keeps_the_format() {
+        let xs = weights_like(64 * 400, 3);
+        let mm = decode_q4(&encode_q4_with(&xs, 64, Fit::MinMax).unwrap(), xs.len(), 64).unwrap();
+        let enc = encode_q4_with(&xs, 64, Fit::Search).unwrap();
+        assert_eq!(enc.len(), q4_bytes(xs.len(), 64));
+        let se = decode_q4(&enc, xs.len(), 64).unwrap();
+        let (e_mm, e_se) = (error_stats(&xs, &mm).rel_rmse, error_stats(&xs, &se).rel_rmse);
+        assert!(e_se < e_mm * 0.95, "search {e_se} vs min-max {e_mm}");
+        assert_eq!(encode_q4_with(&[0.25; 64], 64, Fit::Search).map(|b| decode_q4(&b, 64, 64).unwrap()).unwrap(), vec![0.25; 64]);
     }
 
     #[test]

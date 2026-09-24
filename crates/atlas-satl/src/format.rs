@@ -15,6 +15,10 @@ pub struct Header {
     pub format: String,
     pub version: u32,
     pub source: Source,
+    /// How q4 parameters were fitted ("min-max" or "search"); absent in
+    /// files written before the option existed (min-max).
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    pub q4_fit: Option<String>,
     pub config: ModelConfig,
     pub tensors: Vec<TensorEntry>,
 }

@@ -13,13 +13,14 @@ use crate::format::{Codec, Kind, ModelConfig, PAGE, Part, TensorEntry, align_up}
 pub struct Options {
     pub q4_group: usize,
     pub q8_group: usize,
+    pub q4_fit: codec::Fit,
     /// Store every matrix as lossless f32 (reference files for validation).
     pub f32: bool,
 }
 
 impl Default for Options {
     fn default() -> Self {
-        Self { q4_group: 64, q8_group: 32, f32: false }
+        Self { q4_group: 64, q8_group: 32, q4_fit: codec::Fit::MinMax, f32: false }
     }
 }
 

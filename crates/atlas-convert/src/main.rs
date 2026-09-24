@@ -42,6 +42,9 @@ enum Cmd {
         /// Lossless f32 everywhere (reference files for runtime validation)
         #[arg(long)]
         f32: bool,
+        /// q4 parameter fit: min-max, or search (least-squares, same format)
+        #[arg(long, default_value = "min-max", value_parser = ["min-max", "search"])]
+        q4_fit: String,
         /// Skip SHA-256 of source files (tests only; breaks provenance)
         #[arg(long)]
         no_hash: bool,
@@ -64,8 +67,9 @@ type AnyError = Box<dyn std::error::Error>;
 
 fn main() -> ExitCode {
     let result = match Cli::parse().cmd {
-        Cmd::Convert { model_dir, out, model_name, q4_group, q8_group, f32, no_hash } => {
-            convert(&model_dir, &out, &model_name, Options { q4_group, q8_group, f32 }, !no_hash)
+        Cmd::Convert { model_dir, out, model_name, q4_group, q8_group, f32, q4_fit, no_hash } => {
+            let fit = if q4_fit == "search" { atlas_convert::codec::Fit::Search } else { atlas_convert::codec::Fit::MinMax };
+            convert(&model_dir, &out, &model_name, Options { q4_group, q8_group, q4_fit: fit, f32 }, !no_hash)
         }
         Cmd::Inspect { file } => inspect(&file),
         Cmd::Verify { model_dir, satl, every } => verify(&model_dir, &satl, every.max(1)),
@@ -164,14 +168,14 @@ fn ranges(n: usize, k: usize) -> Vec<std::ops::Range<usize>> {
     (0..n).step_by(step).map(|s| s..(s + step).min(n)).collect()
 }
 
-fn encode_tensor(kind: &Kind, parsed: &[SafeTensors]) -> Result<Vec<u8>, AnyError> {
+fn encode_tensor(kind: &Kind, parsed: &[SafeTensors], fit: atlas_convert::codec::Fit) -> Result<Vec<u8>, AnyError> {
     let sources: Vec<Matrix> = plan::sources(kind).iter().map(|(n, _)| matrix(parsed, n)).collect::<Result<_, _>>()?;
     let chunks: Vec<Vec<u8>> = match kind {
         Kind::Vector { .. } => vec![encode::encode_vector(&sources[0])],
         Kind::Columns { count, .. } => thread::scope(|s| {
             ranges(*count, threads())
                 .into_iter()
-                .map(|r| s.spawn(|| encode::encode_columns(kind, &sources, r)))
+                .map(|r| s.spawn(|| encode::encode_columns(kind, &sources, r, fit)))
                 .collect::<Vec<_>>()
                 .into_iter()
                 .map(|h| h.join().expect("encoder thread panicked"))
@@ -208,6 +212,7 @@ fn convert(dir: &Path, out: &Path, model: &str, opts: Options, hash: bool) -> Re
         format: FORMAT.into(),
         version: VERSION,
         source: Source { model: model.into(), files },
+        q4_fit: Some(if opts.q4_fit == atlas_convert::codec::Fit::Search { "search" } else { "min-max" }.into()),
         config: cfg,
         tensors,
     };
@@ -218,7 +223,7 @@ fn convert(dir: &Path, out: &Path, model: &str, opts: Options, hash: bool) -> Re
     file.write_all_at(&prefix, 0)?;
     for (i, t) in header.tensors.iter().enumerate() {
         eprintln!("[{}/{}] {} ({:.1} MB)", i + 1, header.tensors.len(), t.name, t.length as f64 / 1e6);
-        let bytes = encode_tensor(&t.kind, &parsed)?;
+        let bytes = encode_tensor(&t.kind, &parsed, opts.q4_fit)?;
         if bytes.len() as u64 != t.length {
             return Err(format!("{}: encoded {} bytes, planned {}", t.name, bytes.len(), t.length).into());
         }
