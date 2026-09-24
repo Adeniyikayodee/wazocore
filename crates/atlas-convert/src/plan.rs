@@ -48,8 +48,23 @@ impl fmt::Display for PlanError {
 
 impl std::error::Error for PlanError {}
 
+/// RoPE base and scaling. transformers >= 5 nests both under
+/// `rope_parameters`; earlier versions use top-level `rope_theta` and
+/// `rope_scaling`. A missing base is an error, never a silent default:
+/// a wrong base corrupts every position but the first.
+fn rope_from_hf(v: &Value) -> Result<(f64, Option<Value>), PlanError> {
+    if let Some(p) = v.get("rope_parameters").filter(|p| p.is_object()) {
+        let theta = p.get("rope_theta").and_then(Value::as_f64).ok_or(PlanError::MissingConfig("rope_parameters.rope_theta"))?;
+        let scaled = p.get("rope_type").and_then(Value::as_str).is_some_and(|t| t != "default");
+        return Ok((theta, scaled.then(|| p.clone())));
+    }
+    let theta = v.get("rope_theta").and_then(Value::as_f64).ok_or(PlanError::MissingConfig("rope_theta"))?;
+    Ok((theta, v.get("rope_scaling").filter(|s| !s.is_null()).cloned()))
+}
+
 /// Reads the fields `.satl` needs from a Hugging Face `config.json`.
 pub fn config_from_hf(v: &Value) -> Result<ModelConfig, PlanError> {
+    let (rope_theta, rope_scaling) = rope_from_hf(v)?;
     let int = |k: &'static str| v.get(k).and_then(Value::as_u64).map(|x| x as usize).ok_or(PlanError::MissingConfig(k));
     let (hidden, n_heads) = (int("hidden_size")?, int("num_attention_heads")?);
     Ok(ModelConfig {
@@ -61,8 +76,8 @@ pub fn config_from_hf(v: &Value) -> Result<ModelConfig, PlanError> {
         head_dim: int("head_dim").unwrap_or(hidden / n_heads),
         vocab: int("vocab_size")?,
         rms_norm_eps: v.get("rms_norm_eps").and_then(Value::as_f64).ok_or(PlanError::MissingConfig("rms_norm_eps"))?,
-        rope_theta: v.get("rope_theta").and_then(Value::as_f64).unwrap_or(10_000.0),
-        rope_scaling: v.get("rope_scaling").filter(|s| !s.is_null()).cloned(),
+        rope_theta,
+        rope_scaling,
         rope_layout: "hf_rotate_half".into(),
     })
 }
@@ -261,4 +276,24 @@ pub(crate) mod tests {
         assert!(matches!(config_from_hf(&serde_json::json!({})), Err(PlanError::MissingConfig(_))));
     }
 
+    #[test]
+    fn reads_transformers_v5_rope_parameters() {
+        let v = serde_json::json!({
+            "hidden_size": 64, "intermediate_size": 128, "num_hidden_layers": 2,
+            "num_attention_heads": 4, "vocab_size": 256, "rms_norm_eps": 1e-5,
+            "rope_parameters": {"rope_theta": 500000.0, "rope_type": "llama3", "factor": 8.0}
+        });
+        let c = config_from_hf(&v).unwrap();
+        assert_eq!(c.rope_theta, 500000.0);
+        assert_eq!(c.rope_scaling.unwrap()["factor"], 8.0);
+    }
+
+    #[test]
+    fn missing_rope_theta_is_an_error_not_a_default() {
+        let v = serde_json::json!({
+            "hidden_size": 64, "intermediate_size": 128, "num_hidden_layers": 2,
+            "num_attention_heads": 4, "vocab_size": 256, "rms_norm_eps": 1e-5
+        });
+        assert_eq!(config_from_hf(&v), Err(PlanError::MissingConfig("rope_theta")));
+    }
 }
