@@ -193,6 +193,11 @@ Calibration and test splits are never mixed. N-ATLAS's training data is undisclo
 
 Sparsity level is chosen **per language** as the highest that passes all gates. It's published as a quality-vs-speed curve, not one number.
 
+> **Update 24 Sep (gate recalibrated, decision C + B):** the KL ≤ 0.05 target was a guess. Our TEAL implementation reproduces the paper's next-token loss (ΔNLL about +0.07–0.10 nats at 40% sparsity, against TEAL's +0.056 for Llama-3-8B), but KL at 40% is about 0.27 nats, so that gate would allow only about 10–15% sparsity.
+> - **C (reported):** the full per-language curve of KL, ΔNLL and top-1 against sparsity, with calibration on English vs the language itself. C1/C2 compare languages at matched sparsity and do not depend on any gate.
+> - **B (operating point):** per language, the highest sparsity whose ΔNLL does not exceed that language's Q4_K_M loss vs Q8_0 (§12: en 0.036, yo 0.008, ha 0.011, ig 0.020 nats). Sparsity must cost no more than the quantisation users already accept.
+> - **A (also reported):** where KL = 0.05 falls on each curve.
+
 ### 4.4 Statistics and reproducibility
 
 - Paired bootstrap (1,000 resamples) over sentences for quality deltas; median + p95 over ≥5 runs for speed, warm-up discarded.
