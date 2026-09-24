@@ -28,27 +28,27 @@ pub const BAND: usize = 4096;
 /// Target tiles per matrix: at least 4 per thread up to 16 threads, so
 /// work-stealing can even out uneven (big.LITTLE) cores. Deliberately not
 /// derived from the thread count, which would change the reduction order.
-const TILES: usize = 64;
+pub(crate) const TILES: usize = 64;
 /// Largest q4 group (rows per scale), enforced by `Columns::new`.
-const MAX_GROUP: usize = atlas_satl::codec::MAX_Q4_GROUP;
+pub(crate) const MAX_GROUP: usize = atlas_satl::codec::MAX_Q4_GROUP;
 
 #[derive(Debug, Clone, Copy)]
-struct Part {
+pub(crate) struct Part {
     /// Offset of this part's rows in the output vector.
-    out: usize,
+    pub out: usize,
     /// Offset of this part's bytes within a column.
-    byte: usize,
-    rows: usize,
+    pub byte: usize,
+    pub rows: usize,
 }
 
 #[derive(Debug, Clone, Copy)]
-struct Band {
-    part: usize,
-    row0: usize,
-    rows: usize,
+pub(crate) struct Band {
+    pub part: usize,
+    pub row0: usize,
+    pub rows: usize,
 }
 
-fn parts(w: &Columns) -> Vec<Part> {
+pub(crate) fn parts(w: &Columns) -> Vec<Part> {
     w.rows[..w.parts]
         .iter()
         .scan((0usize, 0usize), |(out, byte), &rows| {
@@ -61,7 +61,7 @@ fn parts(w: &Columns) -> Vec<Part> {
 }
 
 /// `k` contiguous ranges covering `0..n` (some may be empty).
-fn split(n: usize, k: usize) -> Vec<Range<usize>> {
+pub(crate) fn split(n: usize, k: usize) -> Vec<Range<usize>> {
     (0..k).map(|i| i * n / k..(i + 1) * n / k).collect()
 }
 
@@ -77,6 +77,18 @@ pub(crate) const DISPATCH: Inner = Inner { fold: int8::fold, dot: int8::dot_cols
 #[cfg(test)]
 pub(crate) const SPEC: Inner = Inner { fold: int8::fold_scalar, dot: int8::dot_cols_scalar };
 
+/// Output bands and column slices of a tensor: a function of its shape and
+/// the number of active columns only, never of the thread count.
+pub(crate) fn tiling(parts: &[Part], active: usize) -> (Vec<Band>, usize) {
+    let bands: Vec<Band> = parts
+        .iter()
+        .enumerate()
+        .flat_map(|(part, p)| (0..p.rows).step_by(BAND).map(move |row0| Band { part, row0, rows: BAND.min(p.rows - row0) }))
+        .collect();
+    let slices = TILES.div_ceil(bands.len()).clamp(1, active.div_ceil(COLS).max(1));
+    (bands, slices)
+}
+
 /// y = Σ_{j ∈ active} x[j] · W[:, j] with int8 activations.
 pub fn columns_gemv(w: &Columns, x: &[f32], active: &[u32]) -> Result<Vec<f32>, KernelError> {
     columns_gemv_with(w, x, active, DISPATCH)
@@ -90,12 +102,7 @@ pub(crate) fn columns_gemv_with(w: &Columns, x: &[f32], active: &[u32], inner: I
     check_columns(w, x, active)?;
     debug_assert!(group <= MAX_GROUP, "Columns::new bounds the group");
     let parts = parts(w);
-    let bands: Vec<Band> = parts
-        .iter()
-        .enumerate()
-        .flat_map(|(part, p)| (0..p.rows).step_by(BAND).map(move |row0| Band { part, row0, rows: BAND.min(p.rows - row0) }))
-        .collect();
-    let slices = TILES.div_ceil(bands.len()).clamp(1, active.len().div_ceil(COLS).max(1));
+    let (bands, slices) = tiling(&parts, active.len());
     let cols = split(active.len(), slices);
     let partials: Vec<Vec<f32>> = (0..bands.len() * slices)
         .into_par_iter()

@@ -3,7 +3,7 @@
 
 use std::fs;
 
-use atlas_rt::forward::{Kernels, KvCache, Plan, step};
+use atlas_rt::forward::{Kernels, KvCache, Plan, Want, prefill, step};
 use atlas_rt::ops::{argmax, rope_inv_freq, softmax};
 use atlas_rt::weights::weights;
 use atlas_satl::format::decode_prefix;
@@ -80,4 +80,31 @@ fn fast_kernels_stay_close_to_reference_end_to_end() {
     let agree = quick.iter().zip(&slow).filter(|(a, b)| argmax(a) == argmax(b)).count();
     eprintln!("fast vs reference: mean KL {mean:.2e} nats, top-1 {agree}/{}", r.tokens.len());
     assert!(mean < 1e-3, "mean KL {mean}");
+}
+
+/// Batched prefill must equal token-by-token decode exactly, including
+/// across batch boundaries and when decoding continues afterwards.
+#[test]
+fn prefill_equals_stepwise_decode_bit_for_bit() {
+    let r = reference();
+    let bytes = fs::read(format!("{DIR}/tiny-q4.satl")).unwrap();
+    let (header, data) = decode_prefix(&bytes).unwrap();
+    let w = weights(&header, &bytes[data as usize..]).unwrap();
+    let plan = Plan::dense(&w.config, rope_inv_freq(&w.config).unwrap(), Kernels::Fast);
+    let n = r.tokens.len();
+
+    let mut kv_a = KvCache::new(&w.config, n);
+    let stepwise: Vec<Vec<f32>> = r.tokens.iter().map(|&t| step(&w, &plan, &mut kv_a, t).unwrap()).collect();
+
+    let mut kv_b = KvCache::new(&w.config, n);
+    let mut batched = prefill(&w, &plan, &mut kv_b, &r.tokens[..25], Want::All).unwrap();
+    batched.extend(prefill(&w, &plan, &mut kv_b, &r.tokens[25..30], Want::All).unwrap());
+    batched.extend(r.tokens[30..].iter().map(|&t| step(&w, &plan, &mut kv_b, t).unwrap()));
+    assert_eq!(batched, stepwise);
+    assert_eq!(kv_a, kv_b);
+
+    let mut kv_c = KvCache::new(&w.config, n);
+    let last = prefill(&w, &plan, &mut kv_c, &r.tokens, Want::Last).unwrap();
+    assert_eq!(last, vec![stepwise[n - 1].clone()]);
+    assert!(prefill(&w, &plan, &mut kv_c, &r.tokens[..1], Want::Last).is_err(), "cache is full");
 }

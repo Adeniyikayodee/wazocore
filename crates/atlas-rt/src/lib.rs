@@ -9,6 +9,7 @@
 
 pub mod chat;
 pub mod fast;
+pub mod gemm;
 pub(crate) mod int8;
 pub mod forward;
 pub mod kernels;

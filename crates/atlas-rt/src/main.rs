@@ -8,7 +8,7 @@ use clap::{Parser, Subcommand};
 use memmap2::Mmap;
 use tokenizers::Tokenizer;
 
-use atlas_rt::forward::{Kernels, KvCache, Plan, step};
+use atlas_rt::forward::{Kernels, KvCache, Plan, Want, prefill, step};
 use atlas_rt::weights::weights;
 use atlas_rt::{chat, ops};
 use atlas_satl::format;
@@ -95,6 +95,9 @@ enum Cmd {
         model: PathBuf,
         #[arg(long, default_value_t = 20)]
         reps: usize,
+        /// Tokens per call: 1 = decode kernels, > 1 = batched prefill kernels
+        #[arg(long, default_value_t = 1)]
+        batch: usize,
     },
     /// Time decode steps on synthetic tokens (no tokenizer)
     Bench {
@@ -104,6 +107,9 @@ enum Cmd {
         tokens: usize,
         #[arg(long, default_value_t = 4)]
         warmup: usize,
+        /// Also time batched prefill of this many prompt tokens (3 runs)
+        #[arg(long)]
+        prefill_tokens: Option<usize>,
     },
 }
 
@@ -130,8 +136,8 @@ fn main() -> ExitCode {
         Cmd::Generate { model, tokenizer, prompt, system, max_tokens, ctx } => {
             generate(&model, &tokenizer, &system, &prompt, max_tokens, ctx, kernels)
         }
-        Cmd::Bench { model, tokens, warmup } => bench(&model, tokens, warmup, kernels),
-        Cmd::Kernels { model, reps } => kernel_bench(&model, reps, kernels),
+        Cmd::Bench { model, tokens, warmup, prefill_tokens } => bench(&model, tokens, warmup, prefill_tokens, kernels),
+        Cmd::Kernels { model, reps, batch } => kernel_bench(&model, reps, batch, kernels),
         Cmd::Compare { model, tokenizer, text, label, tokens, out } => {
             compare(&model, &tokenizer, &text, &label, tokens, &out, &hardware)
         }
@@ -185,8 +191,8 @@ fn generate(
     let mut kv = KvCache::new(&w.config, ctx);
 
     let t0 = Instant::now();
-    let last = ids.iter().try_fold(Vec::new(), |_, &t| step(&w, &plan, &mut kv, t))?;
-    let prefill = t0.elapsed().as_secs_f64();
+    let last = prefill(&w, &plan, &mut kv, &ids, Want::Last)?.pop().ok_or("empty prompt")?;
+    let prefill_secs = t0.elapsed().as_secs_f64();
 
     let t1 = Instant::now();
     let mut out: Vec<u32> = Vec::new();
@@ -204,8 +210,8 @@ fn generate(
     eprintln!(
         "\n\nprefill {} tok in {:.1}s ({:.2} tok/s) | decode {} tok in {:.1}s ({:.2} tok/s, {:.2} words/s)",
         ids.len(),
-        prefill,
-        ids.len() as f64 / prefill,
+        prefill_secs,
+        ids.len() as f64 / prefill_secs,
         out.len(),
         decode,
         out.len() as f64 / decode,
@@ -216,10 +222,22 @@ fn generate(
 
 /// Decode-step timing: `warmup` untimed steps, then `tokens` timed steps,
 /// reporting median and p95 per-step tok/s and implied weight bandwidth.
-fn bench(model: &Path, tokens: usize, warmup: usize, kernels: Kernels) -> Result<(), AnyError> {
+fn bench(model: &Path, tokens: usize, warmup: usize, prefill_tokens: Option<usize>, kernels: Kernels) -> Result<(), AnyError> {
     let (header, data, map) = open(model)?;
     let w = weights(&header, &map[data as usize..])?;
     let plan = Plan::dense(&w.config, ops::rope_inv_freq(&w.config)?, kernels);
+    if let Some(n) = prefill_tokens {
+        let prompt: Vec<u32> = (0..n).map(|i| (i * 7919 % 50_000 + 1000) as u32).collect();
+        let runs = (0..3)
+            .map(|_| {
+                let mut kv = KvCache::new(&w.config, n);
+                let t0 = Instant::now();
+                prefill(&w, &plan, &mut kv, &prompt, Want::Last).map(|_| n as f64 / t0.elapsed().as_secs_f64())
+            })
+            .collect::<Result<Vec<f64>, _>>()?;
+        let shown: Vec<String> = runs.iter().map(|r| format!("{r:.1}")).collect();
+        println!("{} threads, {kernels:?}: prefill {n} tokens: {} tok/s", rayon::current_num_threads(), shown.join(", "));
+    }
     let mut kv = KvCache::new(&w.config, warmup + tokens);
     let ids = (0..warmup + tokens).map(|i| (i * 7919 % 50_000 + 1000) as u32);
     let secs: Vec<f64> = ids
@@ -273,8 +291,8 @@ fn time_median(reps: usize, mut f: impl FnMut() -> KernelResult) -> Result<f64, 
     Ok(secs[secs.len() / 2])
 }
 
-fn kernel_bench(model: &Path, reps: usize, kernels: Kernels) -> Result<(), AnyError> {
-    use atlas_rt::{fast, kernels as reference};
+fn kernel_bench(model: &Path, reps: usize, batch: usize, kernels: Kernels) -> Result<(), AnyError> {
+    use atlas_rt::{fast, gemm, kernels as reference};
     let (header, data, map) = open(model)?;
     let w = weights(&header, &map[data as usize..])?;
     let c = &w.config;
@@ -283,9 +301,10 @@ fn kernel_bench(model: &Path, reps: usize, kernels: Kernels) -> Result<(), AnyEr
     let all = |n: usize| -> Vec<u32> { (0..n as u32).collect() };
     let (xh, xq, xf) = (x(c.hidden), x(c.n_heads * c.head_dim), x(c.ffn));
     let (ah, aq, af) = (all(c.hidden), all(c.n_heads * c.head_dim), all(c.ffn));
-    let cols = |w: &atlas_rt::weights::Columns, x: &[f32], a: &[u32]| match kernels {
-        Kernels::Reference => reference::columns_gemv_ref(w, x, a),
-        Kernels::Fast => fast::columns_gemv(w, x, a),
+    let cols = |w: &atlas_rt::weights::Columns, x: &[f32], a: &[u32]| match (kernels, batch) {
+        (Kernels::Reference, _) => reference::columns_gemv_ref(w, x, a),
+        (Kernels::Fast, 1) => fast::columns_gemv(w, x, a),
+        (Kernels::Fast, n) => gemm::columns_gemm(w, &vec![x.to_vec(); n], a).map(|mut ys| ys.pop().unwrap_or_default()),
     };
     let cases: [Case; 5] = [
         ("qkv", l.qkv.bytes() as u64, Box::new(|| cols(&l.qkv, &xh, &ah))),
@@ -297,10 +316,11 @@ fn kernel_bench(model: &Path, reps: usize, kernels: Kernels) -> Result<(), AnyEr
             Kernels::Fast => fast::rows_gemv(&w.lm_head, &xh),
         })),
     ];
-    println!("{} threads, {:?}", rayon::current_num_threads(), kernels);
+    println!("{} threads, {:?}, batch {batch}", rayon::current_num_threads(), kernels);
     for (name, bytes, mut f) in cases {
         let s = time_median(reps, &mut f)?;
-        println!("  {name:<8} {:>8.3} ms  {:>6.1} GB/s  ({:.1} MB)", s * 1e3, bytes as f64 / s / 1e9, bytes as f64 / 1e6);
+        let per_token = s / batch as f64;
+        println!("  {name:<8} {:>8.3} ms/token  {:>6.1} GB/s-equivalent  ({:.1} MB)", per_token * 1e3, bytes as f64 / per_token / 1e9, bytes as f64 / 1e6);
     }
     Ok(())
 }
@@ -331,7 +351,7 @@ fn compare(
         let plan = Plan::dense(&w.config, inv_freq.clone(), k);
         let mut kv = KvCache::new(&w.config, ids.len());
         let t0 = Instant::now();
-        let logits = ids[..ids.len() - 1].iter().map(|&t| step(&w, &plan, &mut kv, t)).collect::<Result<Vec<_>, _>>()?;
+        let logits = prefill(&w, &plan, &mut kv, &ids[..ids.len() - 1], Want::All)?;
         eprintln!("{label}: {k:?} {} tokens in {:.0}s", logits.len(), t0.elapsed().as_secs_f64());
         Ok(logits)
     };
@@ -401,7 +421,7 @@ fn perplexity(
         .iter()
         .map(|c| {
             let mut kv = KvCache::new(&w.config, n_ctx);
-            let logits = c.tokens.iter().map(|&t| step(&w, &plan, &mut kv, t)).collect::<Result<Vec<_>, _>>()?;
+            let logits = prefill(&w, &plan, &mut kv, &c.tokens, Want::All)?;
             Ok(c.scored.iter().map(|&(i, target)| nll(&logits[i], target as usize)).collect::<Vec<f64>>())
         })
         .collect::<Result<Vec<_>, AnyError>>()?;

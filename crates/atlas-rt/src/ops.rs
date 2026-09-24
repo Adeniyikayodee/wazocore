@@ -120,7 +120,13 @@ pub fn attention(q: &[f32], keys: &[f32], values: &[f32], len: usize, cfg: &Mode
                 })
                 .collect();
             let p = softmax(&scores);
-            (0..hd).map(move |i| (0..len).map(|t| p[t] * values[t * kv_dim + kv_off + i]).sum::<f32>()).collect::<Vec<_>>()
+            // Positions outer, head dimension inner: contiguous value rows,
+            // and each output element still sums over t in order 0..len.
+            (0..len).fold(vec![0.0f32; hd], |mut out, t| {
+                let v = &values[t * kv_dim + kv_off..][..hd];
+                out.iter_mut().zip(v).for_each(|(o, &vi)| *o += p[t] * vi);
+                out
+            })
         })
         .collect()
 }
