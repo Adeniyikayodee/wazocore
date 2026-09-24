@@ -39,6 +39,9 @@ enum Cmd {
         q4_group: usize,
         #[arg(long, default_value_t = 32)]
         q8_group: usize,
+        /// Lossless f32 everywhere (reference files for runtime validation)
+        #[arg(long)]
+        f32: bool,
         /// Skip SHA-256 of source files (tests only; breaks provenance)
         #[arg(long)]
         no_hash: bool,
@@ -61,8 +64,8 @@ type AnyError = Box<dyn std::error::Error>;
 
 fn main() -> ExitCode {
     let result = match Cli::parse().cmd {
-        Cmd::Convert { model_dir, out, model_name, q4_group, q8_group, no_hash } => {
-            convert(&model_dir, &out, &model_name, Options { q4_group, q8_group }, !no_hash)
+        Cmd::Convert { model_dir, out, model_name, q4_group, q8_group, f32, no_hash } => {
+            convert(&model_dir, &out, &model_name, Options { q4_group, q8_group, f32 }, !no_hash)
         }
         Cmd::Inspect { file } => inspect(&file),
         Cmd::Verify { model_dir, satl, every } => verify(&model_dir, &satl, every.max(1)),

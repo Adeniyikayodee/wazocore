@@ -55,11 +55,14 @@ pub struct TensorEntry {
     pub kind: Kind,
 }
 
-#[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum Codec {
     Q4 { group: usize },
     Q8 { group: usize },
+    /// Lossless little-endian f32; for reference files that validate the
+    /// runtime's forward pass, not for deployment.
+    F32,
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]

@@ -6,6 +6,7 @@ edition.workspace = true
 publish.workspace = true
 
 [dependencies]
+atlas-satl = { path = "../atlas-satl" }
 clap = { version = "4", features = ["derive"] }
 half = "2"
 memmap2 = "0.9"

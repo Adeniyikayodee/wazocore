@@ -56,6 +56,7 @@ dependencies = [
 name = "atlas-convert"
 version = "0.1.0"
 dependencies = [
+ "atlas-satl",
  "clap",
  "half",
  "memmap2",
@@ -71,6 +72,15 @@ name = "atlas-probe"
 version = "0.1.0"
 dependencies = [
  "libc",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "atlas-satl"
+version = "0.1.0"
+dependencies = [
+ "half",
  "serde",
  "serde_json",
 ]

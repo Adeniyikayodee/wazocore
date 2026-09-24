@@ -13,11 +13,13 @@ use crate::format::{Codec, Kind, ModelConfig, PAGE, Part, TensorEntry, align_up}
 pub struct Options {
     pub q4_group: usize,
     pub q8_group: usize,
+    /// Store every matrix as lossless f32 (reference files for validation).
+    pub f32: bool,
 }
 
 impl Default for Options {
     fn default() -> Self {
-        Self { q4_group: 64, q8_group: 32 }
+        Self { q4_group: 64, q8_group: 32, f32: false }
     }
 }
 
@@ -66,16 +68,25 @@ pub fn config_from_hf(v: &Value) -> Result<ModelConfig, PlanError> {
 }
 
 /// A tensor to write, before offsets are assigned.
-fn columns(name: String, parts: Vec<(String, usize)>, count: usize, group: usize, page_stride: bool) -> (String, Kind) {
-    let column_bytes: usize = parts.iter().map(|(_, rows)| codec::q4_bytes(*rows, group)).sum();
-    let stride = if page_stride { align_up(column_bytes as u64, PAGE) as usize } else { column_bytes };
-    let parts = parts.into_iter().map(|(source, rows)| Part { source, rows }).collect();
-    (name, Kind::Columns { count, parts, codec: Codec::Q4 { group }, column_bytes, stride })
+/// Encoded bytes of `len` values under `codec`.
+pub fn codec_bytes(codec: &Codec, len: usize) -> usize {
+    match codec {
+        Codec::Q4 { group } => codec::q4_bytes(len, *group),
+        Codec::Q8 { group } => codec::q8_bytes(len, *group),
+        Codec::F32 => len * 4,
+    }
 }
 
-fn rows(name: &str, source: &str, count: usize, cols: usize, group: usize) -> (String, Kind) {
-    let row_bytes = codec::q8_bytes(cols, group);
-    let kind = Kind::Rows { count, cols, source: source.into(), codec: Codec::Q8 { group }, row_bytes, stride: row_bytes };
+fn columns(name: String, parts: Vec<(String, usize)>, count: usize, codec: Codec, page_stride: bool) -> (String, Kind) {
+    let column_bytes: usize = parts.iter().map(|(_, rows)| codec_bytes(&codec, *rows)).sum();
+    let stride = if page_stride { align_up(column_bytes as u64, PAGE) as usize } else { column_bytes };
+    let parts = parts.into_iter().map(|(source, rows)| Part { source, rows }).collect();
+    (name, Kind::Columns { count, parts, codec, column_bytes, stride })
+}
+
+fn rows(name: &str, source: &str, count: usize, cols: usize, codec: Codec) -> (String, Kind) {
+    let row_bytes = codec_bytes(&codec, cols);
+    let kind = Kind::Rows { count, cols, source: source.into(), codec, row_bytes, stride: row_bytes };
     (name.into(), kind)
 }
 
@@ -100,7 +111,8 @@ fn byte_length(kind: &Kind) -> u64 {
 }
 
 fn layout(cfg: &ModelConfig, o: &Options) -> Vec<(String, Kind)> {
-    let (h, f, g) = (cfg.hidden, cfg.ffn, o.q4_group);
+    let (h, f) = (cfg.hidden, cfg.ffn);
+    let (g, r) = if o.f32 { (Codec::F32, Codec::F32) } else { (Codec::Q4 { group: o.q4_group }, Codec::Q8 { group: o.q8_group }) };
     let q_rows = cfg.n_heads * cfg.head_dim;
     let kv_rows = cfg.n_kv_heads * cfg.head_dim;
     let src = |l: usize, s: &str| format!("model.layers.{l}.{s}.weight");
@@ -126,11 +138,11 @@ fn layout(cfg: &ModelConfig, o: &Options) -> Vec<(String, Kind)> {
             columns(format!("layers.{l}.mlp.down"), vec![(src(l, "mlp.down_proj"), h)], f, g, false),
         ]
     });
-    std::iter::once(rows("embed", "model.embed_tokens.weight", cfg.vocab, h, o.q8_group))
+    std::iter::once(rows("embed", "model.embed_tokens.weight", cfg.vocab, h, r))
         .chain(per_layer)
         .chain([
             vector("final_norm".into(), "model.norm.weight".into(), h),
-            rows("lm_head", "lm_head.weight", cfg.vocab, h, o.q8_group),
+            rows("lm_head", "lm_head.weight", cfg.vocab, h, r),
         ])
         .collect()
 }
@@ -231,7 +243,7 @@ pub(crate) mod tests {
         let mut bad = shapes.clone();
         bad.insert("model.norm.weight".into(), vec![7]);
         assert!(matches!(plan(&cfg, &bad, &Options::default()), Err(PlanError::BadShape { .. })));
-        let odd = Options { q4_group: 48, q8_group: 32 };
+        let odd = Options { q4_group: 48, ..Options::default() };
         assert!(matches!(plan(&cfg, &shapes, &odd), Err(PlanError::BadGroup { .. })));
     }
 
@@ -248,4 +260,5 @@ pub(crate) mod tests {
         assert!(c.rope_scaling.is_some());
         assert!(matches!(config_from_hf(&serde_json::json!({})), Err(PlanError::MissingConfig(_))));
     }
+
 }

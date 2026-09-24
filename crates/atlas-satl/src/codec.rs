@@ -128,6 +128,18 @@ pub fn decode_q8(bytes: &[u8], len: usize, group: usize) -> Result<Vec<f32>, Cod
         .collect())
 }
 
+pub fn encode_f32(values: &[f32]) -> Vec<u8> {
+    values.iter().flat_map(|v| v.to_le_bytes()).collect()
+}
+
+pub fn decode_f32(bytes: &[u8], len: usize) -> Result<Vec<f32>, CodecError> {
+    let (chunks, rest) = bytes.as_chunks::<4>();
+    if chunks.len() != len || !rest.is_empty() {
+        return Err(CodecError::BadLength { expected: len * 4, actual: bytes.len() });
+    }
+    Ok(chunks.iter().map(|&c| f32::from_le_bytes(c)).collect())
+}
+
 #[derive(Debug, Clone, Copy, PartialEq)]
 pub struct ErrorStats {
     /// ‖a − b‖ / ‖a‖.
@@ -196,6 +208,13 @@ mod tests {
         assert_eq!(enc.len(), q8_bytes(256, 32));
         let dec = decode_q8(&enc, 256, 32).unwrap();
         assert!(error_stats(&xs, &dec).rel_rmse < 0.01);
+    }
+
+    #[test]
+    fn f32_is_lossless() {
+        let xs = wave(10, 4);
+        assert_eq!(decode_f32(&encode_f32(&xs), 10).unwrap(), xs);
+        assert!(decode_f32(&[0; 7], 2).is_err());
     }
 
     #[test]

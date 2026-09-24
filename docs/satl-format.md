@@ -81,6 +81,13 @@ The segment holds `count` rows of `cols` values, `stride` bytes apart. Codec
 `q8 {group: 32}`: each block is a little-endian f16 `scale` followed by 32 × i8,
 so `w = q · scale`, at 8.5 bits per weight.
 
+### Codec `f32` (reference files only)
+
+`"codec": "f32"` stores `columns` and `rows` tensors as plain little-endian f32,
+with the same column-major or row-major order and no groups. It is lossless. It
+exists so the runtime's forward pass can be checked against PyTorch exactly
+(`crates/atlas-rt/tests`). It is never used for deployment.
+
 ### `vector`: f32
 
 Covers RMSNorm weights: `len` little-endian f32 values.

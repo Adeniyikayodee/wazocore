@@ -86,10 +86,26 @@ fn gather_columns(m: &Matrix, cols: Range<usize>) -> Vec<Vec<f32>> {
     (0..width).map(|k| (0..m.rows).map(|r| flat[r * width + k]).collect()).collect()
 }
 
+fn encode_values(codec: &Codec, values: &[f32]) -> Result<Vec<u8>, EncodeError> {
+    Ok(match codec {
+        Codec::Q4 { group } => codec::encode_q4(values, *group)?,
+        Codec::Q8 { group } => codec::encode_q8(values, *group)?,
+        Codec::F32 => codec::encode_f32(values),
+    })
+}
+
+fn decode_values(codec: &Codec, bytes: &[u8], len: usize) -> Result<Vec<f32>, EncodeError> {
+    Ok(match codec {
+        Codec::Q4 { group } => codec::decode_q4(bytes, len, *group)?,
+        Codec::Q8 { group } => codec::decode_q8(bytes, len, *group)?,
+        Codec::F32 => codec::decode_f32(bytes, len)?,
+    })
+}
+
 /// Bytes for columns `range` of a `Columns` tensor, each padded to `stride`.
 pub fn encode_columns(kind: &Kind, parts: &[Matrix], range: Range<usize>) -> Result<Vec<u8>, EncodeError> {
-    let Kind::Columns { parts: specs, codec: Codec::Q4 { group }, stride, column_bytes, .. } = kind else {
-        return Err(EncodeError::CodecMismatch("encode_columns needs a q4 columns tensor"));
+    let Kind::Columns { parts: specs, codec, stride, column_bytes, .. } = kind else {
+        return Err(EncodeError::CodecMismatch("encode_columns needs a columns tensor"));
     };
     if parts.len() != specs.len() {
         return Err(EncodeError::WrongSources { expected: specs.len(), given: parts.len() });
@@ -101,7 +117,7 @@ pub fn encode_columns(kind: &Kind, parts: &[Matrix], range: Range<usize>) -> Res
         let per_part: Vec<Vec<Vec<f32>>> = parts.iter().map(|m| gather_columns(m, block.clone())).collect();
         for k in 0..block.len() {
             for col in &per_part {
-                out.extend(codec::encode_q4(&col[k], *group)?);
+                out.extend(encode_values(codec, &col[k])?);
             }
             out.resize(out.len() + stride - column_bytes, 0);
         }
@@ -111,14 +127,10 @@ pub fn encode_columns(kind: &Kind, parts: &[Matrix], range: Range<usize>) -> Res
 
 /// Bytes for rows `range` of a `Rows` tensor.
 pub fn encode_rows(kind: &Kind, m: &Matrix, range: Range<usize>) -> Result<Vec<u8>, EncodeError> {
-    let Kind::Rows { codec: Codec::Q8 { group }, .. } = kind else {
-        return Err(EncodeError::CodecMismatch("encode_rows needs a q8 rows tensor"));
+    let Kind::Rows { codec, .. } = kind else {
+        return Err(EncodeError::CodecMismatch("encode_rows needs a rows tensor"));
     };
-    range
-        .map(|r| codec::encode_q8(&m.row(r), *group))
-        .collect::<Result<Vec<_>, _>>()
-        .map(|rows| rows.concat())
-        .map_err(EncodeError::from)
+    range.map(|r| encode_values(codec, &m.row(r))).collect::<Result<Vec<_>, _>>().map(|rows| rows.concat())
 }
 
 pub fn encode_vector(m: &Matrix) -> Vec<u8> {
@@ -127,23 +139,23 @@ pub fn encode_vector(m: &Matrix) -> Vec<u8> {
 
 /// Decodes column `j` of a `Columns` segment: one vector per part.
 pub fn decode_column(kind: &Kind, segment: &[u8], j: usize) -> Result<Vec<Vec<f32>>, EncodeError> {
-    let Kind::Columns { parts, codec: Codec::Q4 { group }, stride, .. } = kind else {
-        return Err(EncodeError::CodecMismatch("decode_column needs a q4 columns tensor"));
+    let Kind::Columns { parts, codec, stride, .. } = kind else {
+        return Err(EncodeError::CodecMismatch("decode_column needs a columns tensor"));
     };
     let base = j * stride;
     let (_, decoded) = parts.iter().try_fold((base, Vec::new()), |(at, mut acc), p| {
-        let len = codec::q4_bytes(p.rows, *group);
-        acc.push(codec::decode_q4(&segment[at..at + len], p.rows, *group)?);
+        let len = crate::plan::codec_bytes(codec, p.rows);
+        acc.push(decode_values(codec, &segment[at..at + len], p.rows)?);
         Ok::<_, EncodeError>((at + len, acc))
     })?;
     Ok(decoded)
 }
 
 pub fn decode_row(kind: &Kind, segment: &[u8], r: usize) -> Result<Vec<f32>, EncodeError> {
-    let Kind::Rows { cols, codec: Codec::Q8 { group }, stride, row_bytes, .. } = kind else {
-        return Err(EncodeError::CodecMismatch("decode_row needs a q8 rows tensor"));
+    let Kind::Rows { cols, codec, stride, row_bytes, .. } = kind else {
+        return Err(EncodeError::CodecMismatch("decode_row needs a rows tensor"));
     };
-    Ok(codec::decode_q8(&segment[r * stride..r * stride + row_bytes], *cols, *group)?)
+    decode_values(codec, &segment[r * stride..r * stride + row_bytes], *cols)
 }
 
 #[cfg(test)]
