@@ -390,6 +390,8 @@ Hypothesis: most of Yoruba's, Hausa's and Igbo's extra tokens continue a word al
 ### Step log
 - **S1 done (24 Sep), with one shortfall accepted.** Batched prefill equals stepwise decode bit for bit, and NEON equals its scalar spec. Prefill runs at 11–13 tok/s on 6 threads on the throttled M4 (about 2.8× decode), **below the ≥ 20 tok/s target**. Profiling shows about a third of thread time idle (serial per-token work) and about 15% in per-token folding. Accepted because S1 is only an enabler: S2/S3 runs take hours, not days.
 
+- **S2 done (24 Sep).** Least-squares q4 fitting (converter only: same bytes, layout and kernels) lowers reconstruction error 7.4% and closes the English gap: `.satl` − Q4_K_M = +0.005 nats [−0.036, +0.041] (was +0.050 [+0.015, +0.082]). All four languages' intervals include 0. Point estimates remain slightly positive (+0.004 to +0.021), so `.satl` is at parity, not ahead. A fallback exists if needed: group 32 for qkv/down in Q4_K_M's sensitive layers (+1.5% bytes). `data/models/n-atlas-q4g64s.satl` is now the model for S3/S4.
+
 ### Cut (stated as limitations, not attempted)
 Storage streaming beyond the atlas-sim G1 decision · Android / Tier C · Pi 5 measurements (left for testers) · human A/B and the code-switching set (replaced by automatic metrics) · C ABI · **our own chat server or offline-runner product** (already solved by llama.cpp, Ollama and LM Studio).
 
