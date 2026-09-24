@@ -1,0 +1,65 @@
+{
+ "samples": "results/baseline/m4-cpu-t6-languages.json",
+ "rows": [
+  {
+   "lang": "en",
+   "outputs": 15,
+   "tokens": 486,
+   "continuation_share": 0.2345679012345679,
+   "draft_corpus_tokens": 1318399,
+   "tau": {
+    "lookup-k4": 1.0995475113122173,
+    "lookup-k8": 1.1020408163265305,
+    "ngram-k4": 1.1767554479418887,
+    "ngram-k8": 1.1767554479418887,
+    "both-k4": 1.2525773195876289,
+    "both-k8": 1.255813953488372
+   }
+  },
+  {
+   "lang": "yo",
+   "outputs": 15,
+   "tokens": 1172,
+   "continuation_share": 0.6399317406143344,
+   "draft_corpus_tokens": 3005830,
+   "tau": {
+    "lookup-k4": 1.1535433070866141,
+    "lookup-k8": 1.159248269040554,
+    "ngram-k4": 1.60328317373461,
+    "ngram-k8": 1.607681755829904,
+    "both-k4": 1.6577086280056577,
+    "both-k8": 1.6718972895863053
+   }
+  },
+  {
+   "lang": "ha",
+   "outputs": 15,
+   "tokens": 906,
+   "continuation_share": 0.5397350993377483,
+   "draft_corpus_tokens": 2277689,
+   "tau": {
+    "lookup-k4": 1.0995145631067962,
+    "lookup-k8": 1.1008505467800729,
+    "ngram-k4": 1.5150501672240804,
+    "ngram-k8": 1.5278246205733559,
+    "both-k4": 1.583916083916084,
+    "both-k8": 1.597883597883598
+   }
+  },
+  {
+   "lang": "ig",
+   "outputs": 15,
+   "tokens": 1053,
+   "continuation_share": 0.6182336182336182,
+   "draft_corpus_tokens": 2625316,
+   "tau": {
+    "lookup-k4": 1.1359223300970873,
+    "lookup-k8": 1.1396103896103895,
+    "ngram-k4": 1.7462686567164178,
+    "ngram-k8": 1.7908163265306123,
+    "both-k4": 1.781725888324873,
+    "both-k8": 1.8344947735191637
+   }
+  }
+ ]
+}

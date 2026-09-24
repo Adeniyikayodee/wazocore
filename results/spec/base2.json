@@ -1,0 +1,679 @@
+{
+  "label": "base2",
+  "server_args": "",
+  "hardware": {
+    "schema_version": 1,
+    "tool": "atlas-probe 0.1.0",
+    "label": "m4-macbook-dev",
+    "timestamp_unix": 1790217461,
+    "host": {
+      "hostname": "Kayodes-MacBook-Air.local",
+      "device_model": "Mac16,12",
+      "os": "macos",
+      "arch": "aarch64",
+      "kernel": "25.5.0",
+      "cpu_model": "Apple M4",
+      "logical_cpus": 10,
+      "clusters": [
+        {
+          "core": "Performance",
+          "max_khz": null,
+          "count": 4,
+          "cpus": []
+        },
+        {
+          "core": "Efficiency",
+          "max_khz": null,
+          "count": 6,
+          "cpus": []
+        }
+      ],
+      "isa_features": [
+        "neon",
+        "dotprod",
+        "i8mm",
+        "fp16"
+      ],
+      "ram_total_bytes": 17179869184,
+      "ram_available_bytes": null,
+      "cpu_governor": null,
+      "thermal_c": [],
+      "block_devices": [],
+      "git_commit": null
+    },
+    "memory": [
+      {
+        "kernel": "read",
+        "threads": 1,
+        "bytes_per_rep": 536870912,
+        "gbps": {
+          "n": 9,
+          "min": 51.73807646895335,
+          "median": 60.36242036175566,
+          "p95": 63.55993663649582,
+          "max": 63.59679461422409
+        }
+      },
+      {
+        "kernel": "copy",
+        "threads": 1,
+        "bytes_per_rep": 1073741824,
+        "gbps": {
+          "n": 9,
+          "min": 68.7301084590173,
+          "median": 78.76819643554967,
+          "p95": 80.32016342270583,
+          "max": 80.63646813260063
+        }
+      },
+      {
+        "kernel": "triad",
+        "threads": 1,
+        "bytes_per_rep": 1610612736,
+        "gbps": {
+          "n": 9,
+          "min": 79.45387000826105,
+          "median": 83.56816840684353,
+          "p95": 88.16772035604957,
+          "max": 88.29528921549495
+        }
+      },
+      {
+        "kernel": "read",
+        "threads": 4,
+        "bytes_per_rep": 536870912,
+        "gbps": {
+          "n": 9,
+          "min": 71.32878171971066,
+          "median": 73.6271693352076,
+          "p95": 78.96569148424136,
+          "max": 81.45308895981546
+        }
+      },
+      {
+        "kernel": "copy",
+        "threads": 4,
+        "bytes_per_rep": 1073741824,
+        "gbps": {
+          "n": 9,
+          "min": 78.52314547211802,
+          "median": 94.76736511003999,
+          "p95": 99.9972761859156,
+          "max": 100.46119632770014
+        }
+      },
+      {
+        "kernel": "triad",
+        "threads": 4,
+        "bytes_per_rep": 1610612736,
+        "gbps": {
+          "n": 9,
+          "min": 83.47432549899175,
+          "median": 87.97236905105623,
+          "p95": 92.64781587044376,
+          "max": 93.1786725389709
+        }
+      },
+      {
+        "kernel": "read",
+        "threads": 10,
+        "bytes_per_rep": 536870912,
+        "gbps": {
+          "n": 9,
+          "min": 95.71384342477658,
+          "median": 106.21379667136533,
+          "p95": 183.4734218343384,
+          "max": 232.65084751638585
+        }
+      },
+      {
+        "kernel": "copy",
+        "threads": 10,
+        "bytes_per_rep": 1073741824,
+        "gbps": {
+          "n": 9,
+          "min": 93.67431398037077,
+          "median": 95.8958431481262,
+          "p95": 220.27947030315704,
+          "max": 230.7550586514518
+        }
+      },
+      {
+        "kernel": "triad",
+        "threads": 10,
+        "bytes_per_rep": 1610612736,
+        "gbps": {
+          "n": 9,
+          "min": 83.69482424927412,
+          "median": 91.41902166981488,
+          "p95": 160.56867998477838,
+          "max": 198.16118992232944
+        }
+      }
+    ],
+    "storage": {
+      "dir": ".",
+      "file_bytes": 536870912,
+      "cache_bypass": "f_nocache",
+      "sequential": {
+        "block_bytes": 1048576,
+        "mb_per_s": 2261.826514725312
+      },
+      "random": [
+        {
+          "block_bytes": 4096,
+          "queue_depth": 1,
+          "reads": 2000,
+          "mb_per_s": 61.28296240882739,
+          "iops": 14961.660744342624,
+          "latency_us": {
+            "n": 2000,
+            "min": 60.625,
+            "median": 66.166,
+            "p95": 69.8351,
+            "max": 494.125
+          }
+        },
+        {
+          "block_bytes": 4096,
+          "queue_depth": 4,
+          "reads": 2000,
+          "mb_per_s": 213.23384086648943,
+          "iops": 52059.04318029527,
+          "latency_us": {
+            "n": 2000,
+            "min": 17.666999999999998,
+            "median": 71.4165,
+            "p95": 104.55444999999999,
+            "max": 338.625
+          }
+        },
+        {
+          "block_bytes": 16384,
+          "queue_depth": 1,
+          "reads": 2000,
+          "mb_per_s": 205.36872118179622,
+          "iops": 12534.711986193617,
+          "latency_us": {
+            "n": 2000,
+            "min": 23.959,
+            "median": 78.8955,
+            "p95": 88.8771,
+            "max": 223.917
+          }
+        },
+        {
+          "block_bytes": 16384,
+          "queue_depth": 4,
+          "reads": 2000,
+          "mb_per_s": 703.3640023334993,
+          "iops": 42929.931783050495,
+          "latency_us": {
+            "n": 2000,
+            "min": 19.417,
+            "median": 83.3335,
+            "p95": 134.5104,
+            "max": 206.625
+          }
+        },
+        {
+          "block_bytes": 65536,
+          "queue_depth": 1,
+          "reads": 2000,
+          "mb_per_s": 584.5955608666151,
+          "iops": 8920.220350137559,
+          "latency_us": {
+            "n": 2000,
+            "min": 25.791999999999998,
+            "median": 111.375,
+            "p95": 127.75209999999998,
+            "max": 303.83299999999997
+          }
+        },
+        {
+          "block_bytes": 65536,
+          "queue_depth": 4,
+          "reads": 2000,
+          "mb_per_s": 1358.8440321117305,
+          "iops": 20734.314454829873,
+          "latency_us": {
+            "n": 2000,
+            "min": 29.875,
+            "median": 190.7295,
+            "p95": 250.46215,
+            "max": 338.45799999999997
+          }
+        }
+      ]
+    },
+    "decode_ceiling": {
+      "read_gbps": 106.21379667136533,
+      "threads": 10,
+      "assumptions": "Llama-3-8B shape; 4.5 bpw attention/MLP, 6.56 bpw lm_head; sparsity on attention+MLP inputs; KV reads excluded",
+      "rows": [
+        {
+          "sparsity": 0.0,
+          "gb_per_token": 4.356644536319999,
+          "tok_per_s": 24.37972521877645
+        },
+        {
+          "sparsity": 0.25,
+          "gb_per_token": 3.37517740032,
+          "tok_per_s": 31.469100457147885
+        },
+        {
+          "sparsity": 0.4,
+          "gb_per_token": 2.7862971187200003,
+          "tok_per_s": 38.120054016406904
+        },
+        {
+          "sparsity": 0.5,
+          "gb_per_token": 2.39371026432,
+          "tok_per_s": 44.37203543576662
+        }
+      ]
+    }
+  },
+  "dataset": "FLORES-200 devtest (translation prompts)",
+  "max_tokens": 128,
+  "summary": [
+    {
+      "lang": "en",
+      "samples": 8,
+      "prefill_tok_s_median": 25.991502863989005,
+      "decode_tok_s_median": 7.024259984201383,
+      "decode_tok_s_p95": 8.661542149872417,
+      "words_per_s_median": 5.460960853775385,
+      "chars_per_s_median": 24.706363119977333,
+      "gen_tokens_per_word": 1.2904761904761906,
+      "words_per_s_pooled": 5.213373056587962
+    },
+    {
+      "lang": "yo",
+      "samples": 8,
+      "prefill_tok_s_median": 25.641412714423158,
+      "decode_tok_s_median": 7.872071217612946,
+      "decode_tok_s_p95": 8.26527938888366,
+      "words_per_s_median": 2.5378424305665988,
+      "chars_per_s_median": 9.951776984898853,
+      "gen_tokens_per_word": 2.879166666666667,
+      "words_per_s_pooled": 2.32953542055695
+    },
+    {
+      "lang": "ha",
+      "samples": 8,
+      "prefill_tok_s_median": 26.30543728359433,
+      "decode_tok_s_median": 7.557656027801094,
+      "decode_tok_s_p95": 8.56985233161647,
+      "words_per_s_median": 3.2921890919335386,
+      "chars_per_s_median": 16.196545789482272,
+      "gen_tokens_per_word": 2.0578512396694215,
+      "words_per_s_pooled": 3.151772812297186
+    },
+    {
+      "lang": "ig",
+      "samples": 8,
+      "prefill_tok_s_median": 25.516962582698717,
+      "decode_tok_s_median": 6.7429748568488534,
+      "decode_tok_s_p95": 8.19360468311516,
+      "words_per_s_median": 2.9065777080379265,
+      "chars_per_s_median": 11.859677316991778,
+      "gen_tokens_per_word": 2.4081632653061225,
+      "words_per_s_pooled": 2.6696679691450016
+    }
+  ],
+  "samples": [
+    {
+      "lang": "en",
+      "index": 0,
+      "prompt_tokens": 119,
+      "prompt_ms": 5654.658,
+      "gen_tokens": 20,
+      "gen_ms": 3129.772,
+      "gen_words": 16,
+      "gen_chars": 72,
+      "output": "\"Now we have four new cases of polio that have not previously been reported,\" he added."
+    },
+    {
+      "lang": "yo",
+      "index": 0,
+      "prompt_tokens": 73,
+      "prompt_ms": 2944.459,
+      "gen_tokens": 54,
+      "gen_ms": 6949.582,
+      "gen_words": 21,
+      "gen_chars": 67,
+      "output": "\"A ni awọn ẹfọn oṣù mẹrin tí kì í ṣe àtọgbẹ tí wọ́n ti jẹ́ àtọgbẹ tẹ́lẹ̀,\" ó fi kún un."
+    },
+    {
+      "lang": "ha",
+      "index": 0,
+      "prompt_tokens": 72,
+      "prompt_ms": 2668.01,
+      "gen_tokens": 35,
+      "gen_ms": 4358.647,
+      "gen_words": 19,
+      "gen_chars": 77,
+      "output": "Yanzu muna da beraye masu watanni 4 da ba su da ciwon sukari da suka kasance masu ciwon sukari."
+    },
+    {
+      "lang": "ig",
+      "index": 0,
+      "prompt_tokens": 72,
+      "prompt_ms": 2815.151,
+      "gen_tokens": 39,
+      "gen_ms": 4951.203,
+      "gen_words": 15,
+      "gen_chars": 66,
+      "output": "\"Ugbu a, anyị nwere ọnwa anọ ndị na-abụghị ndị shuga na-eri nri bụbu ndị shuga.\""
+    },
+    {
+      "lang": "en",
+      "index": 1,
+      "prompt_tokens": 174,
+      "prompt_ms": 6249.926,
+      "gen_tokens": 43,
+      "gen_ms": 5450.295,
+      "gen_words": 32,
+      "gen_chars": 161,
+      "output": "Dr. Ehud, a military historian at Dalhousie University in Halifax, Nova Scotia, and chair of the history section of the Canadian Society of History of Medicine, said the research is still new."
+    },
+    {
+      "lang": "yo",
+      "index": 1,
+      "prompt_tokens": 95,
+      "prompt_ms": 3567.562,
+      "gen_tokens": 128,
+      "gen_ms": 16662.304,
+      "gen_words": 36,
+      "gen_chars": 171,
+      "output": "Dókítà Ehud Ur, olùkó ẹ̀kọ́ ìmọ̀ ẹ̀rọ ìwòsàn ní Yunifásítì Dalhousie ní Halifax, Nova Scotia, tí ó sì jẹ́ alága pàtàkì ìpínlẹ̀ ìlera àti ìmọ̀ sáyẹ́ǹsì ti Ẹgbẹ́ Àwọn Aláìsàn Dídánilójú ti Kánádà rọ̀wọ́ pé ìw"
+    },
+    {
+      "lang": "ha",
+      "index": 1,
+      "prompt_tokens": 94,
+      "prompt_ms": 3609.82,
+      "gen_tokens": 90,
+      "gen_ms": 11493.606,
+      "gen_words": 38,
+      "gen_chars": 196,
+      "output": "Dokta Ehud Ur, Farfesa a fannin likitanci a Jami'ar Dalhousie da ke Halifax, Nova Scotia, kuma shugaban sashen likitanci da kimiyya na kungiyar ciwon sukari ta Kanada, ya yi gargadin cewa binciken har yanzu yana cikin mawuyacin hali."
+    },
+    {
+      "lang": "ig",
+      "index": 1,
+      "prompt_tokens": 94,
+      "prompt_ms": 3488.151,
+      "gen_tokens": 88,
+      "gen_ms": 11257.239,
+      "gen_words": 39,
+      "gen_chars": 167,
+      "output": "Dọkịnta Ehud Ur, bụ́ prọfesọ ahụ́ ike na Mahadum Dalhousie dị na Halifax, Nova Scotia, na onye isi ngalaba nyocha ahụike na sayensị nke Òtù Diabetes Canada dọrọ aka ná ntị na nchọpụta a ka nọ n'oge mbụ ya."
+    },
+    {
+      "lang": "en",
+      "index": 2,
+      "prompt_tokens": 150,
+      "prompt_ms": 6381.056,
+      "gen_tokens": 29,
+      "gen_ms": 3786.752,
+      "gen_words": 22,
+      "gen_chars": 100,
+      "output": "As a physician, he was uncertain whether scurvy could be treated, and knew it was useless for those with Type 1 diabetes."
+    },
+    {
+      "lang": "yo",
+      "index": 2,
+      "prompt_tokens": 83,
+      "prompt_ms": 3192.308,
+      "gen_tokens": 102,
+      "gen_ms": 12548.585,
+      "gen_words": 31,
+      "gen_chars": 113,
+      "output": "Bí àwọn amòye kan ṣe ń ṣiyèméjì nípa bóyá àtọ́gbẹ́ lè wòó, ó sì ń ṣàkíyèsí pé àwọn ìwádìí wọ̀nyí kò ní ìtumọ̀ fún àwọn tó ti ní Àtọ́gbẹ́ Irú 1."
+    },
+    {
+      "lang": "ha",
+      "index": 2,
+      "prompt_tokens": 82,
+      "prompt_ms": 3144.781,
+      "gen_tokens": 67,
+      "gen_ms": 14537.904,
+      "gen_words": 35,
+      "gen_chars": 143,
+      "output": "Kamar wasu masana, shi ma yana shakkar ko za a iya warkar da ciwon sukari, yana mai cewa wadannan binciken ba su da alaka da wadanda suka riga sun sami Nau'in 1 na ciwon sukari."
+    },
+    {
+      "lang": "ig",
+      "index": 2,
+      "prompt_tokens": 82,
+      "prompt_ms": 3099.85,
+      "gen_tokens": 94,
+      "gen_ms": 14321.51,
+      "gen_words": 35,
+      "gen_chars": 132,
+      "output": "Dị ka ụfọdụ ndị ọkachamara ndị ọzọ, ọ na-enwe obi abụọ ma ọ bụrụ na shuga nwere ike ịgwọ ya, na-ekwu na nchọpụta ndị a enweghị ihe jikọrọ ya na ndị nwere ụdị 1 shuga."
+    },
+    {
+      "lang": "en",
+      "index": 3,
+      "prompt_tokens": 184,
+      "prompt_ms": 7165.496,
+      "gen_tokens": 51,
+      "gen_ms": 8563.828,
+      "gen_words": 39,
+      "gen_chars": 197,
+      "output": "On Tuesday, Sara Danius, the chair of the Swedish Academy for Literature, told Swedish radio that the Nobel Prize in Literature cannot be awarded to Bob Dylan because the academy has been \"disqualified\" from awarding the prize in 2016."
+    },
+    {
+      "lang": "yo",
+      "index": 3,
+      "prompt_tokens": 112,
+      "prompt_ms": 4939.226,
+      "gen_tokens": 107,
+      "gen_ms": 22142.005,
+      "gen_words": 49,
+      "gen_chars": 211,
+      "output": "Ni ọjọ Aarọ, Sara Danius, akowe ayeraye ti Nobel fun Iwe-ẹkọ ni Ile-ẹkọ Swedish, kede ni gbangba lakoko eto redio kan lori Sveriges Radio ni Sweden pe igbimọ naa, ti ko le de Bob Dylan taara nipa gbigba Ẹbun Nobel 2016 ni Iwe-ẹkọ, ti fi awọn akitiyan rẹ silẹ."
+    },
+    {
+      "lang": "ha",
+      "index": 3,
+      "prompt_tokens": 111,
+      "prompt_ms": 4062.569,
+      "gen_tokens": 109,
+      "gen_ms": 21077.747,
+      "gen_words": 54,
+      "gen_chars": 247,
+      "output": "A ranar Litinin, Sara Danius, sakatariyar dindindin ta Kwamitin Nobel na Adabi a Kwalejin Sweden, ta bayyana a bainar jama'a a wani shirin rediyo a Sveriges Radio a Sweden cewa kwamitin, da kyar ya kai Bob Dylan kai tsaye game da kyautar Nobel na 2016 a fannin adabi, ya daina kokarin kaiwa gare shi."
+    },
+    {
+      "lang": "ig",
+      "index": 3,
+      "prompt_tokens": 111,
+      "prompt_ms": 4360.117,
+      "gen_tokens": 118,
+      "gen_ms": 17046.121,
+      "gen_words": 54,
+      "gen_chars": 264,
+      "output": "N'ụbọchị Mọnde, Sara Danius, odeakwụkwọ na-adịgide adịgide nke Nobel Committee for Literature na Swedish Academy, kwupụtara n'ihu ọha n'oge mmemme redio na Sveriges Radio na Sweden na ọ bụ ezie na ọ na-esiri ike iru Bob Dylan ozugbo banyere inye ya ihe nrite Nobel na 2016 na Literature, ha agbachiela mbọ ị nweta ya."
+    },
+    {
+      "lang": "en",
+      "index": 4,
+      "prompt_tokens": 112,
+      "prompt_ms": 4257.844,
+      "gen_tokens": 41,
+      "gen_ms": 5022.397,
+      "gen_words": 32,
+      "gen_chars": 147,
+      "output": "He said, “Now, we will do something. I have sent letters and have reached out to those organizations, and they have responded positively. This time, I am sure that it is enough.”"
+    },
+    {
+      "lang": "yo",
+      "index": 4,
+      "prompt_tokens": 88,
+      "prompt_ms": 3113.622,
+      "gen_tokens": 100,
+      "gen_ms": 12540.929,
+      "gen_words": 36,
+      "gen_chars": 130,
+      "output": "Ó sọ pé, “Ní báyìí, a kò ṣe ohunkóhun. Mo ti pè é àti fi imeeli ránṣẹ́ sí olùrànlọ́wọ́ rẹ̀ tó jìnà, mo sì ti gba àwọn ìdáhùn tó dára gan-an. Fún báyìí, èyí tó péye.”"
+    },
+    {
+      "lang": "ha",
+      "index": 4,
+      "prompt_tokens": 87,
+      "prompt_ms": 3278.574,
+      "gen_tokens": 70,
+      "gen_ms": 8368.854,
+      "gen_words": 36,
+      "gen_chars": 139,
+      "output": "Danius ya ce, \"A yanzu ba mu yi komai ba. Na kira kuma na aika da imel ga abokin aikinsa mafi kusa, kuma na samu amsoshi masu kyau sosai. A yanzu haka, wannan tabbas ya isa.\""
+    },
+    {
+      "lang": "ig",
+      "index": 4,
+      "prompt_tokens": 87,
+      "prompt_ms": 3602.344,
+      "gen_tokens": 83,
+      "gen_ms": 9923.301,
+      "gen_words": 35,
+      "gen_chars": 130,
+      "output": "Danius kwuru, \"Ugbu a, anyị anaghị eme ihe ọ bụla. Ekpere m ma ziga ozi-e na onye ya na ya na-arụkọ ọrụ nso, ha zara n'ụzọ enyi. Nke ahụ bụkwa ihe zuru oke ugbu a.\""
+    },
+    {
+      "lang": "en",
+      "index": 5,
+      "prompt_tokens": 146,
+      "prompt_ms": 4983.392,
+      "gen_tokens": 32,
+      "gen_ms": 3583.525,
+      "gen_words": 25,
+      "gen_chars": 114,
+      "output": "Earlier, Ring CEO Jamie Siminoff said the company began working on the doorbell when he heard it didn't ring from the store to the garage."
+    },
+    {
+      "lang": "yo",
+      "index": 5,
+      "prompt_tokens": 80,
+      "prompt_ms": 3164.203,
+      "gen_tokens": 96,
+      "gen_ms": 11515.047,
+      "gen_words": 30,
+      "gen_chars": 127,
+      "output": "Ṣaaju, Alakoso Ẹgbẹ́ Ring, Jamie Siminoff, sọ pé wọ́n bẹ̀rẹ̀ ìgbésẹ̀ náà nígbà tí ẹ̀rọ ìdáwọ́lé ilé rẹ̀ kò lè gbọ́ láti ilé ìtajà rẹ̀ tó wà nínú gareji rẹ̀."
+    },
+    {
+      "lang": "ha",
+      "index": 5,
+      "prompt_tokens": 79,
+      "prompt_ms": 2947.777,
+      "gen_tokens": 55,
+      "gen_ms": 6336.034,
+      "gen_words": 27,
+      "gen_chars": 114,
+      "output": "A baya, Shugaban Kamfanin Ring, Jamie Siminoff, ya ce kamfanin ya fara ne lokacin da bel ɗinsa ba a ji daga shagon da ke cikin garejinsa ba."
+    },
+    {
+      "lang": "ig",
+      "index": 5,
+      "prompt_tokens": 79,
+      "prompt_ms": 3002.979,
+      "gen_tokens": 93,
+      "gen_ms": 15286.41,
+      "gen_words": 34,
+      "gen_chars": 138,
+      "output": "N'oge gara aga, onye isi ụlọ ọrụ Ring, Jamie Siminoff, kwuru na ụlọ ọrụ ahụ malitere mgbe ọ na-enweghị ike ịnụ ụda nke ọnụ ụzọ ya site n'ụlọ ahịa ya n'ụlọ nkwakọba ihe ya."
+    },
+    {
+      "lang": "en",
+      "index": 6,
+      "prompt_tokens": 62,
+      "prompt_ms": 2347.827,
+      "gen_tokens": 11,
+      "gen_ms": 1908.96,
+      "gen_words": 8,
+      "gen_chars": 33,
+      "output": "You have closed the WiFi door, you said."
+    },
+    {
+      "lang": "yo",
+      "index": 6,
+      "prompt_tokens": 61,
+      "prompt_ms": 2255.394,
+      "gen_tokens": 20,
+      "gen_ms": 2459.348,
+      "gen_words": 8,
+      "gen_chars": 27,
+      "output": "Ó ṣe bọtini ilẹkun WiFi kan, ó sọ."
+    },
+    {
+      "lang": "ha",
+      "index": 6,
+      "prompt_tokens": 60,
+      "prompt_ms": 4384.46,
+      "gen_tokens": 12,
+      "gen_ms": 2373.145,
+      "gen_words": 6,
+      "gen_chars": 21,
+      "output": "Ya gina kofar WiFi, ya ce."
+    },
+    {
+      "lang": "ig",
+      "index": 6,
+      "prompt_tokens": 60,
+      "prompt_ms": 6277.44,
+      "gen_tokens": 14,
+      "gen_ms": 9286.219,
+      "gen_words": 6,
+      "gen_chars": 20,
+      "output": "O wuru ụlọ WiFi, o kwuru."
+    },
+    {
+      "lang": "en",
+      "index": 7,
+      "prompt_tokens": 143,
+      "prompt_ms": 7830.519,
+      "gen_tokens": 44,
+      "gen_ms": 8835.494,
+      "gen_words": 36,
+      "gen_chars": 150,
+      "output": "Siminoff said the product went up in smoke after he appeared on the TV show Shark Tank in 2013, where the show's producers had a bet on how quickly they could get the product to market."
+    },
+    {
+      "lang": "yo",
+      "index": 7,
+      "prompt_tokens": 77,
+      "prompt_ms": 5292.533,
+      "gen_tokens": 84,
+      "gen_ms": 18207.034,
+      "gen_words": 29,
+      "gen_chars": 112,
+      "output": "Siminoff sọ pé tita pọ̀ sí i lẹ́yìn àfihàn rẹ̀ ní ọdún 2013 nínú ìṣẹ̀lẹ̀ Tank Shark, níbi tí ẹgbẹ́ àpèjọ náà ti kọ̀ láti fi owó fún ìbẹ̀rẹ̀."
+    },
+    {
+      "lang": "ha",
+      "index": 7,
+      "prompt_tokens": 76,
+      "prompt_ms": 2956.316,
+      "gen_tokens": 60,
+      "gen_ms": 8236.247,
+      "gen_words": 27,
+      "gen_chars": 130,
+      "output": "Siminoff ya ce tallace-tallace ya karu bayan bayyana a cikin wani shirin Tank Tank na 2013 inda kungiyar wasan kwaikwayon ta ki bayar da kudade ga kamfanin."
+    },
+    {
+      "lang": "ig",
+      "index": 7,
+      "prompt_tokens": 76,
+      "prompt_ms": 3306.526,
+      "gen_tokens": 61,
+      "gen_ms": 9699.709,
+      "gen_words": 27,
+      "gen_chars": 103,
+      "output": "Siminoff kwuru na ahịa ahụ mụbara mgbe ọ pụtara na ihe nkiri Tank Shark nke 2013 ebe ndị otu ihe ngosi jụrụ ego maka ụlọ ọrụ ahụ."
+    }
+  ]
+}
