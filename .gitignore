@@ -11,3 +11,4 @@ __pycache__/
 /data
 .DS_Store
 /vendor
+!crates/atlas-rt/tests/fixtures/**
