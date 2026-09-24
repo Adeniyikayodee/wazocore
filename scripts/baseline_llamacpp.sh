@@ -4,7 +4,8 @@
 #   scripts/baseline_llamacpp.sh LABEL MODEL.gguf THREADS [PROMPTS]
 #
 # 1. llama-bench: synthetic pp512 / tg128, 5 reps, at 1..THREADS-style list.
-# 2. llama-server + atlas_trace.llamacpp_baseline: per-language FLORES prompts,
+# 2. llama-server (one slot: a single edge user) + atlas_trace.llamacpp_baseline:
+#    per-language FLORES prompts,
 #    prefill/decode tok/s, words/s, chars/s; peak RSS from /usr/bin/time.
 # Outputs go to results/baseline/LABEL-*.json.
 set -euo pipefail
@@ -28,7 +29,7 @@ case "$(uname)" in
     *) time_flag=-v ;;
 esac
 server_log="$out/$label-server.log"
-/usr/bin/time $time_flag "$bin/llama-server" -m "$model" -t "$threads" -c 2048 -ngl 0 \
+/usr/bin/time $time_flag "$bin/llama-server" -m "$model" -t "$threads" -c 2048 -np 1 -ngl 0 \
     --port $port --no-webui > "$server_log" 2>&1 &
 server_pid=$!
 trap 'kill $server_pid 2>/dev/null || true' EXIT
@@ -47,7 +48,8 @@ cat > "$meta" <<EOF
   "model_path": "$model",
   "model_sha256": "$model_sha",
   "threads": $threads,
-  "ctx": 2048
+  "ctx": 2048,
+  "server_slots": 1
 }
 EOF
 
