@@ -353,26 +353,28 @@ Every number here is regenerated in `results/TABLES.md` (`python -m atlas_trace.
 
 **Why:** there is no GPU, no Raspberry Pi and no phone. Everything runs on the Apple M4 development machine. Two things only the author can do: **recruit 2 external beta testers** (a NAIC PS1 requirement) and **register** for a track.
 
-**Headline:** *N-ATLAS Local: run Nigeria's LLM offline on an ordinary laptop, with measured per-language quality.*
-- For developers: one-command install, an **OpenAI-compatible local server**, CLI, documentation.
-- Why it is better: decode faster than llama.cpp through language-calibrated sparsity, with per-language quality gates, reported in **words/s**.
-- Evidence: the C1/C2 disparity study, benchmarks, tester reports.
+**Not the contribution (already solved):** running N-ATLAS offline on a laptop. Community GGUFs plus llama.cpp, Ollama or LM Studio already do this, with OpenAI-compatible servers. We do not rebuild it.
+
+**Headline (unsolved problems only):** *Language-fair compression for N-ATLAS.*
+1. **A CPU engine that decodes faster than llama.cpp** through training-free activation sparsity. No CPU/ARM sparse 4-bit kernel exists for SwiGLU models; TEAL ships GPU kernels only.
+2. **The disparity finding (C1/C2):** does English-calibrated sparsity hurt Yoruba, Hausa and Igbo, and does per-language calibration fix it? This has not been measured for any African language.
+3. **A per-language report card for any compressed N-ATLaS build** (GGUF or `.satl`): fidelity against a reference, words/s and token tax, per language. Published N-ATLaS quantizations currently ship with no per-language evidence, and we already found that losses differ by language.
 
 ### Execution order (each step has a done-criterion; nothing else starts until the current step is done)
 
 | # | Step | Done when |
 |---|---|---|
-| S1 | **Batched prefill** (int8 GEMM over decoded column tiles) | Logits match the decode path within int8 tolerance; the NEON kernel equals its scalar spec bit for bit; prefill ≥ 30 tok/s on 6 M4 threads |
+| S1 | **Batched prefill** (int8 GEMM over decoded column tiles). An enabler for S2 and S3, not a contribution, so no gold-plating | Logits match the decode path within int8 tolerance; the NEON kernel equals its scalar spec bit for bit; prefill ≥ 20 tok/s on 6 M4 threads |
 | S2 | **Mixed-precision `.satl`** for sensitive tensors | Dense `.satl` − Q4_K_M ΔNLL confidence interval includes 0 (or better) for en, yo, ha and ig |
 | S3 | **Local TEAL in atlas-rt**: calibrate, evaluate, traces (replaces the GPU/Colab path, which stays optional) | Calibration × evaluation matrix for {en, yo, ha, ig} at p ∈ {0.4, 0.5}, calibrated on {en, own language, pooled}; C1/C2 written up; atlas-sim G1 decision |
 | S4 | **Sparsity in the engine**: per-language profiles, masking, active-column kernels | Decode speed vs llama.cpp on M4 P-cores and E-cores (`taskpolicy -c background` as the low-end proxy), at the quality gate |
-| S5 | **OpenAI-compatible server** + CLI polish | `/v1/chat/completions` (streaming) works with the stock OpenAI Python client |
+| S5 | **Per-language report card** (`atlas-eval`): one command scores any GGUF or `.satl` build against a reference, per language (KL/ΔNLL, top-1, words/s, token tax) | Report cards for Q4_K_M, dense `.satl` and sparse `.satl`, reproducible from one command |
 | S6 | **x86 path**: AVX2 kernel equal to the int8 spec; Linux/Windows builds | Spec equality under Rosetta; binaries build |
 | S7 | **Quality breadth**: chrF++ and AfriMMLU through atlas-rt | Per-language tables at the chosen sparsity |
-| S8 | **Packaging**: README with N-ATLaS attribution, LICENSE/NOTICE, hosted `.satl` + profiles, tester kit, outreach message, docs, video script | A new user goes from zero to a Yoruba reply in < 10 minutes |
+| S8 | **Packaging**: README with N-ATLaS attribution, LICENSE/NOTICE, hosted `.satl` + profiles, tester kit (testers run the report card and the speed benchmark on their own machines), outreach message, docs, video script | A tester goes from zero to a report card and a speed comparison in < 15 minutes |
 
 ### Cut (stated as limitations, not attempted)
-Storage streaming beyond the atlas-sim G1 decision · Android / Tier C · Pi 5 measurements (left for testers) · human A/B and the code-switching set (replaced by automatic metrics) · C ABI (the OpenAI server is the integration surface).
+Storage streaming beyond the atlas-sim G1 decision · Android / Tier C · Pi 5 measurements (left for testers) · human A/B and the code-switching set (replaced by automatic metrics) · C ABI · **our own chat server or offline-runner product** (already solved by llama.cpp, Ollama and LM Studio).
 
 ### Deviations this causes
 - Thresholds are calibrated on the shipped q4 model, not bf16.
