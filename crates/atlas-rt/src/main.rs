@@ -53,6 +53,23 @@ enum Cmd {
         #[arg(long, default_value_t = 2048)]
         ctx: usize,
     },
+    /// Teacher-forced fidelity of the fast path against the f32 reference
+    Compare {
+        #[arg(long)]
+        model: PathBuf,
+        #[arg(long)]
+        tokenizer: PathBuf,
+        /// Plain text, one sentence per line
+        #[arg(long)]
+        text: PathBuf,
+        #[arg(long)]
+        label: String,
+        /// Tokens to evaluate (the text is truncated)
+        #[arg(long, default_value_t = 160)]
+        tokens: usize,
+        #[arg(long)]
+        out: PathBuf,
+    },
     /// Time each kernel of layer 0 and lm_head in isolation
     Kernels {
         #[arg(long)]
@@ -89,6 +106,7 @@ fn main() -> ExitCode {
         }
         Cmd::Bench { model, tokens, warmup } => bench(&model, tokens, warmup, kernels),
         Cmd::Kernels { model, reps } => kernel_bench(&model, reps, kernels),
+        Cmd::Compare { model, tokenizer, text, label, tokens, out } => compare(&model, &tokenizer, &text, &label, tokens, &out),
     };
     match result {
         Ok(()) => ExitCode::SUCCESS,
@@ -253,6 +271,62 @@ fn kernel_bench(model: &Path, reps: usize, kernels: Kernels) -> Result<(), AnyEr
         let s = time_median(reps, &mut f)?;
         println!("  {name:<8} {:>8.3} ms  {:>6.1} GB/s  ({:.1} MB)", s * 1e3, bytes as f64 / s / 1e9, bytes as f64 / 1e6);
     }
+    Ok(())
+}
+
+/// Runs the reference and fast kernels teacher-forced over the same tokens
+/// and reports per-token KL(reference ‖ fast), top-1 agreement and the NLL
+/// of the true next token under each.
+fn compare(model: &Path, tok_path: &Path, text: &Path, label: &str, n: usize, out: &Path) -> Result<(), AnyError> {
+    use atlas_rt::metrics::{kl, nll};
+    let (header, data, map) = open(model)?;
+    let w = weights(&header, &map[data as usize..])?;
+    let tok = Tokenizer::from_file(tok_path).map_err(|e| format!("{}: {e}", tok_path.display()))?;
+    let body = std::fs::read_to_string(text)?;
+    let ids: Vec<u32> = std::iter::once(128_000u32) // <|begin_of_text|>
+        .chain(tok.encode(body, false).map_err(|e| e.to_string())?.get_ids().iter().copied())
+        .take(n + 1)
+        .collect();
+    let inv_freq = ops::rope_inv_freq(&w.config)?;
+    let run = |k: Kernels| -> Result<Vec<Vec<f32>>, AnyError> {
+        let plan = Plan::dense(&w.config, inv_freq.clone(), k);
+        let mut kv = KvCache::new(&w.config, ids.len());
+        let t0 = Instant::now();
+        let logits = ids[..ids.len() - 1].iter().map(|&t| step(&w, &plan, &mut kv, t)).collect::<Result<Vec<_>, _>>()?;
+        eprintln!("{label}: {k:?} {} tokens in {:.0}s", logits.len(), t0.elapsed().as_secs_f64());
+        Ok(logits)
+    };
+    let fast = run(Kernels::Fast)?;
+    let reference = run(Kernels::Reference)?;
+    let next = &ids[1..];
+    let kls: Vec<f64> = reference.iter().zip(&fast).map(|(r, f)| kl(r, f)).collect();
+    let agree = reference.iter().zip(&fast).filter(|(r, f)| ops::argmax(r) == ops::argmax(f)).count();
+    let nll_ref: Vec<f64> = reference.iter().zip(next).map(|(r, &t)| nll(r, t as usize)).collect();
+    let nll_fast: Vec<f64> = fast.iter().zip(next).map(|(f, &t)| nll(f, t as usize)).collect();
+    let mean = |v: &[f64]| v.iter().sum::<f64>() / v.len() as f64;
+    let mut sorted = kls.clone();
+    sorted.sort_by(f64::total_cmp);
+    let report = serde_json::json!({
+        "label": label,
+        "model_sha256_files": header.source.files,
+        "tokens": kls.len(),
+        "kl_mean": mean(&kls),
+        "kl_p95": sorted[(sorted.len() * 95 / 100).min(sorted.len() - 1)],
+        "kl_max": sorted.last(),
+        "top1_agreement": agree as f64 / kls.len() as f64,
+        "nll_reference": mean(&nll_ref),
+        "nll_fast": mean(&nll_fast),
+        "kl_per_token": kls,
+    });
+    std::fs::write(out, serde_json::to_string_pretty(&report)? + "\n")?;
+    eprintln!(
+        "{label}: KL mean {:.2e} p95 {:.2e} | top-1 {:.1}% | NLL ref {:.4} fast {:.4}",
+        mean(&kls),
+        report["kl_p95"].as_f64().unwrap_or(f64::NAN),
+        100.0 * agree as f64 / kls.len() as f64,
+        mean(&nll_ref),
+        mean(&nll_fast)
+    );
     Ok(())
 }
 

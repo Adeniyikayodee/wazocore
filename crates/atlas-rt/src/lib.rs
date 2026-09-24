@@ -12,5 +12,6 @@ pub mod fast;
 pub(crate) mod int8;
 pub mod forward;
 pub mod kernels;
+pub mod metrics;
 pub mod ops;
 pub mod weights;
