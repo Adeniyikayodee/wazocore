@@ -346,3 +346,34 @@ Every number here is regenerated in `results/TABLES.md` (`python -m atlas_trace.
 - **G0:** open. Needs Pi 5 and phone probe manifests.
 - **G1 (28 Sep):** at risk. P1 science (TEAL calibration, traces) has not started; it needs a GPU.
 - **G2 (2 Oct):** the engine is at dense *speed* parity on the M4, but dense *quality* trails Q4_K_M in English and Hausa, sparsity is not in the engine yet, and there is no Pi to measure on.
+
+---
+
+## 13. v3 scope lock (24 Sep evening): local-only execution
+
+**Why:** there is no GPU, no Raspberry Pi and no phone. Everything runs on the Apple M4 development machine. Two things only the author can do: **recruit 2 external beta testers** (a NAIC PS1 requirement) and **register** for a track.
+
+**Headline:** *N-ATLAS Local: run Nigeria's LLM offline on an ordinary laptop, with measured per-language quality.*
+- For developers: one-command install, an **OpenAI-compatible local server**, CLI, documentation.
+- Why it is better: decode faster than llama.cpp through language-calibrated sparsity, with per-language quality gates, reported in **words/s**.
+- Evidence: the C1/C2 disparity study, benchmarks, tester reports.
+
+### Execution order (each step has a done-criterion; nothing else starts until the current step is done)
+
+| # | Step | Done when |
+|---|---|---|
+| S1 | **Batched prefill** (int8 GEMM over decoded column tiles) | Logits match the decode path within int8 tolerance; the NEON kernel equals its scalar spec bit for bit; prefill ≥ 30 tok/s on 6 M4 threads |
+| S2 | **Mixed-precision `.satl`** for sensitive tensors | Dense `.satl` − Q4_K_M ΔNLL confidence interval includes 0 (or better) for en, yo, ha and ig |
+| S3 | **Local TEAL in atlas-rt**: calibrate, evaluate, traces (replaces the GPU/Colab path, which stays optional) | Calibration × evaluation matrix for {en, yo, ha, ig} at p ∈ {0.4, 0.5}, calibrated on {en, own language, pooled}; C1/C2 written up; atlas-sim G1 decision |
+| S4 | **Sparsity in the engine**: per-language profiles, masking, active-column kernels | Decode speed vs llama.cpp on M4 P-cores and E-cores (`taskpolicy -c background` as the low-end proxy), at the quality gate |
+| S5 | **OpenAI-compatible server** + CLI polish | `/v1/chat/completions` (streaming) works with the stock OpenAI Python client |
+| S6 | **x86 path**: AVX2 kernel equal to the int8 spec; Linux/Windows builds | Spec equality under Rosetta; binaries build |
+| S7 | **Quality breadth**: chrF++ and AfriMMLU through atlas-rt | Per-language tables at the chosen sparsity |
+| S8 | **Packaging**: README with N-ATLaS attribution, LICENSE/NOTICE, hosted `.satl` + profiles, tester kit, outreach message, docs, video script | A new user goes from zero to a Yoruba reply in < 10 minutes |
+
+### Cut (stated as limitations, not attempted)
+Storage streaming beyond the atlas-sim G1 decision · Android / Tier C · Pi 5 measurements (left for testers) · human A/B and the code-switching set (replaced by automatic metrics) · C ABI (the OpenAI server is the integration surface).
+
+### Deviations this causes
+- Thresholds are calibrated on the shipped q4 model, not bf16.
+- C3 is claimed for M4 P-core and E-core tiers only.
