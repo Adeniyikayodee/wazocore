@@ -6,6 +6,7 @@ use atlas_satl::format::ModelConfig;
 use rayon::prelude::*;
 
 use crate::kernels::{KernelError, columns_gemv_ref, row, rows_gemv_ref};
+use crate::teal::{self, DOWN, GATE_UP, Histograms, O, QKV};
 use crate::{fast, gemm};
 use crate::ops::{add, attention, rmsnorm, rope, swiglu};
 use crate::weights::{Columns, Rows, Weights};
@@ -52,6 +53,8 @@ pub enum Kernels {
 pub struct Plan {
     pub inv_freq: Vec<f32>,
     pub kernels: Kernels,
+    /// TEAL thresholds per layer and site; `None` = dense.
+    pub sparsity: Option<Vec<[f32; 4]>>,
     pub all_hidden: Vec<u32>,
     pub all_q: Vec<u32>,
     pub all_ffn: Vec<u32>,
@@ -60,7 +63,14 @@ pub struct Plan {
 impl Plan {
     pub fn dense(cfg: &ModelConfig, inv_freq: Vec<f32>, kernels: Kernels) -> Self {
         let range = |n: usize| (0..n as u32).collect();
-        Self { inv_freq, kernels, all_hidden: range(cfg.hidden), all_q: range(cfg.n_heads * cfg.head_dim), all_ffn: range(cfg.ffn) }
+        Self {
+            inv_freq,
+            kernels,
+            sparsity: None,
+            all_hidden: range(cfg.hidden),
+            all_q: range(cfg.n_heads * cfg.head_dim),
+            all_ffn: range(cfg.ffn),
+        }
     }
 
     fn columns(&self, w: &Columns, x: &[f32], active: &[u32]) -> Result<Vec<f32>, KernelError> {
@@ -83,6 +93,7 @@ pub enum StepError {
     CacheFull(usize),
     BadToken { token: u32, vocab: usize },
     Kernel(KernelError),
+    Unsupported(&'static str),
 }
 
 impl From<KernelError> for StepError {
@@ -97,6 +108,7 @@ impl std::fmt::Display for StepError {
             Self::CacheFull(n) => write!(f, "KV cache full at {n} positions"),
             Self::BadToken { token, vocab } => write!(f, "token {token} outside vocabulary of {vocab}"),
             Self::Kernel(e) => write!(f, "{e}"),
+            Self::Unsupported(what) => write!(f, "unsupported: {what}"),
         }
     }
 }
@@ -111,6 +123,9 @@ pub fn step(w: &Weights, plan: &Plan, kv: &mut KvCache, token: u32) -> Result<Ve
     }
     if token as usize >= c.vocab {
         return Err(StepError::BadToken { token, vocab: c.vocab });
+    }
+    if plan.sparsity.is_some() {
+        return Err(StepError::Unsupported("sparse decode (use prefill_tapped until S4)"));
     }
     let eps = c.rms_norm_eps as f32;
     let (q_dim, kv_dim) = (c.n_heads * c.head_dim, kv.kv_dim);
@@ -152,6 +167,29 @@ pub const PREFILL_BATCH: usize = 64;
 /// each unpacked weight tile; results equal calling `step` token by token,
 /// bit for bit. `Kernels::Reference` simply calls `step`.
 pub fn prefill(w: &Weights, plan: &Plan, kv: &mut KvCache, tokens: &[u32], want: Want) -> Result<Vec<Vec<f32>>, StepError> {
+    prefill_tapped(w, plan, kv, tokens, want, &mut Taps::default())
+}
+
+/// Instrumentation of batched forward passes: explicit mutable state,
+/// like the KV cache. Everything is off by default.
+#[derive(Debug, Clone, Default, PartialEq)]
+pub struct Taps {
+    /// When set, |x| histograms per (layer, site) are accumulated (before masking).
+    pub hist: Option<Histograms>,
+    /// Channels kept and seen per site, pooled over layers (with sparsity).
+    pub kept: [(u64, u64); 4],
+    /// When set, token-major trace words are appended: per token, per layer,
+    /// the gate_up then down active-channel bitmaps (docs/trace-format.md).
+    pub trace: Option<Vec<u64>>,
+}
+
+/// `prefill` with instrumentation and, if `plan.sparsity` is set, TEAL
+/// masking at every site. Fast kernels only.
+pub fn prefill_tapped(w: &Weights, plan: &Plan, kv: &mut KvCache, tokens: &[u32], want: Want, taps: &mut Taps) -> Result<Vec<Vec<f32>>, StepError> {
+    let tapped = taps.hist.is_some() || taps.trace.is_some() || plan.sparsity.is_some();
+    if tapped && plan.kernels == Kernels::Reference {
+        return Err(StepError::Unsupported("taps and sparsity need the fast kernels"));
+    }
     if kv.len + tokens.len() > kv.capacity {
         return Err(StepError::CacheFull(kv.capacity));
     }
@@ -172,7 +210,7 @@ pub fn prefill(w: &Weights, plan: &Plan, kv: &mut KvCache, tokens: &[u32], want:
                         Want::Last if i == last => Logits::Last,
                         Want::Last => Logits::None,
                     };
-                    forward_batch(w, plan, kv, b, need)
+                    forward_batch(w, plan, kv, b, need, taps)
                 })
                 .collect::<Result<Vec<_>, _>>()?
                 .concat()
@@ -192,13 +230,32 @@ enum Logits {
 }
 
 /// One batch through every layer; mirrors `step` token by token.
-fn forward_batch(w: &Weights, plan: &Plan, kv: &mut KvCache, tokens: &[u32], need: Logits) -> Result<Vec<Vec<f32>>, StepError> {
+/// The input of site `s` in layer `l`, after taps and masking.
+fn site(plan: &Plan, taps: &mut Taps, l: usize, s: usize, xs: Vec<Vec<f32>>) -> Vec<Vec<f32>> {
+    if let Some(h) = taps.hist.as_mut() {
+        teal::accumulate(&mut h[l][s], &xs);
+    }
+    match &plan.sparsity {
+        Some(th) => {
+            let total = xs.iter().map(Vec::len).sum::<usize>() as u64;
+            let (masked, kept) = teal::mask(&xs, th[l][s]);
+            taps.kept[s].0 += kept;
+            taps.kept[s].1 += total;
+            masked
+        }
+        None => xs,
+    }
+}
+
+fn forward_batch(w: &Weights, plan: &Plan, kv: &mut KvCache, tokens: &[u32], need: Logits, taps: &mut Taps) -> Result<Vec<Vec<f32>>, StepError> {
     let c = &w.config;
     let eps = c.rms_norm_eps as f32;
     let (q_dim, kv_dim, pos0) = (c.n_heads * c.head_dim, kv.kv_dim, kv.len);
     let mut xs = tokens.iter().map(|&t| row(&w.embed, t as usize)).collect::<Result<Vec<_>, _>>()?;
+    // trace_words[layer][token]: gate_up then down bitmaps.
+    let mut trace_words: Vec<Vec<Vec<u64>>> = Vec::new();
     for (l, layer) in w.layers.iter().enumerate() {
-        let hs: Vec<Vec<f32>> = xs.iter().map(|x| rmsnorm(x, &layer.attn_norm, eps)).collect();
+        let hs = site(plan, taps, l, QKV, xs.iter().map(|x| rmsnorm(x, &layer.attn_norm, eps)).collect());
         let qkv = gemm::columns_gemm(&layer.qkv, &hs, &plan.all_hidden)?;
         let qs: Vec<Vec<f32>> = qkv.iter().enumerate().map(|(t, v)| rope(&v[..q_dim], c.head_dim, &plan.inv_freq, pos0 + t)).collect();
         for (t, v) in qkv.iter().enumerate() {
@@ -207,16 +264,25 @@ fn forward_batch(w: &Weights, plan: &Plan, kv: &mut KvCache, tokens: &[u32], nee
         }
         let (keys, values) = (&kv.keys[l], &kv.values[l]);
         let att: Vec<Vec<f32>> = qs.par_iter().enumerate().map(|(t, q)| attention(q, keys, values, pos0 + t + 1, c)).collect();
+        let att = site(plan, taps, l, O, att);
         let o = gemm::columns_gemm(&layer.o, &att, &plan.all_q)?;
         xs = xs.iter().zip(&o).map(|(x, o)| add(x, o)).collect();
 
-        let hs: Vec<Vec<f32>> = xs.iter().map(|x| rmsnorm(x, &layer.mlp_norm, eps)).collect();
+        let hs = site(plan, taps, l, GATE_UP, xs.iter().map(|x| rmsnorm(x, &layer.mlp_norm, eps)).collect());
         let gu = gemm::columns_gemm(&layer.gate_up, &hs, &plan.all_hidden)?;
-        let acts: Vec<Vec<f32>> = gu.iter().map(|v| swiglu(&v[..c.ffn], &v[c.ffn..])).collect();
+        let acts = site(plan, taps, l, DOWN, gu.iter().map(|v| swiglu(&v[..c.ffn], &v[c.ffn..])).collect());
+        if taps.trace.is_some() {
+            trace_words.push(hs.iter().zip(&acts).map(|(g, d)| [teal::bitmap(g), teal::bitmap(d)].concat()).collect());
+        }
         let d = gemm::columns_gemm(&layer.down, &acts, &plan.all_ffn)?;
         xs = xs.iter().zip(&d).map(|(x, d)| add(x, d)).collect();
     }
     kv.len += tokens.len();
+    if let Some(trace) = taps.trace.as_mut() {
+        for t in 0..tokens.len() {
+            trace_words.iter().for_each(|layer| trace.extend_from_slice(&layer[t]));
+        }
+    }
     let normed = |x: &Vec<f32>| rmsnorm(x, &w.final_norm, eps);
     Ok(match need {
         Logits::None => Vec::new(),

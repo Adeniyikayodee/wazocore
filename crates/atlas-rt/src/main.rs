@@ -89,6 +89,68 @@ enum Cmd {
         #[arg(long)]
         out: PathBuf,
     },
+    /// TEAL: per-language thresholds from FLORES dev activation histograms
+    TealCalibrate {
+        #[arg(long)]
+        model: PathBuf,
+        #[arg(long)]
+        tokenizer: PathBuf,
+        #[arg(long)]
+        flores: PathBuf,
+        #[arg(long, value_delimiter = ',', default_value = "en,yo,ha,ig")]
+        langs: Vec<String>,
+        /// Calibration tokens per language
+        #[arg(long, default_value_t = 8192)]
+        tokens: usize,
+        #[arg(long, default_value_t = 256)]
+        ctx: usize,
+        #[arg(long, value_delimiter = ',', default_value = "0.4,0.5")]
+        sparsities: Vec<f64>,
+        #[arg(long)]
+        out: PathBuf,
+    },
+    /// TEAL: calibration x evaluation matrix on FLORES devtest (C1/C2)
+    TealEvaluate {
+        #[arg(long)]
+        model: PathBuf,
+        #[arg(long)]
+        tokenizer: PathBuf,
+        #[arg(long)]
+        flores: PathBuf,
+        #[arg(long)]
+        profiles: PathBuf,
+        #[arg(long, value_delimiter = ',', default_value = "en,yo,ha,ig")]
+        langs: Vec<String>,
+        #[arg(long, value_delimiter = ',', default_value = "0.4,0.5")]
+        sparsities: Vec<f64>,
+        #[arg(long, default_value_t = 12)]
+        chunks: usize,
+        #[arg(long, default_value_t = 256)]
+        ctx: usize,
+        #[arg(long)]
+        out: PathBuf,
+    },
+    /// TEAL: write an activation trace (.atr) for atlas-sim
+    TealTrace {
+        #[arg(long)]
+        model: PathBuf,
+        #[arg(long)]
+        tokenizer: PathBuf,
+        #[arg(long)]
+        flores: PathBuf,
+        #[arg(long)]
+        profile: PathBuf,
+        #[arg(long)]
+        lang: String,
+        #[arg(long, default_value = "devtest")]
+        split: String,
+        #[arg(long, default_value_t = 4096)]
+        tokens: usize,
+        #[arg(long, default_value_t = 256)]
+        ctx: usize,
+        #[arg(long)]
+        out: PathBuf,
+    },
     /// Time each kernel of layer 0 and lm_head in isolation
     Kernels {
         #[arg(long)]
@@ -138,6 +200,15 @@ fn main() -> ExitCode {
         }
         Cmd::Bench { model, tokens, warmup, prefill_tokens } => bench(&model, tokens, warmup, prefill_tokens, kernels),
         Cmd::Kernels { model, reps, batch } => kernel_bench(&model, reps, batch, kernels),
+        Cmd::TealCalibrate { model, tokenizer, flores, langs, tokens, ctx, sparsities, out } => {
+            teal_calibrate(&model, &tokenizer, &flores, &langs, tokens, ctx, &sparsities, &out)
+        }
+        Cmd::TealEvaluate { model, tokenizer, flores, profiles, langs, sparsities, chunks, ctx, out } => {
+            teal_evaluate(&model, &tokenizer, &flores, &profiles, &langs, &sparsities, chunks, ctx, &out, &hardware)
+        }
+        Cmd::TealTrace { model, tokenizer, flores, profile, lang, split, tokens, ctx, out } => {
+            teal_trace(&model, &tokenizer, &flores, &profile, &lang, &split, tokens, ctx, &out)
+        }
         Cmd::Compare { model, tokenizer, text, label, tokens, out } => {
             compare(&model, &tokenizer, &text, &label, tokens, &out, &hardware)
         }
@@ -447,5 +518,234 @@ fn perplexity(
     });
     std::fs::write(out, serde_json::to_string_pretty(&report)? + "\n")?;
     eprintln!("{}: PPL {ppl:.4} over {} tokens ({} chunks)", text.display(), nlls.len(), per_chunk.len());
+    Ok(())
+}
+
+// ---- TEAL stages (shell) ------------------------------------------------------
+
+/// Per-chunk fidelity of one sparsity profile, plus kept-channel counts.
+#[derive(Default)]
+struct ConfigAcc {
+    kl: Vec<f64>,
+    top1: Vec<f64>,
+    dnll: Vec<f64>,
+    kept: [(u64, u64); 4],
+}
+
+const BOS: u32 = 128_000;
+
+fn flores_code(lang: &str) -> Result<&'static str, AnyError> {
+    Ok(match lang {
+        "en" => "eng_Latn",
+        "yo" => "yor_Latn",
+        "ha" => "hau_Latn",
+        "ig" => "ibo_Latn",
+        other => return Err(format!("unknown language {other}").into()),
+    })
+}
+
+fn flores_text(flores: &Path, lang: &str, split: &str) -> Result<String, AnyError> {
+    let f = flores.join(split).join(format!("{}.{split}", flores_code(lang)?));
+    Ok(std::fs::read_to_string(&f).map_err(|e| format!("{}: {e}", f.display()))?)
+}
+
+/// `n_ctx`-token windows: BOS then `n_ctx - 1` consecutive text tokens.
+fn text_chunks(tok: &Tokenizer, text: &str, n_ctx: usize, max_chunks: usize) -> Result<Vec<Vec<u32>>, AnyError> {
+    let ids = tok.encode(text, false).map_err(|e| e.to_string())?.get_ids().to_vec();
+    Ok(ids.chunks_exact(n_ctx - 1).take(max_chunks).map(|c| std::iter::once(BOS).chain(c.iter().copied()).collect()).collect())
+}
+
+fn sha256_hex(text: &str) -> String {
+    use sha2::{Digest, Sha256};
+    format!("{:x}", Sha256::digest(text.as_bytes()))
+}
+
+fn load_model(path: &Path) -> Result<(format::Header, u64, Mmap), AnyError> {
+    open(path)
+}
+
+#[allow(clippy::too_many_arguments)]
+fn teal_calibrate(model: &Path, tok_path: &Path, flores: &Path, langs: &[String], budget: usize, ctx: usize, ps: &[f64], out: &Path) -> Result<(), AnyError> {
+    use atlas_rt::forward::{Taps, prefill_tapped};
+    use atlas_rt::teal::{self, Calibration, Profile, SITES};
+    let (header, data, map) = load_model(model)?;
+    let w = weights(&header, &map[data as usize..])?;
+    let plan = Plan::dense(&w.config, ops::rope_inv_freq(&w.config)?, Kernels::Fast);
+    let tok = Tokenizer::from_file(tok_path).map_err(|e| format!("{}: {e}", tok_path.display()))?;
+    std::fs::create_dir_all(out)?;
+    let write = |lang: &str, hist: &teal::Histograms, tokens: usize, digest: &str| -> Result<(), AnyError> {
+        for &p in ps {
+            let profile = Profile {
+                model: model.display().to_string(),
+                calibration: Calibration { lang: lang.into(), split: "dev".into(), tokens, text_sha256: digest.into() },
+                sparsity: p,
+                sites: SITES.iter().map(|s| s.to_string()).collect(),
+                thresholds: teal::thresholds(hist, p)?,
+            };
+            let path = out.join(format!("{lang}-{:02}.json", (p * 100.0).round() as u32));
+            std::fs::write(&path, serde_json::to_string_pretty(&profile)? + "\n")?;
+            eprintln!("wrote {}", path.display());
+        }
+        Ok(())
+    };
+    let mut all = Vec::new();
+    let mut digests = Vec::new();
+    for lang in langs {
+        let text = flores_text(flores, lang, "dev")?;
+        let chunks = text_chunks(&tok, &text, ctx, budget / ctx)?;
+        let mut taps = Taps { hist: Some(teal::empty_histograms(w.config.layers)), ..Taps::default() };
+        let t0 = Instant::now();
+        for c in &chunks {
+            let mut kv = KvCache::new(&w.config, ctx);
+            prefill_tapped(&w, &plan, &mut kv, c, Want::Last, &mut taps)?;
+        }
+        let tokens = chunks.len() * ctx;
+        eprintln!("{lang}: {tokens} calibration tokens in {:.0}s", t0.elapsed().as_secs_f64());
+        let hist = taps.hist.ok_or("histogram missing")?;
+        let digest = sha256_hex(&text);
+        write(lang, &hist, tokens, &digest)?;
+        digests.push(digest);
+        all.push((hist, tokens));
+    }
+    if all.len() > 1 {
+        let tokens = all.iter().map(|a| a.1).sum();
+        let hists: Vec<_> = all.into_iter().map(|a| a.0).collect();
+        write("pooled", &teal::pool(&hists).ok_or("no histograms")?, tokens, &sha256_hex(&digests.concat()))?;
+    }
+    Ok(())
+}
+
+#[allow(clippy::too_many_arguments)]
+fn teal_evaluate(
+    model: &Path,
+    tok_path: &Path,
+    flores: &Path,
+    profiles: &Path,
+    langs: &[String],
+    ps: &[f64],
+    max_chunks: usize,
+    ctx: usize,
+    out: &Path,
+    hardware: &serde_json::Value,
+) -> Result<(), AnyError> {
+    use atlas_rt::forward::{Taps, prefill_tapped};
+    use atlas_rt::metrics::log_softmax;
+    use atlas_rt::teal::{self, Profile, SITES};
+    use rayon::prelude::*;
+    let (header, data, map) = load_model(model)?;
+    let w = weights(&header, &map[data as usize..])?;
+    let dense = Plan::dense(&w.config, ops::rope_inv_freq(&w.config)?, Kernels::Fast);
+    let tok = Tokenizer::from_file(tok_path).map_err(|e| format!("{}: {e}", tok_path.display()))?;
+    let load_profile = |calib: &str, p: f64| -> Result<Profile, AnyError> {
+        let f = profiles.join(format!("{calib}-{:02}.json", (p * 100.0).round() as u32));
+        Ok(serde_json::from_slice(&std::fs::read(&f).map_err(|e| format!("{}: {e}", f.display()))?)?)
+    };
+    let mut rows = Vec::new();
+    for lang in langs {
+        let mut calibs: Vec<&str> = vec!["en", lang.as_str(), "pooled"];
+        calibs.dedup();
+        let configs: Vec<Profile> = calibs.iter().flat_map(|c| ps.iter().map(move |&p| (*c, p))).map(|(c, p)| load_profile(c, p)).collect::<Result<_, _>>()?;
+        let chunks = text_chunks(&tok, &flores_text(flores, lang, "devtest")?, ctx, max_chunks)?;
+        // per config: per-chunk means of KL, top-1, ΔNLL; kept counts per site
+        let mut acc: Vec<ConfigAcc> = configs.iter().map(|_| ConfigAcc::default()).collect();
+        let t0 = Instant::now();
+        for c in &chunks {
+            let mut kv = KvCache::new(&w.config, ctx);
+            let dense_lp: Vec<Vec<f64>> = prefill_tapped(&w, &dense, &mut kv, c, Want::All, &mut Taps::default())?.par_iter().map(|l| log_softmax(l)).collect();
+            for (cfg, a) in configs.iter().zip(acc.iter_mut()) {
+                let plan = Plan { sparsity: Some(cfg.thresholds.clone()), ..dense.clone() };
+                let mut taps = Taps::default();
+                let mut kv = KvCache::new(&w.config, ctx);
+                let sparse = prefill_tapped(&w, &plan, &mut kv, c, Want::All, &mut taps)?;
+                let per_pos: Vec<(f64, bool, f64)> = dense_lp
+                    .par_iter()
+                    .zip(sparse.par_iter())
+                    .enumerate()
+                    .map(|(i, (d, s))| {
+                        let s = log_softmax(s);
+                        let kl = d.iter().zip(&s).map(|(a, b)| a.exp() * (a - b)).sum::<f64>().max(0.0);
+                        let arg = |v: &[f64]| v.iter().enumerate().fold((0, f64::NEG_INFINITY), |b, (j, &x)| if x > b.1 { (j, x) } else { b }).0;
+                        let dnll = if i + 1 < c.len() { d[c[i + 1] as usize] - s[c[i + 1] as usize] } else { 0.0 };
+                        (kl, arg(d) == arg(&s), dnll)
+                    })
+                    .collect();
+                let n = per_pos.len() as f64;
+                a.kl.push(per_pos.iter().map(|p| p.0).sum::<f64>() / n);
+                a.top1.push(per_pos.iter().filter(|p| p.1).count() as f64 / n);
+                a.dnll.push(per_pos[..per_pos.len() - 1].iter().map(|p| p.2).sum::<f64>() / (n - 1.0));
+                for (k, t) in a.kept.iter_mut().zip(taps.kept) {
+                    k.0 += t.0;
+                    k.1 += t.1;
+                }
+            }
+        }
+        eprintln!("{lang}: {} chunks x {} configs in {:.0}s", chunks.len(), configs.len(), t0.elapsed().as_secs_f64());
+        for (cfg, a) in configs.iter().zip(&acc) {
+            let eff: serde_json::Map<String, serde_json::Value> =
+                SITES.iter().zip(a.kept).map(|(s, (k, t))| (s.to_string(), serde_json::json!(1.0 - k as f64 / t.max(1) as f64))).collect();
+            let kl = teal::bootstrap(&a.kl, 2000);
+            let dnll = teal::bootstrap(&a.dnll, 2000);
+            let top1 = a.top1.iter().sum::<f64>() / a.top1.len() as f64;
+            eprintln!(
+                "  {lang} <- {}-{:.0}: eff. sparsity down {:.3} qkv {:.3} | KL {:.4} [{:.4}, {:.4}] | ΔNLL {:+.4} | top-1 {:.3}",
+                cfg.calibration.lang,
+                cfg.sparsity * 100.0,
+                eff["down"].as_f64().unwrap_or(f64::NAN),
+                eff["qkv"].as_f64().unwrap_or(f64::NAN),
+                kl.0, kl.1, kl.2, dnll.0, top1
+            );
+            rows.push(serde_json::json!({
+                "eval_lang": lang, "calib_lang": cfg.calibration.lang, "target_sparsity": cfg.sparsity,
+                "effective_sparsity": eff, "kl": [kl.0, kl.1, kl.2], "delta_nll": [dnll.0, dnll.1, dnll.2],
+                "top1": top1, "chunks": a.kl.len(), "ctx": ctx,
+                "kl_per_chunk": a.kl, "delta_nll_per_chunk": a.dnll,
+            }));
+        }
+    }
+    let report = serde_json::json!({ "model": model.display().to_string(), "profiles": profiles.display().to_string(), "results": rows, "hardware": hardware });
+    std::fs::write(out, serde_json::to_string_pretty(&report)? + "\n")?;
+    Ok(())
+}
+
+#[allow(clippy::too_many_arguments)]
+fn teal_trace(model: &Path, tok_path: &Path, flores: &Path, profile: &Path, lang: &str, split: &str, budget: usize, ctx: usize, out: &Path) -> Result<(), AnyError> {
+    use atlas_rt::forward::{Taps, prefill_tapped};
+    use atlas_rt::teal::Profile;
+    let (header, data, map) = load_model(model)?;
+    let w = weights(&header, &map[data as usize..])?;
+    let prof: Profile = serde_json::from_slice(&std::fs::read(profile)?)?;
+    let plan = Plan { sparsity: Some(prof.thresholds.clone()), ..Plan::dense(&w.config, ops::rope_inv_freq(&w.config)?, Kernels::Fast) };
+    let tok = Tokenizer::from_file(tok_path).map_err(|e| format!("{}: {e}", tok_path.display()))?;
+    let chunks = text_chunks(&tok, &flores_text(flores, lang, split)?, ctx, budget / ctx)?;
+    let mut taps = Taps { trace: Some(Vec::new()), ..Taps::default() };
+    for c in &chunks {
+        let mut kv = KvCache::new(&w.config, ctx);
+        prefill_tapped(&w, &plan, &mut kv, c, Want::Last, &mut taps)?;
+    }
+    let c = &w.config;
+    let q4 = |rows: usize| rows / 2 + rows / 64 * 4;
+    let header_json = serde_json::json!({
+        "format": "atlas-trace", "version": 1, "model": model.display().to_string(), "lang": lang,
+        "source": format!("FLORES-200 {split}"),
+        "profile": profile.file_stem().and_then(|s| s.to_str()).unwrap_or("?"),
+        "layers": c.layers, "tokens": chunks.len() * ctx,
+        "matrices": [
+            {"name": "gate_up", "channels": c.hidden, "bytes_per_channel": 2 * q4(c.ffn)},
+            {"name": "down", "channels": c.ffn, "bytes_per_channel": q4(c.hidden)},
+        ],
+    });
+    let json = serde_json::to_vec(&header_json)?;
+    let pad = (8 - (8 + json.len()) % 8) % 8;
+    let words = taps.trace.ok_or("trace missing")?;
+    let bytes: Vec<u8> = b"ATRC"
+        .iter()
+        .copied()
+        .chain(((json.len() + pad) as u32).to_le_bytes())
+        .chain(json)
+        .chain(std::iter::repeat_n(b' ', pad))
+        .chain(words.iter().flat_map(|w| w.to_le_bytes()))
+        .collect();
+    std::fs::write(out, bytes)?;
+    eprintln!("wrote {} ({} tokens)", out.display(), chunks.len() * ctx);
     Ok(())
 }

@@ -108,3 +108,58 @@ fn prefill_equals_stepwise_decode_bit_for_bit() {
     assert_eq!(last, vec![stepwise[n - 1].clone()]);
     assert!(prefill(&w, &plan, &mut kv_c, &r.tokens[..1], Want::Last).is_err(), "cache is full");
 }
+
+fn tiny_q4() -> (Vec<u8>, usize) {
+    let bytes = fs::read(format!("{DIR}/tiny-q4.satl")).unwrap();
+    let (_, data) = decode_prefix(&bytes).unwrap();
+    (bytes, data as usize)
+}
+
+#[test]
+fn teal_taps_calibrate_mask_and_trace() {
+    use atlas_rt::forward::{Taps, prefill_tapped};
+    use atlas_rt::teal::{self, DOWN, GATE_UP};
+
+    let r = reference();
+    let (bytes, data) = tiny_q4();
+    let (header, _) = decode_prefix(&bytes).unwrap();
+    let w = weights(&header, &bytes[data..]).unwrap();
+    let dense = Plan::dense(&w.config, rope_inv_freq(&w.config).unwrap(), Kernels::Fast);
+    let n = r.tokens.len();
+    let run = |plan: &Plan, taps: &mut Taps| {
+        let mut kv = KvCache::new(&w.config, n);
+        prefill_tapped(&w, plan, &mut kv, &r.tokens, Want::All, taps).unwrap()
+    };
+
+    // Calibrate on the sequence itself.
+    let mut cal = Taps { hist: Some(teal::empty_histograms(w.config.layers)), ..Taps::default() };
+    let base = run(&dense, &mut cal);
+    let hist = cal.hist.unwrap();
+
+    // Zero thresholds keep every non-zero value: identical logits.
+    let zero = Plan { sparsity: Some(teal::thresholds(&hist, 0.0).unwrap()), ..dense.clone() };
+    assert_eq!(run(&zero, &mut Taps::default()), base);
+
+    // Target 50%: the first site sees the calibration distribution exactly;
+    // later sites drift a little because earlier masks change activations.
+    let half = Plan { sparsity: Some(teal::thresholds(&hist, 0.5).unwrap()), ..dense.clone() };
+    let mut taps = Taps { trace: Some(Vec::new()), ..Taps::default() };
+    let sparse = run(&half, &mut taps);
+    assert_ne!(sparse, base);
+    for (s, (kept, total)) in taps.kept.iter().enumerate() {
+        let eff = 1.0 - *kept as f64 / *total as f64;
+        assert!((eff - 0.5).abs() < 0.1, "site {s}: effective sparsity {eff}");
+    }
+
+    // Trace: token-major, per layer gate_up then down words; set bits = kept.
+    let c = &w.config;
+    let words_per_layer = c.hidden / 64 + c.ffn / 64;
+    let trace = taps.trace.unwrap();
+    assert_eq!(trace.len(), n * c.layers * words_per_layer);
+    let bits: u64 = trace.iter().map(|w| w.count_ones() as u64).sum();
+    assert_eq!(bits, taps.kept[GATE_UP].0 + taps.kept[DOWN].0);
+
+    // Stepwise decode refuses a sparse plan rather than silently ignoring it.
+    let mut kv = KvCache::new(&w.config, n);
+    assert!(step(&w, &half, &mut kv, r.tokens[0]).is_err());
+}

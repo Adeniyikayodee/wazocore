@@ -15,4 +15,5 @@ pub mod forward;
 pub mod kernels;
 pub mod metrics;
 pub mod ops;
+pub mod teal;
 pub mod weights;
