@@ -123,6 +123,9 @@ enum Cmd {
         langs: Vec<String>,
         #[arg(long, value_delimiter = ',', default_value = "0.4,0.5")]
         sparsities: Vec<f64>,
+        /// Calibration profiles per evaluation language; `own` = the language itself
+        #[arg(long, value_delimiter = ',', default_value = "en,own,pooled")]
+        calibs: Vec<String>,
         #[arg(long, default_value_t = 12)]
         chunks: usize,
         #[arg(long, default_value_t = 256)]
@@ -203,8 +206,8 @@ fn main() -> ExitCode {
         Cmd::TealCalibrate { model, tokenizer, flores, langs, tokens, ctx, sparsities, out } => {
             teal_calibrate(&model, &tokenizer, &flores, &langs, tokens, ctx, &sparsities, &out)
         }
-        Cmd::TealEvaluate { model, tokenizer, flores, profiles, langs, sparsities, chunks, ctx, out } => {
-            teal_evaluate(&model, &tokenizer, &flores, &profiles, &langs, &sparsities, chunks, ctx, &out, &hardware)
+        Cmd::TealEvaluate { model, tokenizer, flores, profiles, langs, sparsities, calibs, chunks, ctx, out } => {
+            teal_evaluate(&model, &tokenizer, &flores, &profiles, &langs, &sparsities, &calibs, chunks, ctx, &out, &hardware)
         }
         Cmd::TealTrace { model, tokenizer, flores, profile, lang, split, tokens, ctx, out } => {
             teal_trace(&model, &tokenizer, &flores, &profile, &lang, &split, tokens, ctx, &out)
@@ -623,6 +626,7 @@ fn teal_evaluate(
     profiles: &Path,
     langs: &[String],
     ps: &[f64],
+    calib_spec: &[String],
     max_chunks: usize,
     ctx: usize,
     out: &Path,
@@ -642,7 +646,7 @@ fn teal_evaluate(
     };
     let mut rows = Vec::new();
     for lang in langs {
-        let mut calibs: Vec<&str> = vec!["en", lang.as_str(), "pooled"];
+        let mut calibs: Vec<&str> = calib_spec.iter().map(|c| if c == "own" { lang.as_str() } else { c.as_str() }).collect();
         calibs.dedup();
         let configs: Vec<Profile> = calibs.iter().flat_map(|c| ps.iter().map(move |&p| (*c, p))).map(|(c, p)| load_profile(c, p)).collect::<Result<_, _>>()?;
         let chunks = text_chunks(&tok, &flores_text(flores, lang, "devtest")?, ctx, max_chunks)?;
