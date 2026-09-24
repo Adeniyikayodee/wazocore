@@ -1,0 +1,60 @@
+{
+  "dataset": "FLORES-200 dev",
+  "normalization": "NFC (tokens_nfd for comparison)",
+  "tokenizer": {
+    "path": "data/tokenizers/n-atlas-fp8-mirror/tokenizer.json",
+    "source": "tosinamuda/N-ATLaS-FP8 (unofficial mirror; verify vs NCAIR1/N-ATLaS)",
+    "sha256": "6b9e4e7fb171f92fd137b777cc2714bf87d11576700a1dcd7a399e7bbe39537b",
+    "vocab_size": 128256
+  },
+  "languages": [
+    {
+      "lang": "en",
+      "sentences": 997,
+      "words": 20954,
+      "chars": 105236,
+      "tokens": 25792,
+      "tokens_nfd": 25810,
+      "tokens_per_word": 1.2308867042092202,
+      "tokens_per_char": 0.24508723250598655,
+      "tax_vs_en": null,
+      "nfd_inflation": 1.0006978908188586
+    },
+    {
+      "lang": "yo",
+      "sentences": 997,
+      "words": 24344,
+      "chars": 97324,
+      "tokens": 69122,
+      "tokens_nfd": 82101,
+      "tokens_per_word": 2.839385474860335,
+      "tokens_per_char": 0.7102256380748839,
+      "tax_vs_en": 2.679978287841191,
+      "nfd_inflation": 1.187769451115419
+    },
+    {
+      "lang": "ha",
+      "sentences": 997,
+      "words": 24217,
+      "chars": 111365,
+      "tokens": 51416,
+      "tokens_nfd": 51431,
+      "tokens_per_word": 2.123136639550729,
+      "tokens_per_char": 0.4616890405423607,
+      "tax_vs_en": 1.99348635235732,
+      "nfd_inflation": 1.0002917379803953
+    },
+    {
+      "lang": "ig",
+      "sentences": 997,
+      "words": 23464,
+      "chars": 104169,
+      "tokens": 60535,
+      "tokens_nfd": 65185,
+      "tokens_per_word": 2.57990964882373,
+      "tokens_per_char": 0.5811229828451843,
+      "tax_vs_en": 2.3470455955334986,
+      "nfd_inflation": 1.0768150656644917
+    }
+  ]
+}
