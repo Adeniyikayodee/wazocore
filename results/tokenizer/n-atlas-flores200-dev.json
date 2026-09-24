@@ -3,7 +3,7 @@
   "normalization": "NFC (tokens_nfd for comparison)",
   "tokenizer": {
     "path": "data/tokenizers/n-atlas-fp8-mirror/tokenizer.json",
-    "source": "tosinamuda/N-ATLaS-FP8 (unofficial mirror; verify vs NCAIR1/N-ATLaS)",
+    "source": "tosinamuda/N-ATLaS-FP8 mirror; sha256 verified identical to NCAIR1/N-ATLaS tokenizer.json on 2026-09-24",
     "sha256": "6b9e4e7fb171f92fd137b777cc2714bf87d11576700a1dcd7a399e7bbe39537b",
     "vocab_size": 128256
   },
