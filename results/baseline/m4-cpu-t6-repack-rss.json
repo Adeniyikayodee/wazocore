@@ -1,0 +1,12 @@
+{
+  "label": "m4-cpu-t6-repack-rss",
+  "question": "Why is llama-server peak RSS ~7 GiB for a 4.58 GiB Q4_K_M model with one slot?",
+  "method": "llama-server -t 6 -c 2048 -np 1 -ngl 0, one 64-token translation request, peak RSS from /usr/bin/time -l",
+  "llama_cpp_commit": "bd4f514db14d87fded667787a7a963bfbaa98e89",
+  "model_sha256": "71de156e0e6a137319e3b4a159d2a38c06726b6f03067c51c5894ac1596b2c80",
+  "runs": [
+    {"config": "default (weight repacking on)", "peak_rss_gib": 7.20, "prefill_tok_s": 43.0, "decode_tok_s": 8.10},
+    {"config": "--no-repack", "peak_rss_gib": 4.92, "prefill_tok_s": 22.3, "decode_tok_s": 10.09}
+  ],
+  "finding": "Repacking keeps a second ~2.3 GiB copy of the weights: 2x faster prefill, no decode gain. On 8 GB devices both configurations must be reported."
+}
