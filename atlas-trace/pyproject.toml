@@ -1,0 +1,16 @@
+[project]
+name = "atlas-trace"
+version = "0.1.0"
+description = "N-ATLAS calibration, activation traces and quality evaluation"
+requires-python = ">=3.11"
+dependencies = ["tokenizers>=0.20"]
+
+[dependency-groups]
+dev = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+pythonpath = ["."]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
