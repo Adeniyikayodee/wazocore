@@ -1,6 +1,6 @@
 [workspace]
 resolver = "3"
-members = ["crates/atlas-probe"]
+members = ["crates/atlas-probe", "crates/atlas-sim"]
 
 [workspace.package]
 edition = "2024"
