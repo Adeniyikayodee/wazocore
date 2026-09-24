@@ -53,6 +53,8 @@ N-ATLAS = Llama-3-8B shape: hidden 4,096 · FFN 14,336 · 32 layers · 32 query 
 | Token embedding | 0.525 B | 0.296 GB | **No**: one 2.3 KB row per token, so it can live on storage **losslessly** |
 | **Total** | 8.03 B | 4.65 GB | **4.36 GB read per token (dense)** |
 
+> **Update 24 Sep:** the implemented `.satl` stores lm_head as q8 (8.5 bpw), not Q6 (6.56 bpw). Dense bytes per token become about 4.48 GB (+3%), so the ceilings in §2.2 are about 3% optimistic until a q6 lm_head codec lands. See §12.
+
 ### 2.2 Decode is memory-bandwidth-bound
 
 | Sparsity (attn + MLP inputs) | Bytes/token | Byte reduction | tok/s @ 8 GB/s | @ 10 GB/s | @ 13 GB/s |
@@ -66,6 +68,8 @@ Effective CPU memory bandwidth for Pi 5 / budget phone SoCs is **8–13 GB/s *(e
 
 **Report words/sec, not just tokens/sec.** Yoruba needs more tokens per word than English (1.85× on GPT-4o's tokenizer; measure N-ATLAS's own on day 1). Tokens/sec hides the language tax; words/sec and chars/sec expose it. This is the parity metric.
 
+> **Update 24 Sep (measured):** N-ATLaS's tokenizer (identical to Llama-3's 128,256-token vocabulary) needs **2.68× (yo), 2.35× (ig) and 1.99× (ha)** the tokens of English for the same FLORES content, not 1.85×. On llama.cpp this gives Yoruba 2.7 words/s against English's 6.0 at equal tokens/s. Decomposed (NFD) Yoruba costs another 19%, so the runtime must NFC-normalise its input. See §12.
+
 ### 2.3 Prefill is compute-bound (and v1 ignored it)
 
 2 × 8.03 B × N FLOPs. At ~150 GOPS effective int8 on a phone/Pi CPU *(est.)*:
@@ -76,6 +80,8 @@ Effective CPU memory bandwidth for Pi 5 / budget phone SoCs is **8–13 GB/s *(e
 | 200 (system prompt + turn) | 3.21 TOP | ~21 s |
 
 Sparsity barely helps prefill: the union of active channels across many tokens is nearly dense. **Mitigation, lossless:** *KV snapshots.* Precompute the system prompt's KV cache once and save it to disk (128 KB/token fp16, so a 150-token system prompt = 19 MB). Load it at session start. Only the user turn is prefilled.
+
+> **Update 24 Sep (measured):** on the M4 CPU, llama.cpp prefill runs at 26–44 tok/s. The Pi 5 will be several times slower, so KV snapshots are mandatory, not optional. Yoruba's token tax makes a "40-token turn" about 15 words.
 
 ### 2.4 Storage streaming: where it works and where it can't
 
@@ -109,6 +115,8 @@ App memory budgets *(est.)*: 4 GB phone ≈ 2 GB · 6 GB phone ≈ 3 GB · 8 GB 
   - **gate and up share the same input x**, so channel *i*'s gate column and up column are stored **adjacent as one bundle** (2 × 14,336 × 4.5 bits ≈ 16 KB): one read serves both.
   - down_proj: columns over the 14,336 intermediate channels (4,096 × 4.5 bits ≈ 2.3 KB each).
 - lm_head: row-major dense Q6 (always fully read).
+
+> **Update 24 Sep:** "groups of 32 with f16 scale + min" is 5.0 bpw, not 4.5, which contradicts §2. The implementation uses **group 64 (4.5 bpw)**; group 32 remains an option. lm_head is q8 for now. The authoritative layout is `docs/satl-format.md`.
 - Token embedding: separate segment, read by row on demand (not resident).
 - **Quantize from bf16, never from GGUF.** Converting Q4_K_M → our layout would stack two quantization errors.
 - **Isolate variables:** measure *dense quality of `.satl`* vs llama.cpp Q4_K_M before adding sparsity. Otherwise format loss and sparsity loss get confused. Stretch: activation-aware scaling (AWQ-style) using per-language activation statistics (links to Plan A).
@@ -130,9 +138,16 @@ App memory budgets *(est.)*: 4 GB phone ≈ 2 GB · 6 GB phone ≈ 3 GB · 8 GB 
 - **Threading:** split by output-row blocks, so there are no write conflicts and each thread streams a contiguous slice of every active column. On big.LITTLE phones, measure big-cores-only vs all-cores; slow A55 cores often straggle. Use small work chunks with stealing.
 - **Correctness ladder:** scalar reference (bit-exact spec) → NEON → AVX2. Property tests over random shapes, sparsity masks and quant blocks. **At 0% sparsity the sparse kernel must equal the dense kernel within float tolerance.** Fixed reduction order in test mode for determinism.
 
+> **Update 24 Sep (implemented):**
+> - SDOT reduces across columns only if each column's per-group scale is first **folded into the activation** (`x_j · s_{j,g}`) and the folded values are **re-quantised to int8 per 32-column block**. That is what is implemented. It costs a mean KL of 5–8e-3 nats against f32 activations (§12), with no measurable NLL change.
+> - Threading uses **2D tiles** (≤ 4,096 output rows × a column slice). The tiling depends only on the matrix shape, so logits are bit-identical at any thread count and on any device. NEON is checked bit for bit against a scalar int8 spec.
+> - Dense decode on the M4 (6 threads) is 8.3 tok/s, level with llama.cpp. Single-core efficiency is still about 2.6× below llama.cpp.
+
 ### 3.5 Forward pass
 
 Minimal Llama-3 op set: RMSNorm, RoPE (Llama-3 scaling), GQA attention with a KV cache (q8 option), SwiGLU MLP, sampling. Validate end to end against PyTorch reference logits on fixed prompts: **100% greedy top-1 agreement on the dense f32 path**, reported KL on the quantized path.
+
+> **Update 24 Sep:** met on a tiny random Llama-3 fixture that exercises GQA and all llama3-RoPE bands: logits within 1e-4, and 100% top-1 at every position. Not yet run on N-ATLaS itself, whose f32 reference needs more than 16 GB of RAM (Colab).
 
 ### 3.6 Storage streaming (stretch, only if Gate G1 passes)
 
@@ -196,6 +211,8 @@ Sparsity level is chosen **per language** as the highest that passes all gates. 
 | **C** | Android phone, 8 GB (Termux + `cargo-ndk`) | Real-phone proof |
 | **D** *(stretch)* | Android phone, 6 GB, UFS storage | Storage streaming, only if Gate G1 passes |
 | — | 4 GB phones | **Out of scope for 8B** (§2.4) |
+
+> **Update 24 Sep:** the development machine is an **Apple M4 (arm64)**, not x86. The NEON path is therefore the tested one. Until an AVX2 kernel exists, x86 runs the scalar int8 spec (estimated < 1 tok/s), which blocks x86 beta testers.
 
 ---
 
@@ -265,12 +282,13 @@ Sparsity level is chosen **per language** as the highest that passes all gates. 
 
 ## 10. Day-1 actions (24 Sep)
 
-- [ ] Secure GPU access (Colab Pro L4/A100 or equivalent); accept the `NCAIR1/N-ATLaS` gated-repo conditions; download the bf16 weights
+- [ ] Secure GPU access (Colab Pro L4/A100 or equivalent)
+- [x] Accept the `NCAIR1/N-ATLaS` gated-repo conditions; download the bf16 weights
 - [ ] Order or borrow a Raspberry Pi 5 8 GB with active cooler and USB power meter; identify an 8 GB Android phone (and optionally a 6 GB UFS one)
 - [ ] Message 2–3 potential beta testers (developers with a laptop or Pi); confirm availability 7–10 Oct
-- [ ] Write `atlas-probe`: bandwidth + storage + topology → JSON manifest
-- [ ] Build llama.cpp; N-ATLAS Q4_K_M baseline on laptop (and Pi/phone when available)
-- [ ] Tokens-per-word audit for yo/ha/ig/en on FLORES-200 dev with N-ATLAS's tokenizer
+- [x] Write `atlas-probe`: bandwidth + storage + topology → JSON manifest
+- [x] Build llama.cpp; N-ATLAS Q4_K_M baseline on laptop (Pi/phone pending hardware)
+- [x] Tokens-per-word audit for yo/ha/ig/en on FLORES-200 dev with N-ATLAS's tokenizer
 - [ ] Line up one native speaker per language for the code-switching set and the A/B study
 
 ---
@@ -293,3 +311,38 @@ Sparsity level is chosen **per language** as the highest that passes all gates. 
 | [2406.03368](https://arxiv.org/abs/2406.03368) | IrokoBench | AfriMMLU / AfriXNLI for yo/ha/ig |
 | [2606.24460](https://arxiv.org/abs/2606.24460) | The African Language Tax | Tokens-per-word premiums; motivates the words/sec metric |
 | [2407.00088](https://arxiv.org/abs/2407.00088) | T-MAC | CPU LUT kernels; alternative dense-path optimization |
+
+---
+
+## 12. Findings and deviations (living log)
+
+Every number here is regenerated in `results/TABLES.md` (`python -m atlas_trace.tables`).
+
+### 12.1 Measured (24 Sep, Apple M4 dev machine)
+
+| Topic | Plan assumed | Measured | Consequence |
+|---|---|---|---|
+| Token tax vs English | 1.85× | yo 2.68×, ig 2.35×, ha 1.99× | Words/s parity gap is larger than planned; the motivation strengthens |
+| llama.cpp decode (M4, 6 threads) | – | 7.4–8.1 tok/s in every language; words/s en 6.0, yo 2.7 | Yoruba users get 45% of English's content speed |
+| llama.cpp peak RSS | – | 7.2 GiB with weight repacking, 4.9 GiB with `--no-repack` (half the prefill speed) | Report both on 8 GB devices |
+| `.satl` q4g64 conversion error | – | 0.091–0.10 relative RMSE on every projection; q8 0.0055; norms exact | In line with 4-bit theory; no broken tensors |
+| **Dense `.satl` vs Q4_K_M** (perplexity against a Q8_0 reference, same tokens) | assumed equal | en **+0.050 nats [0.015, 0.082] worse**; ha +0.035 [0.000, 0.070]; yo and ig equal | Must be fixed in the format **before** any sparsity result (§3.2 "isolate variables"). Likely causes: Q4_K_M keeps half the layers' `attn_v`/`ffn_down` at Q6_K and uses finer scales, and int8 activations hurt English most |
+| Int8 activations vs f32 | not considered | mean KL 5–8e-3 nats; top-1 92–97%; NLL change within ±0.017 | Uses 10–16% of the 0.05-nat gate; no disadvantage for yo/ha/ig |
+| atlas-rt dense decode | – | 8.3 tok/s at 6 threads (llama.cpp parity); 2.8 tok/s on 1 thread (llama.cpp 7.5) | Single-core efficiency matters on the 4-core Pi |
+| Storage streaming (synthetic traces) | – | h ≥ 0.9 at a 50% cache needs highly concentrated activations, even for Belady | Early sign the stretch goal stays out; real traces decide G1 |
+
+### 12.2 Design deviations
+
+| Plan | Implemented | Why |
+|---|---|---|
+| §3.2 group 32, "4.5 bpw" | group 64 = 4.5 bpw (group 32 = 5.0 bpw) | Group 32 breaks the §2 byte budget by 11% |
+| §3.2 lm_head Q6 | q8 | Simpler first codec; costs about 3% of bytes per token |
+| §3.4 SDOT over 4 transposed columns | Same, plus scale folding and int8 re-quantisation per 32 columns | Per-column group scales otherwise block integer reduction |
+| §3.4 threads split by output rows | 2D tiles (rows × column slices), shape-determined | gate_up's 112 KB output exceeds the A76's L1; thread-count-dependent tiling changed results |
+| §5 Tier A x86 | Apple M4 | Available hardware; x86 needs an AVX2 kernel before beta testing |
+
+### 12.3 Status against the gates (end of 24 Sep)
+
+- **G0:** open. Needs Pi 5 and phone probe manifests.
+- **G1 (28 Sep):** at risk. P1 science (TEAL calibration, traces) has not started; it needs a GPU.
+- **G2 (2 Oct):** the engine is at dense *speed* parity on the M4, but dense *quality* trails Q4_K_M in English and Hausa, sparsity is not in the engine yet, and there is no Pi to measure on.
