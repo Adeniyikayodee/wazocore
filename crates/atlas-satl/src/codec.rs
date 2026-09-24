@@ -7,6 +7,9 @@ use half::f16;
 
 pub const BLOCK: usize = 32;
 
+/// Largest q4 group (rows per scale) the runtime kernels accept.
+pub const MAX_Q4_GROUP: usize = 128;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum CodecError {
     /// `group` must be a positive multiple of 32 dividing the length.

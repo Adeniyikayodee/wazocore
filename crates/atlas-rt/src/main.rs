@@ -205,21 +205,23 @@ fn bench(model: &Path, tokens: usize, warmup: usize, kernels: Kernels) -> Result
     Ok(())
 }
 
+type KernelResult = Result<Vec<f32>, atlas_rt::kernels::KernelError>;
+
 /// A named kernel run over `bytes` of weights.
-type Case<'a> = (&'static str, u64, Box<dyn FnMut() -> Vec<f32> + 'a>);
+type Case<'a> = (&'static str, u64, Box<dyn FnMut() -> KernelResult + 'a>);
 
 /// Median seconds of `reps` runs of `f` after one warm-up run.
-fn time_median(reps: usize, mut f: impl FnMut() -> Vec<f32>) -> f64 {
-    std::hint::black_box(f());
-    let mut secs: Vec<f64> = (0..reps)
+fn time_median(reps: usize, mut f: impl FnMut() -> KernelResult) -> Result<f64, AnyError> {
+    std::hint::black_box(f()?);
+    let mut secs = (0..reps)
         .map(|_| {
             let t0 = Instant::now();
-            std::hint::black_box(f());
-            t0.elapsed().as_secs_f64()
+            std::hint::black_box(f()?);
+            Ok(t0.elapsed().as_secs_f64())
         })
-        .collect();
+        .collect::<Result<Vec<f64>, AnyError>>()?;
     secs.sort_by(f64::total_cmp);
-    secs[secs.len() / 2]
+    Ok(secs[secs.len() / 2])
 }
 
 fn kernel_bench(model: &Path, reps: usize, kernels: Kernels) -> Result<(), AnyError> {
@@ -237,19 +239,20 @@ fn kernel_bench(model: &Path, reps: usize, kernels: Kernels) -> Result<(), AnyEr
         Kernels::Fast => fast::columns_gemv(w, x, a),
     };
     let cases: [Case; 5] = [
-        ("qkv", (l.qkv.count * l.qkv.stride) as u64, Box::new(|| cols(&l.qkv, &xh, &ah))),
-        ("o", (l.o.count * l.o.stride) as u64, Box::new(|| cols(&l.o, &xq, &aq))),
-        ("gate_up", (l.gate_up.count * l.gate_up.stride) as u64, Box::new(|| cols(&l.gate_up, &xh, &ah))),
-        ("down", (l.down.count * l.down.stride) as u64, Box::new(|| cols(&l.down, &xf, &af))),
-        ("lm_head", w.lm_head.data.len() as u64, Box::new(|| match kernels {
+        ("qkv", l.qkv.bytes() as u64, Box::new(|| cols(&l.qkv, &xh, &ah))),
+        ("o", l.o.bytes() as u64, Box::new(|| cols(&l.o, &xq, &aq))),
+        ("gate_up", l.gate_up.bytes() as u64, Box::new(|| cols(&l.gate_up, &xh, &ah))),
+        ("down", l.down.bytes() as u64, Box::new(|| cols(&l.down, &xf, &af))),
+        ("lm_head", w.lm_head.bytes() as u64, Box::new(|| match kernels {
             Kernels::Reference => reference::rows_gemv_ref(&w.lm_head, &xh),
             Kernels::Fast => fast::rows_gemv(&w.lm_head, &xh),
         })),
     ];
     println!("{} threads, {:?}", rayon::current_num_threads(), kernels);
     for (name, bytes, mut f) in cases {
-        let s = time_median(reps, &mut f);
+        let s = time_median(reps, &mut f)?;
         println!("  {name:<8} {:>8.3} ms  {:>6.1} GB/s  ({:.1} MB)", s * 1e3, bytes as f64 / s / 1e9, bytes as f64 / 1e6);
     }
     Ok(())
 }
+

@@ -8,6 +8,41 @@ use atlas_satl::format::Codec;
 
 use crate::weights::{Columns, Rows};
 
+/// Caller input a kernel cannot compute with.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum KernelError {
+    InputLength { expected: usize, got: usize },
+    ColumnOutOfRange { column: u32, count: usize },
+    RowOutOfRange { row: usize, count: usize },
+}
+
+impl std::fmt::Display for KernelError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::InputLength { expected, got } => write!(f, "input has {got} values, tensor takes {expected}"),
+            Self::ColumnOutOfRange { column, count } => write!(f, "active column {column} of a {count}-column tensor"),
+            Self::RowOutOfRange { row, count } => write!(f, "row {row} of a {count}-row tensor"),
+        }
+    }
+}
+
+impl std::error::Error for KernelError {}
+
+/// Every kernel checks its inputs here, so indexing inside is always in bounds.
+pub(crate) fn check_columns(w: &Columns, x: &[f32], active: &[u32]) -> Result<(), KernelError> {
+    if x.len() != w.count {
+        return Err(KernelError::InputLength { expected: w.count, got: x.len() });
+    }
+    match active.iter().find(|&&j| j as usize >= w.count) {
+        Some(&column) => Err(KernelError::ColumnOutOfRange { column, count: w.count }),
+        None => Ok(()),
+    }
+}
+
+pub(crate) fn check_rows(w: &Rows, x: &[f32]) -> Result<(), KernelError> {
+    if x.len() == w.cols { Ok(()) } else { Err(KernelError::InputLength { expected: w.cols, got: x.len() }) }
+}
+
 pub(crate) fn f16_at(b: &[u8], i: usize) -> f32 {
     f16::from_le_bytes([b[i], b[i + 1]]).to_f32()
 }
@@ -46,7 +81,8 @@ pub(crate) fn part_bytes(codec: &Codec, rows: usize) -> usize {
 
 /// Input-sparse GEMV: y = Σ_{j ∈ active} x[j] · W[:, j]. Output is the
 /// concatenation of all parts (e.g. [q; k; v]).
-pub fn columns_gemv_ref(w: &Columns, x: &[f32], active: &[u32]) -> Vec<f32> {
+pub fn columns_gemv_ref(w: &Columns, x: &[f32], active: &[u32]) -> Result<Vec<f32>, KernelError> {
+    check_columns(w, x, active)?;
     let rows = &w.rows[..w.parts];
     let total: usize = rows.iter().sum();
     let mut y = vec![0.0f32; total];
@@ -62,13 +98,13 @@ pub fn columns_gemv_ref(w: &Columns, x: &[f32], active: &[u32]) -> Vec<f32> {
             match w.codec {
                 Codec::Q4 { group } => axpy_q4(ys, xj, part, group),
                 Codec::F32 => axpy_f32(ys, xj, part),
-                Codec::Q8 { .. } => unreachable!("columns are never q8; rejected at load"),
+                Codec::Q8 { .. } => unreachable!("Columns::new rejects q8"),
             }
             at += len;
             out += r;
         }
     }
-    y
+    Ok(y)
 }
 
 pub(crate) fn dot_q8(row: &[u8], x: &[f32], group: usize) -> f32 {
@@ -95,19 +131,23 @@ pub(crate) fn row_dot(w: &Rows, r: usize, x: &[f32]) -> f32 {
     match w.codec {
         Codec::Q8 { group } => dot_q8(row_bytes(w, r), x, group),
         Codec::F32 => dot_f32(row_bytes(w, r), x),
-        Codec::Q4 { .. } => unreachable!("rows are never q4; rejected at load"),
+        Codec::Q4 { .. } => unreachable!("Rows::new rejects q4"),
     }
 }
 
 /// Dense row-major GEMV (lm_head).
-pub fn rows_gemv_ref(w: &Rows, x: &[f32]) -> Vec<f32> {
-    (0..w.count).map(|r| row_dot(w, r, x)).collect()
+pub fn rows_gemv_ref(w: &Rows, x: &[f32]) -> Result<Vec<f32>, KernelError> {
+    check_rows(w, x)?;
+    Ok((0..w.count).map(|r| row_dot(w, r, x)).collect())
 }
 
 /// One decoded row (embedding lookup).
-pub fn row(w: &Rows, r: usize) -> Vec<f32> {
+pub fn row(w: &Rows, r: usize) -> Result<Vec<f32>, KernelError> {
+    if r >= w.count {
+        return Err(KernelError::RowOutOfRange { row: r, count: w.count });
+    }
     let b = row_bytes(w, r);
-    match w.codec {
+    Ok(match w.codec {
         Codec::Q8 { group } => b
             .chunks_exact(2 + group)
             .flat_map(|blk| {
@@ -116,8 +156,8 @@ pub fn row(w: &Rows, r: usize) -> Vec<f32> {
             })
             .collect(),
         Codec::F32 => b.as_chunks::<4>().0.iter().map(|&c| f32::from_le_bytes(c)).collect(),
-        Codec::Q4 { .. } => unreachable!("rows are never q4; rejected at load"),
-    }
+        Codec::Q4 { .. } => unreachable!("Rows::new rejects q4"),
+    })
 }
 
 #[cfg(test)]
@@ -145,10 +185,10 @@ mod tests {
         let (split, rows, n) = (64, 192, 10);
         let cols: Vec<Vec<f32>> = (0..n).map(|j| wave(rows, j as f32)).collect();
         let (data, stride) = q4_columns(&cols, split, 16);
-        let w = Columns { count: n, stride, codec: Codec::Q4 { group: 64 }, rows: [split, rows - split, 0], parts: 2, data: &data };
+        let w = Columns::new(n, stride, Codec::Q4 { group: 64 }, &[split, rows - split], &data).unwrap();
         let x = wave(n, 5.0);
         let active: Vec<u32> = vec![0, 3, 4, 9];
-        let y = columns_gemv_ref(&w, &x, &active);
+        let y = columns_gemv_ref(&w, &x, &active).unwrap();
         let deq: Vec<Vec<f32>> = cols
             .iter()
             .map(|c| [decode_q4(&encode_q4(&c[..split], 64).unwrap(), split, 64).unwrap(), decode_q4(&encode_q4(&c[split..], 64).unwrap(), rows - split, 64).unwrap()].concat())
@@ -164,14 +204,16 @@ mod tests {
         let (rows, n) = (4, 3);
         let cols: Vec<Vec<f32>> = (0..n).map(|j| wave(rows, j as f32)).collect();
         let data: Vec<u8> = cols.iter().flatten().flat_map(|v| v.to_le_bytes()).collect();
-        let w = Columns { count: n, stride: rows * 4, codec: Codec::F32, rows: [rows, 0, 0], parts: 1, data: &data };
+        let w = Columns::new(n, rows * 4, Codec::F32, &[rows], &data).unwrap();
         let x = [1.0, -2.0, 0.5];
-        let y = columns_gemv_ref(&w, &x, &[0, 1, 2]);
+        let y = columns_gemv_ref(&w, &x, &[0, 1, 2]).unwrap();
         for r in 0..rows {
             let expect: f32 = (0..n).map(|j| x[j] * cols[j][r]).sum();
             assert!((y[r] - expect).abs() < 1e-7);
         }
-        assert_eq!(columns_gemv_ref(&w, &x, &[]), vec![0.0; rows]);
+        assert_eq!(columns_gemv_ref(&w, &x, &[]).unwrap(), vec![0.0; rows]);
+        assert_eq!(columns_gemv_ref(&w, &x, &[3]), Err(KernelError::ColumnOutOfRange { column: 3, count: 3 }));
+        assert!(columns_gemv_ref(&w, &x[..2], &[0]).is_err());
     }
 
     #[test]
@@ -179,14 +221,16 @@ mod tests {
         let (count, cols) = (3, 64);
         let rows_f: Vec<Vec<f32>> = (0..count).map(|r| wave(cols, r as f32)).collect();
         let data: Vec<u8> = rows_f.iter().flat_map(|r| encode_q8(r, 32).unwrap()).collect();
-        let w = Rows { count, cols, stride: data.len() / count, codec: Codec::Q8 { group: 32 }, data: &data };
+        let w = Rows::new(count, cols, data.len() / count, Codec::Q8 { group: 32 }, &data).unwrap();
         let x = wave(cols, 9.0);
-        let y = rows_gemv_ref(&w, &x);
+        let y = rows_gemv_ref(&w, &x).unwrap();
         for r in 0..count {
-            let dq = row(&w, r);
+            let dq = row(&w, r).unwrap();
             let expect: f32 = dq.iter().zip(&x).map(|(a, b)| a * b).sum();
             assert!((y[r] - expect).abs() < 1e-5);
             assert!(dq.iter().zip(&rows_f[r]).all(|(a, b)| (a - b).abs() < 1e-3));
         }
+        assert!(row(&w, count).is_err());
+        assert!(rows_gemv_ref(&w, &x[..32]).is_err());
     }
 }

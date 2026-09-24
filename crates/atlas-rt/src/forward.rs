@@ -4,7 +4,7 @@
 use atlas_satl::format::ModelConfig;
 
 use crate::fast;
-use crate::kernels::{columns_gemv_ref, row, rows_gemv_ref};
+use crate::kernels::{KernelError, columns_gemv_ref, row, rows_gemv_ref};
 use crate::ops::{add, attention, rmsnorm, rope, swiglu};
 use crate::weights::{Columns, Rows, Weights};
 
@@ -61,14 +61,14 @@ impl Plan {
         Self { inv_freq, kernels, all_hidden: range(cfg.hidden), all_q: range(cfg.n_heads * cfg.head_dim), all_ffn: range(cfg.ffn) }
     }
 
-    fn columns(&self, w: &Columns, x: &[f32], active: &[u32]) -> Vec<f32> {
+    fn columns(&self, w: &Columns, x: &[f32], active: &[u32]) -> Result<Vec<f32>, KernelError> {
         match self.kernels {
             Kernels::Reference => columns_gemv_ref(w, x, active),
             Kernels::Fast => fast::columns_gemv(w, x, active),
         }
     }
 
-    fn rows(&self, w: &Rows, x: &[f32]) -> Vec<f32> {
+    fn rows(&self, w: &Rows, x: &[f32]) -> Result<Vec<f32>, KernelError> {
         match self.kernels {
             Kernels::Reference => rows_gemv_ref(w, x),
             Kernels::Fast => fast::rows_gemv(w, x),
@@ -80,6 +80,13 @@ impl Plan {
 pub enum StepError {
     CacheFull(usize),
     BadToken { token: u32, vocab: usize },
+    Kernel(KernelError),
+}
+
+impl From<KernelError> for StepError {
+    fn from(e: KernelError) -> Self {
+        Self::Kernel(e)
+    }
 }
 
 impl std::fmt::Display for StepError {
@@ -87,6 +94,7 @@ impl std::fmt::Display for StepError {
         match self {
             Self::CacheFull(n) => write!(f, "KV cache full at {n} positions"),
             Self::BadToken { token, vocab } => write!(f, "token {token} outside vocabulary of {vocab}"),
+            Self::Kernel(e) => write!(f, "{e}"),
         }
     }
 }
@@ -105,22 +113,22 @@ pub fn step(w: &Weights, plan: &Plan, kv: &mut KvCache, token: u32) -> Result<Ve
     let eps = c.rms_norm_eps as f32;
     let (q_dim, kv_dim) = (c.n_heads * c.head_dim, kv.kv_dim);
     let pos = kv.len;
-    let mut x = row(&w.embed, token as usize);
+    let mut x = row(&w.embed, token as usize)?;
     for (l, layer) in w.layers.iter().enumerate() {
         let h = rmsnorm(&x, &layer.attn_norm, eps);
-        let qkv = plan.columns(&layer.qkv, &h, &plan.all_hidden);
+        let qkv = plan.columns(&layer.qkv, &h, &plan.all_hidden)?;
         let q = rope(&qkv[..q_dim], c.head_dim, &plan.inv_freq, pos);
         let k = rope(&qkv[q_dim..q_dim + kv_dim], c.head_dim, &plan.inv_freq, pos);
         kv.keys[l].extend_from_slice(&k);
         kv.values[l].extend_from_slice(&qkv[q_dim + kv_dim..]);
         let att = attention(&q, &kv.keys[l], &kv.values[l], pos + 1, c);
-        x = add(&x, &plan.columns(&layer.o, &att, &plan.all_q));
+        x = add(&x, &plan.columns(&layer.o, &att, &plan.all_q)?);
 
         let h = rmsnorm(&x, &layer.mlp_norm, eps);
-        let gu = plan.columns(&layer.gate_up, &h, &plan.all_hidden);
+        let gu = plan.columns(&layer.gate_up, &h, &plan.all_hidden)?;
         let a = swiglu(&gu[..c.ffn], &gu[c.ffn..]);
-        x = add(&x, &plan.columns(&layer.down, &a, &plan.all_ffn));
+        x = add(&x, &plan.columns(&layer.down, &a, &plan.all_ffn)?);
     }
     kv.len += 1;
-    Ok(plan.rows(&w.lm_head, &rmsnorm(&x, &w.final_norm, eps)))
+    Ok(plan.rows(&w.lm_head, &rmsnorm(&x, &w.final_norm, eps))?)
 }

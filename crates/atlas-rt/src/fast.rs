@@ -20,7 +20,7 @@ use rayon::prelude::*;
 use atlas_satl::format::Codec;
 
 use crate::int8::{self, COLS, DotCols, Fold};
-use crate::kernels::{self, f16_at, part_bytes, row_bytes};
+use crate::kernels::{self, KernelError, check_columns, check_rows, f16_at, part_bytes, row_bytes};
 use crate::weights::{Columns, Rows};
 
 /// Output rows per tile.
@@ -29,8 +29,8 @@ pub const BAND: usize = 4096;
 /// work-stealing can even out uneven (big.LITTLE) cores. Deliberately not
 /// derived from the thread count, which would change the reduction order.
 const TILES: usize = 64;
-/// Largest supported q4 group (rows per scale).
-const MAX_GROUP: usize = 128;
+/// Largest q4 group (rows per scale), enforced by `Columns::new`.
+const MAX_GROUP: usize = atlas_satl::codec::MAX_Q4_GROUP;
 
 #[derive(Debug, Clone, Copy)]
 struct Part {
@@ -68,25 +68,27 @@ fn split(n: usize, k: usize) -> Vec<Range<usize>> {
 /// Inner kernels of the q4 column GEMV: NEON by default, the scalar spec
 /// in tests.
 #[derive(Debug, Clone, Copy)]
-pub struct Inner {
+pub(crate) struct Inner {
     pub fold: Fold,
     pub dot: DotCols,
 }
 
-pub const DISPATCH: Inner = Inner { fold: int8::fold, dot: int8::dot_cols };
-pub const SPEC: Inner = Inner { fold: int8::fold_scalar, dot: int8::dot_cols_scalar };
+pub(crate) const DISPATCH: Inner = Inner { fold: int8::fold, dot: int8::dot_cols };
+#[cfg(test)]
+pub(crate) const SPEC: Inner = Inner { fold: int8::fold_scalar, dot: int8::dot_cols_scalar };
 
 /// y = Σ_{j ∈ active} x[j] · W[:, j] with int8 activations.
-pub fn columns_gemv(w: &Columns, x: &[f32], active: &[u32]) -> Vec<f32> {
+pub fn columns_gemv(w: &Columns, x: &[f32], active: &[u32]) -> Result<Vec<f32>, KernelError> {
     columns_gemv_with(w, x, active, DISPATCH)
 }
 
 /// `columns_gemv` with explicit inner kernels (tests pass `SPEC`).
-pub fn columns_gemv_with(w: &Columns, x: &[f32], active: &[u32], inner: Inner) -> Vec<f32> {
+pub(crate) fn columns_gemv_with(w: &Columns, x: &[f32], active: &[u32], inner: Inner) -> Result<Vec<f32>, KernelError> {
     let Codec::Q4 { group } = w.codec else {
         return kernels::columns_gemv_ref(w, x, active);
     };
-    assert!(group <= MAX_GROUP, "q4 group {group} exceeds {MAX_GROUP}");
+    check_columns(w, x, active)?;
+    debug_assert!(group <= MAX_GROUP, "Columns::new bounds the group");
     let parts = parts(w);
     let bands: Vec<Band> = parts
         .iter()
@@ -111,7 +113,7 @@ pub fn columns_gemv_with(w: &Columns, x: &[f32], active: &[u32], inner: Inner) -
             dst.iter_mut().zip(partial).for_each(|(d, p)| *d += p);
         }
     }
-    y
+    Ok(y)
 }
 
 /// One tile: rows `band` of one part, over `cols` (a slice of active columns).
@@ -145,21 +147,22 @@ fn band_q4(w: &Columns, part: Part, band: Band, group: usize, x: &[f32], cols: &
 }
 
 /// Signature of the int8 row dot product (spec or NEON).
-pub type DotI8 = fn(&[u8], &[i8]) -> i32;
+pub(crate) type DotI8 = fn(&[u8], &[i8]) -> i32;
 
 /// Dense row-major GEMV with int8 activations, parallel over rows.
-pub fn rows_gemv(w: &Rows, x: &[f32]) -> Vec<f32> {
+pub fn rows_gemv(w: &Rows, x: &[f32]) -> Result<Vec<f32>, KernelError> {
     rows_gemv_with(w, x, int8::dot_i8)
 }
 
 /// `rows_gemv` with an explicit inner kernel (tests pass the spec).
-pub fn rows_gemv_with(w: &Rows, x: &[f32], dot: DotI8) -> Vec<f32> {
+pub(crate) fn rows_gemv_with(w: &Rows, x: &[f32], dot: DotI8) -> Result<Vec<f32>, KernelError> {
     let Codec::Q8 { group } = w.codec else {
         return kernels::rows_gemv_ref(w, x);
     };
+    check_rows(w, x)?;
     let (xq, sx): (Vec<Vec<i8>>, Vec<f32>) = x.chunks(group).map(int8::quantize).unzip();
     let xq: Vec<i8> = xq.concat();
-    (0..w.count)
+    Ok((0..w.count)
         .into_par_iter()
         .with_min_len(512)
         .map(|r| {
@@ -169,7 +172,7 @@ pub fn rows_gemv_with(w: &Rows, x: &[f32], dot: DotI8) -> Vec<f32> {
                 .map(|(b, blk)| f16_at(blk, 0) * sx[b] * dot(&blk[2..], &xq[b * group..(b + 1) * group]) as f32)
                 .sum()
         })
-        .collect()
+        .collect())
 }
 
 #[cfg(test)]
@@ -193,9 +196,7 @@ mod tests {
     }
 
     fn view<'a>(data: &'a [u8], stride: usize, rows: &[usize], n: usize, group: usize) -> Columns<'a> {
-        let mut fixed = [0; 3];
-        fixed[..rows.len()].copy_from_slice(rows);
-        Columns { count: n, stride, codec: Codec::Q4 { group }, rows: fixed, parts: rows.len(), data }
+        Columns::new(n, stride, Codec::Q4 { group }, rows, data).unwrap()
     }
 
     /// Int8 rounding moves each folded activation by at most t/2 = amax/254,
@@ -228,7 +229,7 @@ mod tests {
             let w = view(&data, stride, &rows, n, group);
             let x = wave(n, 1.5);
             for m in &masks(n) {
-                assert_eq!(columns_gemv(&w, &x, m), columns_gemv_with(&w, &x, m, SPEC));
+                assert_eq!(columns_gemv(&w, &x, m).unwrap(), columns_gemv_with(&w, &x, m, SPEC).unwrap());
             }
         }
     }
@@ -241,10 +242,11 @@ mod tests {
         let w = view(&data, stride, &rows, n, 64);
         let x = wave(n, 1.5);
         for m in masks(n).iter().filter(|m| !m.is_empty()) {
-            let e = rel_err(&columns_gemv(&w, &x, m), &columns_gemv_ref(&w, &x, m));
+            let e = rel_err(&columns_gemv(&w, &x, m).unwrap(), &columns_gemv_ref(&w, &x, m).unwrap());
             assert!(e < INT8_TOL, "relative error {e} for mask of {}", m.len());
         }
-        assert_eq!(columns_gemv(&w, &x, &[]), vec![0.0; BAND + 64 + 128]);
+        assert_eq!(columns_gemv(&w, &x, &[]).unwrap(), vec![0.0; BAND + 64 + 128]);
+        assert!(columns_gemv(&w, &x, &[70]).is_err());
     }
 
     #[test]
@@ -254,7 +256,7 @@ mod tests {
         let w = view(&data, stride, &rows, 300, 64);
         let x = wave(300, 0.7);
         let all: Vec<u32> = (0..300).collect();
-        let run = |t| rayon::ThreadPoolBuilder::new().num_threads(t).build().unwrap().install(|| columns_gemv(&w, &x, &all));
+        let run = |t| rayon::ThreadPoolBuilder::new().num_threads(t).build().unwrap().install(|| columns_gemv(&w, &x, &all).unwrap());
         let one = run(1);
         assert_eq!(one, run(3));
         assert_eq!(one, run(8));
@@ -264,10 +266,10 @@ mod tests {
     fn rows_equal_spec_and_stay_close_to_reference() {
         let (count, cols) = (1000, 64);
         let data: Vec<u8> = (0..count).flat_map(|r| encode_q8(&wave(cols, r as f32), 32).unwrap()).collect();
-        let w = Rows { count, cols, stride: data.len() / count, codec: Codec::Q8 { group: 32 }, data: &data };
+        let w = Rows::new(count, cols, data.len() / count, Codec::Q8 { group: 32 }, &data).unwrap();
         let x = wave(cols, 4.0);
-        let fast = rows_gemv(&w, &x);
-        assert_eq!(fast, rows_gemv_with(&w, &x, int8::dot_i8_scalar));
-        assert!(rel_err(&fast, &rows_gemv_ref(&w, &x)) < INT8_TOL);
+        let fast = rows_gemv(&w, &x).unwrap();
+        assert_eq!(fast, rows_gemv_with(&w, &x, int8::dot_i8_scalar).unwrap());
+        assert!(rel_err(&fast, &rows_gemv_ref(&w, &x).unwrap()) < INT8_TOL);
     }
 }
