@@ -331,6 +331,20 @@ Every number here is regenerated in `results/TABLES.md` (`python -m atlas_trace.
 | atlas-rt dense decode | – | 8.3 tok/s at 6 threads (llama.cpp parity); 2.8 tok/s on 1 thread (llama.cpp 7.5) | Single-core efficiency matters on the 4-core Pi |
 | Storage streaming (synthetic traces) | – | h ≥ 0.9 at a 50% cache needs highly concentrated activations, even for Belady | Early sign the stretch goal stays out; real traces decide G1 |
 
+### 12.1b Negative result: speculative decoding does not fix the token tax on CPU (24 Sep)
+
+Hypothesis: most of Yoruba's, Hausa's and Igbo's extra tokens continue a word already started (64%, 54% and 62% of tokens, against 23% for English), so a cheap language drafter could narrow the words/s gap.
+
+| Test | Result |
+|---|---|
+| Offline simulation (exact under greedy decoding), n-gram drafter from FLORES dev + 6M chars of Wikipedia | Tokens per verification step: yo 1.67, ha 1.60, ig 1.83, en 1.26. Promising on paper |
+| **Real llama.cpp**, `--spec-type ngram-cache` with that corpus, **paired A/B** (8 prompts per language) | Speed ratio medians: yo 0.87, ha 0.60, ig 1.32, en 0.89. All CIs include 1. Real acceptance was 31% of drafted tokens |
+| Real llama.cpp, untrained Llama-3.2-1B draft | Acceptance 6–23%; decode fell to about 1.6 tok/s |
+
+**Decision:** fails the ≥ 1.25× Yoruba criterion, so it is dropped. Batch verification on CPU costs more than cheap drafts save. Only 21/32 outputs were identical, because llama.cpp's batched verification changes arithmetic enough to flip greedy choices. Scripts: `atlas-trace/atlas_trace/spec_probe.py` and `paired_spec.py`; data: `results/spec/`.
+
+**Measurement rule (applies to every speed claim from now on):** the dev machine is a **fanless MacBook Air** whose decode speed swung from 17 to 7 tok/s within 20 minutes. Sequential A/B runs are invalid (the sequential files `results/spec/base1|ngram|base2.json` show this). **Every speed comparison must use the paired, interleaved design** of `paired_spec.py`.
+
 ### 12.2 Design deviations
 
 | Plan | Implemented | Why |
