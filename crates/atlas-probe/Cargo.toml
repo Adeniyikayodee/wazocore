@@ -1,0 +1,11 @@
+[package]
+name = "atlas-probe"
+version = "0.1.0"
+description = "Hardware probes (memory bandwidth, storage reads, CPU topology) emitting a JSON manifest"
+edition.workspace = true
+publish.workspace = true
+
+[dependencies]
+libc = "0.2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
