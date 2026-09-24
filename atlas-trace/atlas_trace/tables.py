@@ -72,17 +72,20 @@ def int8(root: Path) -> str | None:
 
 
 def format_quality(root: Path) -> str | None:
-    d = load(root / "quality" / "format-ppl.json")
-    if not d:
-        return None
     from atlas_trace.format_quality import paired_bootstrap
 
     fmt = lambda t: f"{t[0]:+.4f} [{t[1]:+.4f}, {t[2]:+.4f}]"  # noqa: E731
-    rows = [[r["lang"], f"{r['ppl']['q8_0']:.3f}", f"{r['ppl']['q4_k_m']:.3f}", f"{r['ppl']['satl_q4g64']:.3f}",
-             fmt(r["delta_nll_vs_q8_0"]["q4_k_m"]), fmt(r["delta_nll_vs_q8_0"]["satl_q4g64"]),
-             fmt(paired_bootstrap(r["chunk_nll"]["q4_k_m"], r["chunk_nll"]["satl_q4g64"]))] for r in d["languages"]]
     head = ["Lang", "PPL Q8_0", "PPL Q4_K_M", "PPL .satl", "ΔNLL Q4_K_M vs Q8_0", "ΔNLL .satl vs Q8_0", ".satl − Q4_K_M"]
-    return f"## Dense format quality vs Q8_0\n\n{d['protocol']}\n\n" + table(head, rows)
+    sections = []
+    for f in sorted(glob.glob(str(root / "quality" / "format-ppl*.json"))):
+        if f.endswith("-atlas.json"):
+            continue
+        d = json.loads(Path(f).read_text())
+        rows = [[r["lang"], f"{r['ppl']['q8_0']:.3f}", f"{r['ppl']['q4_k_m']:.3f}", f"{r['ppl']['satl_q4g64']:.3f}",
+                 fmt(r["delta_nll_vs_q8_0"]["q4_k_m"]), fmt(r["delta_nll_vs_q8_0"]["satl_q4g64"]),
+                 fmt(paired_bootstrap(r["chunk_nll"]["q4_k_m"], r["chunk_nll"]["satl_q4g64"]))] for r in d["languages"]]
+        sections.append(f"### `{d['models']['satl_q4g64']}`\n\n{d['protocol']}\n\n" + table(head, rows))
+    return "## Dense format quality vs Q8_0\n\n" + "\n\n".join(sections) if sections else None
 
 
 def convert(root: Path) -> str | None:

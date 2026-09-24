@@ -37,6 +37,19 @@ Generated from `results/` by `python -m atlas_trace.tables`. Do not edit by hand
 
 ## Dense format quality vs Q8_0
 
+### `data/models/n-atlas-q4g64s.satl`
+
+llama.cpp perplexity: n_ctx=256, 12 chunks, BOS per chunk, second half scored; FLORES-200 devtest; identical token ids verified
+
+| Lang | PPL Q8_0 | PPL Q4_K_M | PPL .satl | ΔNLL Q4_K_M vs Q8_0 | ΔNLL .satl vs Q8_0 | .satl − Q4_K_M |
+|---|---|---|---|---|---|---|
+| en | 15.215 | 15.771 | 15.846 | +0.0359 [+0.0181, +0.0531] | +0.0406 [+0.0028, +0.0748] | +0.0048 [-0.0364, +0.0413] |
+| yo | 16.151 | 16.287 | 16.445 | +0.0084 [-0.0181, +0.0363] | +0.0180 [-0.0196, +0.0564] | +0.0096 [-0.0152, +0.0339] |
+| ha | 9.481 | 9.584 | 9.783 | +0.0109 [-0.0051, +0.0282] | +0.0314 [+0.0136, +0.0525] | +0.0206 [-0.0040, +0.0488] |
+| ig | 11.778 | 12.019 | 12.062 | +0.0203 [-0.0010, +0.0403] | +0.0238 [-0.0013, +0.0493] | +0.0035 [-0.0190, +0.0269] |
+
+### `data/models/n-atlas-q4g64.satl`
+
 llama.cpp perplexity: n_ctx=256, 12 chunks, BOS per chunk, second half scored; FLORES-200 devtest; identical token ids verified
 
 | Lang | PPL Q8_0 | PPL Q4_K_M | PPL .satl | ΔNLL Q4_K_M vs Q8_0 | ΔNLL .satl vs Q8_0 | .satl − Q4_K_M |
