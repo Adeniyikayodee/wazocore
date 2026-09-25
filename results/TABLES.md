@@ -99,6 +99,31 @@ Effective sparsity per site, then fidelity to dense.
 | ig | 30% | +0.009 [+0.003, +0.014] | +0.029 [+0.002, +0.057] | 0.310 vs 0.350 |
 | ig | 40% | +0.017 [-0.006, +0.039] | +0.001 [-0.032, +0.030] | 0.410 vs 0.460 |
 
+## G1: storage streaming (atlas-sim, 50% MLP cache, M4 storage)
+
+| Lang | Profile | Policy | Byte hit rate | Miss MB/token | Predicted tok/s |
+|---|---|---|---|---|---|
+| en | en-30 | lru | 0.0% | 2218 | 0.12 |
+| en | en-30 | lfu | 51.3% | 1081 | 0.23 |
+| en | en-30 | static-lang | 52.1% | 1063 | 0.24 |
+| en | en-30 | static-mix | 51.6% | 1073 | 0.24 |
+| en | en-30 | belady | 70.7% | 651 | 0.42 |
+| ha | en-30 | lru | 0.0% | 2227 | 0.12 |
+| ha | en-30 | lfu | 51.9% | 1072 | 0.25 |
+| ha | en-30 | static-lang | 52.7% | 1055 | 0.25 |
+| ha | en-30 | static-mix | 52.5% | 1059 | 0.24 |
+| ha | en-30 | belady | 70.4% | 659 | 0.41 |
+| ig | en-30 | lru | 0.0% | 2213 | 0.12 |
+| ig | en-30 | lfu | 52.1% | 1060 | 0.25 |
+| ig | en-30 | static-lang | 52.9% | 1044 | 0.25 |
+| ig | en-30 | static-mix | 52.7% | 1047 | 0.24 |
+| ig | en-30 | belady | 70.7% | 649 | 0.41 |
+| yo | en-30 | lru | 0.0% | 2198 | 0.12 |
+| yo | en-30 | lfu | 52.7% | 1040 | 0.25 |
+| yo | en-30 | static-lang | 53.4% | 1026 | 0.25 |
+| yo | en-30 | static-mix | 53.1% | 1032 | 0.25 |
+| yo | en-30 | belady | 71.1% | 636 | 0.42 |
+
 ## .satl conversion error vs bf16
 
 | Tensor | Count | Mean rel RMSE | Max |

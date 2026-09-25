@@ -1,0 +1,220 @@
+{
+  "trace": {
+    "format": "atlas-trace",
+    "version": 1,
+    "model": "data/models/n-atlas-q4g64s.satl",
+    "lang": "yo",
+    "source": "FLORES-200 devtest",
+    "profile": "en-30",
+    "layers": 32,
+    "tokens": 4096,
+    "matrices": [
+      {
+        "name": "gate_up",
+        "channels": 4096,
+        "bytes_per_channel": 16128
+      },
+      {
+        "name": "down",
+        "channels": 14336,
+        "bytes_per_channel": 2304
+      }
+    ]
+  },
+  "capacity_bytes": 1585446912,
+  "cacheable_bytes": 3170893824,
+  "results": [
+    {
+      "policy": "lru",
+      "tokens": 4096,
+      "capacity_bytes": 1585446912,
+      "requested_bytes": 9007177867776,
+      "hit_bytes": 4168055808,
+      "byte_hit_rate": 0.000462748251359796,
+      "miss_bytes_per_token": 2198000442.375,
+      "matrices": [
+        {
+          "name": "gate_up",
+          "cacheable": true,
+          "bytes_per_channel": 16128,
+          "active_fraction": 0.6997608933597803,
+          "requested_bytes": 6058987506432,
+          "hit_bytes": 648571392,
+          "misses": 375641055
+        },
+        {
+          "name": "down",
+          "cacheable": true,
+          "bytes_per_channel": 2304,
+          "active_fraction": 0.6809812097677163,
+          "requested_bytes": 2948190361344,
+          "hit_bytes": 3519484416,
+          "misses": 1278068957
+        }
+      ]
+    },
+    {
+      "policy": "lfu",
+      "tokens": 4096,
+      "capacity_bytes": 1585446912,
+      "requested_bytes": 9007177867776,
+      "hit_bytes": 4748197775616,
+      "byte_hit_rate": 0.5271571012939703,
+      "miss_bytes_per_token": 1039790061.5625,
+      "matrices": [
+        {
+          "name": "gate_up",
+          "cacheable": true,
+          "bytes_per_channel": 16128,
+          "active_fraction": 0.6997608933597803,
+          "requested_bytes": 6058987506432,
+          "hit_bytes": 3311899895808,
+          "misses": 170330333
+        },
+        {
+          "name": "down",
+          "cacheable": true,
+          "bytes_per_channel": 2304,
+          "active_fraction": 0.6809812097677163,
+          "requested_bytes": 2948190361344,
+          "hit_bytes": 1436297879808,
+          "misses": 656203334
+        }
+      ]
+    },
+    {
+      "policy": "static-lang",
+      "tokens": 4096,
+      "capacity_bytes": 1585446912,
+      "requested_bytes": 9007177867776,
+      "hit_bytes": 4805555583744,
+      "byte_hit_rate": 0.5335251123369411,
+      "miss_bytes_per_token": 1025786690.4375,
+      "matrices": [
+        {
+          "name": "gate_up",
+          "cacheable": true,
+          "bytes_per_channel": 16128,
+          "active_fraction": 0.6997608933597803,
+          "requested_bytes": 6058987506432,
+          "hit_bytes": 3356391999744,
+          "misses": 167571646
+        },
+        {
+          "name": "down",
+          "cacheable": true,
+          "bytes_per_channel": 2304,
+          "active_fraction": 0.6809812097677163,
+          "requested_bytes": 2948190361344,
+          "hit_bytes": 1449163584000,
+          "misses": 650619261
+        }
+      ]
+    },
+    {
+      "policy": "static-mix",
+      "tokens": 4096,
+      "capacity_bytes": 1585446912,
+      "requested_bytes": 9007177867776,
+      "hit_bytes": 4778876929536,
+      "byte_hit_rate": 0.5305631796872656,
+      "miss_bytes_per_token": 1032300033.75,
+      "matrices": [
+        {
+          "name": "gate_up",
+          "cacheable": true,
+          "bytes_per_channel": 16128,
+          "active_fraction": 0.6997608933597803,
+          "requested_bytes": 6058987506432,
+          "hit_bytes": 3345411428352,
+          "misses": 168252485
+        },
+        {
+          "name": "down",
+          "cacheable": true,
+          "bytes_per_channel": 2304,
+          "active_fraction": 0.6809812097677163,
+          "requested_bytes": 2948190361344,
+          "hit_bytes": 1433465501184,
+          "misses": 657432665
+        }
+      ]
+    },
+    {
+      "policy": "belady",
+      "tokens": 4096,
+      "capacity_bytes": 1585446912,
+      "requested_bytes": 9007177867776,
+      "hit_bytes": 6400238609664,
+      "byte_hit_rate": 0.7105709139553508,
+      "miss_bytes_per_token": 636459779.8125,
+      "matrices": [
+        {
+          "name": "gate_up",
+          "cacheable": true,
+          "bytes_per_channel": 16128,
+          "active_fraction": 0.6997608933597803,
+          "requested_bytes": 6058987506432,
+          "hit_bytes": 4315638813696,
+          "misses": 108094537
+        },
+        {
+          "name": "down",
+          "cacheable": true,
+          "bytes_per_channel": 2304,
+          "active_fraction": 0.6809812097677163,
+          "requested_bytes": 2948190361344,
+          "hit_bytes": 2084599795968,
+          "misses": 374822294
+        }
+      ]
+    }
+  ],
+  "predictions": [
+    {
+      "device": "m4-macbook-dev",
+      "policy": "lru",
+      "ram_gb_per_token": 0.96027588807,
+      "storage_mb_per_token": 2780.633177,
+      "read_amplification": 1.265073984241536,
+      "tok_s_serial": 0.12286463422819807,
+      "tok_s_overlapped": 0.12300126595725938
+    },
+    {
+      "device": "m4-macbook-dev",
+      "policy": "lfu",
+      "ram_gb_per_token": 2.1184862688825,
+      "storage_mb_per_token": 1337.524666,
+      "read_amplification": 1.2863410754187168,
+      "tok_s_serial": 0.2459422661817967,
+      "tok_s_overlapped": 0.24715466836199323
+    },
+    {
+      "device": "m4-macbook-dev",
+      "policy": "static-lang",
+      "ram_gb_per_token": 2.1324896400075,
+      "storage_mb_per_token": 1320.905845,
+      "read_amplification": 1.28770031558572,
+      "tok_s_serial": 0.24849346765944813,
+      "tok_s_overlapped": 0.24973943915055685
+    },
+    {
+      "device": "m4-macbook-dev",
+      "policy": "static-mix",
+      "ram_gb_per_token": 2.1259762966949998,
+      "storage_mb_per_token": 1330.442605,
+      "read_amplification": 1.2888138733919712,
+      "tok_s_serial": 0.24630457142744178,
+      "tok_s_overlapped": 0.24752487761053918
+    },
+    {
+      "device": "m4-macbook-dev",
+      "policy": "belady",
+      "ram_gb_per_token": 2.5218165506325,
+      "storage_mb_per_token": 807.200442,
+      "read_amplification": 1.2682662245174392,
+      "tok_s_serial": 0.41731507361682524,
+      "tok_s_overlapped": 0.42149131176612115
+    }
+  ]
+}
