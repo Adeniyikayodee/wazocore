@@ -365,6 +365,17 @@ Calibration used 8,192 FLORES dev tokens per language. Evaluation used 8 chunks 
   - Byte-reduction ceiling at 30% ≈ 1.35×.
 - **Unexplained:** ΔNLL is significantly *negative* at 10–30% for en and ha (sparse gives the true token more probability than dense). The sign and alignment have been checked, but the effect needs more chunks before it is interpreted.
 
+### 12.1d G1: storage streaming is OUT (25 Sep, real N-ATLaS traces)
+
+The simulation used 30% sparsity with English thresholds, 4,096 devtest tokens per language, a 50% MLP cache (the 6 GB-phone budget), hot sets from dev traces, and this Mac's SSD (best case).
+- **About 70% of MLP channels are active every token.**
+- **Even Belady's offline optimum reaches only 70–71% byte hit rate**, far below the ≥ 90% G1 requires.
+- **The best practical policy (static hot set) gets 52–53%**, a predicted **0.25 tok/s**.
+- **LRU gets 0%**, because the model sweeps every layer in the same order each token.
+- **C4 is null:** own-language and mixed hot sets differ by < 1 point.
+
+Streaming stays out, as §2.4 predicted from the byte budget; the storage stretch goal is closed. `results/sim/`.
+
 ### 12.2 Design deviations
 
 | Plan | Implemented | Why |
@@ -410,7 +421,7 @@ Calibration used 8,192 FLORES dev tokens per language. Evaluation used 8 chunks 
 ### Step log
 - **S1 done (24 Sep), with one shortfall accepted.** Batched prefill equals stepwise decode bit for bit, and NEON equals its scalar spec. Prefill runs at 11–13 tok/s on 6 threads on the throttled M4 (about 2.8× decode), **below the ≥ 20 tok/s target**. Profiling shows about a third of thread time idle (serial per-token work) and about 15% in per-token folding. Accepted because S1 is only an enabler: S2/S3 runs take hours, not days.
 
-- **S3 results (25 Sep):** C1 supported, C2 null, operating point 30% (§12.1c). Remaining for S3: traces at 30% for the atlas-sim G1 decision.
+- **S3 done (25 Sep):** C1 supported, C2 null, operating point 30% (§12.1c); G1 = streaming out, C4 null (§12.1d).
 - **S2 done (24 Sep).** Least-squares q4 fitting (converter only: same bytes, layout and kernels) lowers reconstruction error 7.4% and closes the English gap: `.satl` − Q4_K_M = +0.005 nats [−0.036, +0.041] (was +0.050 [+0.015, +0.082]). All four languages' intervals include 0. Point estimates remain slightly positive (+0.004 to +0.021), so `.satl` is at parity, not ahead. A fallback exists if needed: group 32 for qkv/down in Q4_K_M's sensitive layers (+1.5% bytes). `data/models/n-atlas-q4g64s.satl` is now the model for S3/S4.
 
 ### Cut (stated as limitations, not attempted)
