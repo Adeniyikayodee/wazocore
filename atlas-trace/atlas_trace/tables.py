@@ -88,6 +88,18 @@ def format_quality(root: Path) -> str | None:
     return "## Dense format quality vs Q8_0\n\n" + "\n\n".join(sections) if sections else None
 
 
+def teal(root: Path) -> str | None:
+    d = load(root / "teal" / "eval-matrix.json")
+    if not d:
+        return None
+    from atlas_trace.teal_report import c1_rows, c2_rows
+
+    c1 = table(["Sparsity", "Lang", "qkv", "o", "gate_up", "down", "KL", "ΔNLL [95% CI]", "Top-1"], c1_rows(d["results"]))
+    c2 = table(["Lang", "Sparsity", "ΔKL own − en", "ΔΔNLL own − en", "o sparsity own vs en"], c2_rows(d["results"]))
+    return ("## TEAL: C1 (English thresholds on every language)\n\nEffective sparsity per site, then fidelity to dense.\n\n" + c1
+            + "\n\n## TEAL: C2 (own-language minus English calibration, paired per chunk)\n\n" + c2)
+
+
 def convert(root: Path) -> str | None:
     f = root / "convert" / "n-atlas-q4g64-verify.txt"
     if not f.exists():
@@ -101,7 +113,7 @@ def convert(root: Path) -> str | None:
     return "## .satl conversion error vs bf16\n\n" + table(["Tensor", "Count", "Mean rel RMSE", "Max"], rows)
 
 
-SECTIONS: list[Section] = [probe, tokenizer, baseline, int8, format_quality, convert]
+SECTIONS: list[Section] = [probe, tokenizer, baseline, int8, format_quality, teal, convert]
 
 
 def render(root: Path) -> str:
