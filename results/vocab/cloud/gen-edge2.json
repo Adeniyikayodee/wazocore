@@ -1,0 +1,170 @@
+{
+ "model": "/dev/shm/work/vx-trained",
+ "rows": [
+  {
+   "lang": "yo",
+   "i": 0,
+   "output": "A ní àwọn ọ̀dọ́ tí wọ́n ti jẹ́ aláìsàn tí wọ́n ti jẹ́ aláìsàn tí wọ́n ti jẹ́ aláìsàn tí wọ́n ti jẹ́ aláìsàn tí wọ́n ti jẹ́ aláìsàn tí wọ́n ti jẹ́ aláìsàn tí wọ́n ti jẹ́ aláìsàn tí wọ́n ti jẹ́ aláìsàn tí wọ́n ti jẹ́ aláìsàn tí wọ́n ti jẹ́ aláìsàn tí wọ́n ti jẹ́ aláìsàn tí wọ́n ti jẹ́ aláìsàn tí wọ́n ti jẹ́ aláìsàn tí wọ́n ti jẹ́ aláì",
+   "reference": "“Ní báyìí a ní àwọn ẹku olóṣù mẹ́rin tí kò ní dayabẹ́tìsì tẹ́lẹ̀tẹ́lẹ̀ tó ti ní ayabẹ́tìsì̀,” o ṣe àfikún.",
+   "stopped": false,
+   "tokens": 160,
+   "new_tokens": 44,
+   "canonical_tokens": 119,
+   "vs_canonical": 1.3445378151260505
+  },
+  {
+   "lang": "yo",
+   "i": 1,
+   "output": "Dókítà Ehúd Ur, olùkó ẹ̀kọ́ ẹ̀dá ènìyàn ní Yunifasítì Dalhousie ní Halifax, Nova Scotia, àti olórí apá ìmúrasílẹ̀ àti ìmúrasílẹ̀ ti Ẹ̀gbọ́n Àrùn Àtọ́gbọ́n ti Canada kìlọ̀ pé ìwádìí náà wà ní ọ̀pọ̀ ọdún.",
+   "reference": "Dókítà Ehud, akọ́ṣẹmọṣẹ́ ìmọ̀ ogun ní ilé ẹ̀kọ́ gíga Dalhousie ní Halifax, Nova Scotia àti alága ìpín ti ìṣègùn àti ìmọ̀ síẹ̀nsì ti Ẹgbé Ìtọ ṣúggà ti Ará Ìlú Canada sọ pé ìwádìí náà ṣì jẹ́ tuntun.",
+   "stopped": true,
+   "tokens": 95,
+   "new_tokens": 18,
+   "canonical_tokens": 85,
+   "vs_canonical": 1.1176470588235294
+  },
+  {
+   "lang": "yo",
+   "i": 2,
+   "output": "Bii diẹ ninu awọn amoye miran, o ni iyemeji nipa boya àtọgbẹ le ṣe iwosan, o si ṣe akiyesi pe awọn awọn ri pe ko ni ibatan si awọn eniyan ti o ti ni àtọgbẹ Iru 1.",
+   "reference": "Bí àwọn àkọ́ṣẹ́mọṣẹ́, ó ṣiyèméjì bóyá àrùn ìtọ ṣúgá lè ní ìwòsàn, tí ó sì mọ̀ pé kò wúlò fún àwọn tó bá ní àrùn ìtọ ṣúgá Type 1.",
+   "stopped": true,
+   "tokens": 63,
+   "new_tokens": 10,
+   "canonical_tokens": 50,
+   "vs_canonical": 1.26
+  },
+  {
+   "lang": "yo",
+   "i": 3,
+   "output": "Ni ọjọ́ Àárọ̀ ọ̀jọ́ kejì, Sara Danius, akọ̀wé tí ó wà nípamọ́ fún Ẹ̀gbá Nobel fún Lítíréṣọ̀ ní Ilé-èkọ́ Swedish, kéde nígbà ìpàdé redio kan lórí Sveriges Radio ní Sweden pé ẹgbẹ́ náà, tí kò lè dé Bob Dylan taara nípaíyè fún Ẹ̀gbá Nobel nínú Lítíréṣọ̀ ní 2016, ti fi ìsapá rẹ̀ sílè.",
+   "reference": "Ní ọjọ́ Ajé, Sara Danius, akọ̀wé àgbà ti ẹgbẹ́ Nobel fún ìtàn àròsọ ní ilé ẹ̀ka Swedin, tí wọ́n kéde ní ètò kan lóri rẹ́díò lóri rẹ́díò Svergies ní Sweden, àwọn ẹgbk kò lè dé ọ̀dọ̀ BobDylan nípa bíborí ní 2016 Nobel Prize Literature, ó ti rẹ̀ wọ́n láti kàn si.",
+   "stopped": true,
+   "tokens": 111,
+   "new_tokens": 22,
+   "canonical_tokens": 107,
+   "vs_canonical": 1.0373831775700935
+  },
+  {
+   "lang": "yo",
+   "i": 4,
+   "output": "Danius so wipe, \"Ni bayii, a ko se ohun kankan. Mo ti pe ati fi imeeli ran si omo egbe to sunmo re, won si ti fi esi ore ranse. Fun bayii, eyi to.",
+   "reference": "Daniusi wipe, “Nisin a o se nkankan. Mo ti meeli ranse mo de ti pe si awon ajo sise timo timo re won de fun mi lesi to loyaya. Fun igba yi, o daniloju pe iyen ti to.”",
+   "stopped": true,
+   "tokens": 48,
+   "new_tokens": 6,
+   "canonical_tokens": 47,
+   "vs_canonical": 1.0212765957446808
+  },
+  {
+   "lang": "ha",
+   "i": 0,
+   "output": "\"Muna da linzamin kwarya da aka haife shi a watan 4 da ya kasance ba mai ciwon sukari ba, wanda ya kasance mai ciwon sukari.\"",
+   "reference": "“Yanzu muna bera mai watanni 4 wadanda ba su da ciwon sukari ba wadanda ke da suke fama da ciwon sukari,” in ji shi.",
+   "stopped": true,
+   "tokens": 34,
+   "new_tokens": 8,
+   "canonical_tokens": 32,
+   "vs_canonical": 1.0625
+  },
+  {
+   "lang": "ha",
+   "i": 1,
+   "output": "Dr. Ehud Ur, farfesa a fannin likitanci a Jami'ar Dalhousie a Halifax, Nova Scotia, kuma shugaban sashen likitanci da kimiyya na Kungiyar Diabetes ta Kanada ya gargadi cewa binciken na cikin farkon matakan.",
+   "reference": "Dokta Ehud Ur, farfesan magani a Jami’ar Dalhousie da ke Halifax, Nova Scotia kuma shugaban sashen likitanci da bangaren kimiyya na kungiyar masu ciwon sikari ta Kanada ya yi gargadin cewa har yanzu binciken yana kan farkonsa.",
+   "stopped": true,
+   "tokens": 48,
+   "new_tokens": 17,
+   "canonical_tokens": 46,
+   "vs_canonical": 1.0434782608695652
+  },
+  {
+   "lang": "ha",
+   "i": 2,
+   "output": "Kamar wasu masu ba da shawara, bai yarda da cewa ciwon sukari na iya warkewa ba, yana mai cewa wannan bincike ba shi da wani tasiri ga wadanda suka rigaya sun sami Nau'in 1 na ciwon sukari.",
+   "reference": "Kamar wasu ƙwararrun, yana da shakkun cewa ko za a iya warkar da ciwon sukari, inda ya bayyana cewa sakamakon bincike ba shi da alaƙa da mutanen da tuni su ke da nau’in ciwon sukari na 1.",
+   "stopped": true,
+   "tokens": 49,
+   "new_tokens": 18,
+   "canonical_tokens": 45,
+   "vs_canonical": 1.0888888888888888
+  },
+  {
+   "lang": "ha",
+   "i": 3,
+   "output": "A ranar Litinin, Sara Danius, sakatariyar Nobel na adabi a cikin Swedish Academy, ta bayyana a cikin wani shirin rediyo na Sveriges Radio a Sweden cewa, kwamitin, ba su iya kai ga Bob Dylan ta hanyar sadarwa game da lashe kyautar Nobel Prize a cikin adabi na 2016, ya barin kokarinsa na kai shi.",
+   "reference": "A ranar Litinin, Sara Danius, sakatariyar dindindin ta Kwamitin Adabi na kungiyar nagartattu a Kwalejin Nazarin Sweden, ta sanar a bainar jama'a yayin wani shirin rediyo a Sveriges Radio a Sweden kwamitin, ba zai iya kaiwa ga Bob Dylan kai tsaye ba game da lashe kyautar Nobel ta 2016 a Adabi, ta yi watsi da ita kokarinta na isa gare shi.",
+   "stopped": true,
+   "tokens": 74,
+   "new_tokens": 21,
+   "canonical_tokens": 71,
+   "vs_canonical": 1.0422535211267605
+  },
+  {
+   "lang": "ha",
+   "i": 4,
+   "output": "Danius ya ce, \"A yanzu ba mu yi komai ba. Na kira kuma na aika imel ga abokinsa na kusa, sai na samu amsa mai dadi sosai. A yanzu haka, wannan ya isa.\"",
+   "reference": "Danius ya ce, “Yanzu haka ba mwa yin komi. Na kira na kuma aika emails zuwa abokan aikinsa na kusa na kuma anshi amsoshi masu kyau. A yanzu haka, wannan bai isa ba.”",
+   "stopped": true,
+   "tokens": 46,
+   "new_tokens": 12,
+   "canonical_tokens": 44,
+   "vs_canonical": 1.0454545454545454
+  },
+  {
+   "lang": "ig",
+   "i": 0,
+   "output": "\"Ugbua, anyị nwere ụmụ ohi dị afọ anọ na-abaghị uru bụ ndị na-arịa ọrịa shuga na mbụ.\"  o kwuru.",
+   "reference": "Ugbu a, anyị nwere ụmụ oke ọnwa anọ na-arịabu ọrịa shuga mana ha anaghị arịazi ya.",
+   "stopped": true,
+   "tokens": 36,
+   "new_tokens": 7,
+   "canonical_tokens": 32,
+   "vs_canonical": 1.125
+  },
+  {
+   "lang": "ig",
+   "i": 1,
+   "output": "Dr. Ehud Ur, prọfesọ nke ọgwụ na Mahadum Dalhousie dị na Halifax, Nova Scotia na onye isi oche nke ngalaba ahụike na sayensị nke Canadian Diabetes Association dọọ aka ná ntị na nyocha ahụ ka dị n'oge mbido ya.",
+   "reference": "Dr. Ehud Ur, ọkammụta nke ọgwụ na Mahadum Dalhousie nọ na Halifax, Nova Scotia na onye isi oche nke ngalaba ụlọ ọgwụ na sayensi ahụ nke Òtù Ọrịa Shuga ndị Kanada dọrọ aka na ntị na nnyocha ahụ ka nọ n’oge ndị mbụ ya.",
+   "stopped": true,
+   "tokens": 50,
+   "new_tokens": 16,
+   "canonical_tokens": 50,
+   "vs_canonical": 1.0
+  },
+  {
+   "lang": "ig",
+   "i": 2,
+   "output": "Dị ka ọtụtụ ndị ọzọ na-ahụ maka ya, ọ na-enwe obi abụọ ma ọ bụ shuga nwere ike ịgwọ ya, na-ekwu na ihe ndị a achọtaworo enweghị ike ịmetụta ndị nwere shuga Type 1.",
+   "reference": "Ka ndị ọkachamara ndị ọzọ, o kwenyeghị na a ga agwọtanwu ọrịa shuga, o depụtara na ihe nchọpụta ndị a enweghị mmetụta nye ndị nwere ọrịa shuga Taịp 1.",
+   "stopped": true,
+   "tokens": 57,
+   "new_tokens": 17,
+   "canonical_tokens": 51,
+   "vs_canonical": 1.1176470588235294
+  },
+  {
+   "lang": "ig",
+   "i": 3,
+   "output": "Na Mee, Sera Danius, odeakwụkwọ nke Nobel Committee for Literature na Swedish Academy, kwupụta n'ihu ọha n'oge ihe omume redio na Sveriges Radio na Sweden na kọmitii ahụ, enweghị ike iru Bob Dylan ozugbo maka ihe nrite Nobel na 2016 na 2016. 2016. 2016. 2016. 2016. 2016. 2016. 2016. 2016. 2016. 2016. 2016. 2016. 2016. 2016. 2016. 2016. 2016. 2016. 2016. 2016. 2016. 2016. 2016.",
+   "reference": "N'ụbọchị Mọnde, Sara Danius, onye odeakwụkwọ Nobel kọmitii maka akwụkwọ agụmagụ n'ụlọ akwụkwọ Swidin, kwuputara n'ihu ọha na ihe omume redio na Sveriges Redio dị na Swidin, mgbe o siere kọmitii ahụ ike inweta Bob Dilan gbasara mmeri na ihe nrite Nobel na mpaghara Akwụkwọ agụmagụ nke afọ 2016 o nwetara, na ha ahapụlarị mbọ ha na-agba inweta ya.",
+   "stopped": false,
+   "tokens": 160,
+   "new_tokens": 15,
+   "canonical_tokens": 152,
+   "vs_canonical": 1.0526315789473684
+  },
+  {
+   "lang": "ig",
+   "i": 4,
+   "output": "Danius kwuru, \"Ugbua, anyị na-eme ihe ọ bụla. Ederela m ya na email ya na onye ọrụ ya na-arụkọ ọrụ n'oge a, ha na-arụkwa ọrụ n'oge a. Ederela m ya na email ya na onye ọrụ ya na-arụkọ ọrụ n'oge a, ha na-arụkwa ọrụ n'oge a. Ederela m ya na email ya na onye ọrụ ya na-arụkọ ọrụ n'oge a, ha na-arụkwa ọrụ n'oge a. Ederela m ya na email ya na onye ọrụ ya na-arụkọ ọrụ n'oge a, ha na-arụkwa ọrụ n'oge a. Ederela m ya na email ya na onye ọrụ ya na-arụkọ ọrụ n'oge",
+   "reference": "Danius si, \"Ugbu a anyị anaghị eme ihe ọbụla. Akpọọlam oku ma zijere onye ya na ya kacha arụkọ ozi ịntaneetị ma nwetekwa ụsa nnabata. Ugbua nke ahụ zuru oke.\"",
+   "stopped": false,
+   "tokens": 160,
+   "new_tokens": 42,
+   "canonical_tokens": 158,
+   "vs_canonical": 1.0126582278481013
+  }
+ ]
+}

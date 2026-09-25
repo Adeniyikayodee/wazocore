@@ -1,0 +1,41 @@
+{
+ "model": "/dev/shm/work/n-atlas",
+ "rows": [
+  {
+   "lang": "en",
+   "sentences": 300,
+   "chars": 38798,
+   "tokens": 8073,
+   "nll_nats": 34494.06330871582,
+   "bpc": 1.2826541078301528,
+   "tokens_per_char": 0.20807773596577142
+  },
+  {
+   "lang": "yo",
+   "sentences": 300,
+   "chars": 37881,
+   "tokens": 21521,
+   "nll_nats": 71928.77310943604,
+   "bpc": 2.7394019234500355,
+   "tokens_per_char": 0.5681212217206515
+  },
+  {
+   "lang": "ha",
+   "sentences": 300,
+   "chars": 41389,
+   "tokens": 15587,
+   "nll_nats": 51656.381118774414,
+   "bpc": 1.8005848140889158,
+   "tokens_per_char": 0.37659764671772694
+  },
+  {
+   "lang": "ig",
+   "sentences": 300,
+   "chars": 39108,
+   "tokens": 18514,
+   "nll_nats": 61294.16094207764,
+   "bpc": 2.2611430404670503,
+   "tokens_per_char": 0.4734069755548737
+  }
+ ]
+}

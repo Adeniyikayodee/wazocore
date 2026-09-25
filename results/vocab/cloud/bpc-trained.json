@@ -1,0 +1,41 @@
+{
+ "model": "/dev/shm/work/vx-trained",
+ "rows": [
+  {
+   "lang": "en",
+   "sentences": 300,
+   "chars": 38798,
+   "tokens": 8064,
+   "nll_nats": 28147.620540618896,
+   "bpc": 1.046663038475571,
+   "tokens_per_char": 0.20784576524563123
+  },
+  {
+   "lang": "yo",
+   "sentences": 300,
+   "chars": 37881,
+   "tokens": 13463,
+   "nll_nats": 64869.645862579346,
+   "bpc": 2.4705555922538074,
+   "tokens_per_char": 0.35540244449724134
+  },
+  {
+   "lang": "ha",
+   "sentences": 300,
+   "chars": 41389,
+   "tokens": 10153,
+   "nll_nats": 43422.94701004028,
+   "bpc": 1.5135922663550547,
+   "tokens_per_char": 0.2453067240087946
+  },
+  {
+   "lang": "ig",
+   "sentences": 300,
+   "chars": 39108,
+   "tokens": 11199,
+   "nll_nats": 51625.44114303589,
+   "bpc": 1.904463739407869,
+   "tokens_per_char": 0.2863608468855477
+  }
+ ]
+}

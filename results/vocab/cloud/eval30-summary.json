@@ -1,0 +1,50 @@
+{
+ "original/yo": {
+  "chrf++": 24.83,
+  "tokens": 2737,
+  "chars": 4488,
+  "stopped": 27,
+  "n": 30,
+  "new_tokens": 0
+ },
+ "original/ha": {
+  "chrf++": 50.9,
+  "tokens": 1868,
+  "chars": 4911,
+  "stopped": 30,
+  "n": 30,
+  "new_tokens": 0
+ },
+ "original/ig": {
+  "chrf++": 38.07,
+  "tokens": 2069,
+  "chars": 4451,
+  "stopped": 30,
+  "n": 30,
+  "new_tokens": 0
+ },
+ "distill/yo": {
+  "chrf++": 27.03,
+  "tokens": 1904,
+  "chars": 4773,
+  "stopped": 28,
+  "n": 30,
+  "new_tokens": 633
+ },
+ "distill/ha": {
+  "chrf++": 51.19,
+  "tokens": 1265,
+  "chars": 4891,
+  "stopped": 30,
+  "n": 30,
+  "new_tokens": 387
+ },
+ "distill/ig": {
+  "chrf++": 37.33,
+  "tokens": 1299,
+  "chars": 4418,
+  "stopped": 30,
+  "n": 30,
+  "new_tokens": 444
+ }
+}

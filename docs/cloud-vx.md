@@ -57,4 +57,13 @@ From the laptop:
 
     rsync -az -e "ssh -p $PORT" $POD:/workspace/work/{N-ATLaS-vx.Q4_K_M.gguf,bpc-*.json,vx-trained/log.jsonl} data/runs/cloud/
 
+## What actually happened (25 Sep run) and the fixes
+
+- **No volume:** the pod came up without a volume (30 GB container disk only). Model files lived in `/dev/shm` (134 GB, RAM-backed), deleting each one after use. It is lost on restart, so copy results out early.
+- **Hugging Face login:** the web terminal's `hf auth login` stores the token under `/workspace/.cache/huggingface`, so SSH commands need `export HF_HOME=/workspace/.cache/huggingface`.
+- **Separate environment for llama.cpp:** llama.cpp's converter requirements downgrade transformers (to 4.57) and install a CPU-only torch. Give it its own venv (`/workspace/venv-gguf`) and never install it into the training venv.
+- **Tokenizer class:** transformers 5 saves `tokenizer_class: TokenizersBackend`, which the older converter cannot load. Convert from a symlinked copy whose `tokenizer_config.json` says `PreTrainedTokenizerFast`.
+- **Pre-tokenizer hash:** the converter rejects the expanded tokenizer because its pre-tokenizer hash is unknown. After checking that the pre-tokenizer is unchanged, add the reported `chkhsh` → `res = "llama-bpe"` in `conversion/base.py`.
+- **Recipe:** the winning run adds self-distillation (`distill`, then `train --chat`); see PROJECT-PLAN-B §14.1.
+
 **Stop and delete the pod afterwards**: it bills per hour while it exists.

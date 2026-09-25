@@ -465,3 +465,33 @@ Storage streaming beyond the atlas-sim G1 decision · Android / Tier C · Pi 5 m
 | V5 | Release (N-ATLaS licence: share-alike, name ending "Powered by Awarri") plus the expansion kit, README, tester kit, docs and video | Submission-ready |
 
 **Kept as supporting work:** atlas-rt (validated engine and tools), the C1/C2 findings, and the negative results. **Fallback:** if training cannot recover quality, the submission is the ceiling, the recipe, the tooling and the evidence.
+
+### 14.1 V3 outcome (25 Sep, one rented A100 80GB, ~4 h)
+
+Local MLX training failed (swap: ~15 tok/s; lr 5e-4 diverged), so V3 ran in PyTorch on a rented GPU (`vx_torch.py`, `docs/cloud-vx.md`). Evidence: `results/vocab/cloud/`.
+
+**Three recipes, same 5M tokens (FLORES devtest; BPC on 300 sentences, generation on 5):**
+
+| Recipe | BPC en / yo / ha / ig | Replies stop | New tokens used |
+|---|---|---|---|
+| Original (bf16) | 1.283 / 2.739 / 1.801 / 2.261 | 15/15 | n/a |
+| Untrained expansion | 1.295 / 4.191 / 2.915 / 3.468 | n/a | n/a |
+| Rows only | 1.291 / 3.199 / 2.191 / 2.602 | 15/15 | almost never (no speed-up) |
+| Rows + bottom and top 2 layers, Wikipedia | 1.047 / 2.471 / 1.514 / 1.905 | 12/15 (loops) | yes |
+| **Same, plus 40% self-distilled replies** | 1.048 / 2.250 / 1.532 / 1.870 | 15/15 | yes |
+
+**Finding: BPC alone is a misleading gate.** Edge-layer training beats the original on BPC, English included, largely by drifting from chat tuning towards encyclopedic text, while breaking end-of-reply behaviour. The gate is therefore replaced by behaviour on real requests: chrF++ of greedy translations against the FLORES references, with the stop rate and tokens per character.
+
+**Self-distillation** trains on the original model's own greedy translations of FLORES *dev* sentences (English↔yo/ha/ig, 5,958 replies that ended properly), re-tokenised with the new vocabulary. It keeps behaviour and teaches the model to write with the new tokens.
+
+**Gate result (30 devtest sentences per language, English → X):**
+
+| | chrF++ original → vx | characters per token | token cut | stops (of 30) |
+|---|---|---|---|---|
+| yo | 24.83 → 27.03 | 1.64 → 2.51 | 1.53× | 27 → 28 |
+| ha | 50.90 → 51.19 | 2.63 → 3.87 | 1.47× | 30 → 30 |
+| ig | 38.07 → 37.33 | 2.15 → 3.40 | 1.58× | 30 → 30 |
+
+**V3 passes:** quality is within ±1 chrF for Hausa and Igbo and higher for Yoruba, at about 1.5× fewer tokens. The sample is 30 sentences, so the chrF noise is about ±1–2; the token cut is far outside it.
+
+**GGUF:** exported from the bf16 weights to `N-ATLaS-vx.Q4_K_M.gguf` (4.77 GiB, 4.90 BPW). llama.cpp's converter identifies the pre-tokenizer by a hash of sample tokens; the new merges change that hash, so it is mapped to `llama-bpe` after checking that the pre-tokenizer, normaliser, decoder and post-processor are byte-identical to the original. V4 next: check that llama.cpp tokenisation matches the reference, then measure paired words/s.
