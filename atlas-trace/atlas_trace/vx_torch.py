@@ -143,16 +143,20 @@ def stage_train(args) -> int:
     import torch
 
     torch.manual_seed(args.seed)
-    # fp32 master weights: an lr of 5e-5 is below bf16's resolution and
-    # the updates would round away; autocast still runs matmuls in bf16.
-    model, tok = load_model(args.model, torch.float32)
-    model = model.to(args.device)
-    autocast = args.device.startswith("cuda")
-    model.gradient_checkpointing_enable()
-    model.config.use_cache = False
+    # Trainable tensors are fp32 master weights (an lr of 5e-5 is below
+    # bf16's resolution, so the updates would round away); the frozen
+    # layers stay bf16 to fit an 80 GB GPU. Autocast runs matmuls in bf16.
+    model, tok = load_model(args.model, torch.bfloat16)
     first_new = json.loads((args.model / "new_tokens.json").read_text())["first_id"]
     n_layers = model.config.num_hidden_layers
     layers = [*range(args.edge_layers), *range(n_layers - args.edge_layers, n_layers)]
+    for m in [model.get_input_embeddings(), model.get_output_embeddings(), *(model.model.layers[i] for i in layers)]:
+        m.float()
+    model = model.to(args.device)
+    amp = lambda: torch.autocast(device_type=args.device.split(":")[0], dtype=torch.bfloat16)
+    model.config.use_cache = False
+    model.gradient_checkpointing_enable()
+    model.train()  # checkpointing only applies in training mode
     params = set_trainable(model, first_new, layers)
     print(f"trainable: {sum(p.numel() for p in params) / 1e6:.0f}M (new rows masked to {model.config.vocab_size - first_new}), layers {layers}", file=sys.stderr)
 
@@ -168,7 +172,7 @@ def stage_train(args) -> int:
         for g in opt.param_groups:
             g["lr"] = lr_at(step, args.lr, max(1, steps // 30), steps)
         batch = torch.tensor(data[step * args.batch:(step + 1) * args.batch], device=args.device)
-        with torch.autocast(device_type="cuda", dtype=torch.bfloat16, enabled=autocast):
+        with amp():
             loss = lm_loss(model, batch)
         loss.backward()
         torch.nn.utils.clip_grad_norm_(params, args.clip)
@@ -182,7 +186,8 @@ def stage_train(args) -> int:
             print(f"step {rec['step']}/{steps} loss {rec['loss']:.3f} {rec['tok_s']:.0f} tok/s", file=sys.stderr)
         if args.eval_every and (step + 1) % args.eval_every == 0 and step + 1 < steps:
             model.eval()
-            bpc = {r["lang"]: r["bpc"] for r in flores_bpc(model, tok, args.flores, args.eval_sentences, args.device)}
+            with amp():
+                bpc = {r["lang"]: r["bpc"] for r in flores_bpc(model, tok, args.flores, args.eval_sentences, args.device)}
             model.train()
             log.write(json.dumps({"step": step + 1, "bpc": bpc}) + "\n")
             log.flush()
