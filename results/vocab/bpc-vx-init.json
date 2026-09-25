@@ -1,0 +1,41 @@
+{
+ "model": "data/models/n-atlas-vx-mlx-q4",
+ "rows": [
+  {
+   "lang": "en",
+   "sentences": 300,
+   "chars": 38798,
+   "tokens": 8064,
+   "nll_nats": 31805.858673095703,
+   "bpc": 1.1826938135700396,
+   "tokens_per_char": 0.20784576524563123
+  },
+  {
+   "lang": "yo",
+   "sentences": 300,
+   "chars": 37881,
+   "tokens": 13463,
+   "nll_nats": 107462.85791015625,
+   "bpc": 4.092714875181166,
+   "tokens_per_char": 0.35540244449724134
+  },
+  {
+   "lang": "ha",
+   "sentences": 300,
+   "chars": 41389,
+   "tokens": 10153,
+   "nll_nats": 80766.13459777832,
+   "bpc": 2.815262554204869,
+   "tokens_per_char": 0.2453067240087946
+  },
+  {
+   "lang": "ig",
+   "sentences": 300,
+   "chars": 39108,
+   "tokens": 11199,
+   "nll_nats": 90744.10497283936,
+   "bpc": 3.347552169229387,
+   "tokens_per_char": 0.2863608468855477
+  }
+ ]
+}
