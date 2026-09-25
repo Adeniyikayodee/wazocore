@@ -82,6 +82,39 @@ def apply_merges(tokens: Sequence[str], ranks: dict[tuple[str, str], int]) -> li
     return s
 
 
+def expand(tok_json: dict, merges: Sequence[tuple[str, str]], first_id: int) -> tuple[dict, list[dict]]:
+    """Returns a new tokenizer.json with `merges` appended after the
+    original merges and one vocabulary entry per new token (ids from
+    `first_id`), plus each new token's (left, right) decomposition. Tokens
+    that already exist keep their id; their merge is still appended.
+
+    The `tokenizers` library needs BPE vocabulary ids to be contiguous, but
+    Llama-3 keeps its special tokens (ids between the BPE vocabulary and
+    `first_id`) only in `added_tokens`. They are entered into the BPE
+    vocabulary under their existing ids; no merge can produce them, so
+    encoding is unchanged and every original id stays where it was."""
+    vocab = dict(tok_json["model"]["vocab"])
+    for t in tok_json.get("added_tokens", []):
+        vocab.setdefault(t["content"], t["id"])
+    added: list[dict] = []
+    next_id = first_id
+    for left, right in merges:
+        token = left + right
+        if token not in vocab:
+            vocab[token] = next_id
+            added.append({"token": token, "id": next_id, "left": left, "right": right})
+            next_id += 1
+    if sorted(vocab.values()) != list(range(len(vocab))):
+        raise ValueError("vocabulary ids are not contiguous; the tokenizer would renumber tokens")
+    model = {**tok_json["model"], "vocab": vocab, "merges": [*tok_json["model"]["merges"], *[[a, b] for a, b in merges]]}
+    return {**tok_json, "model": model}, added
+
+
+def balanced_corpus(texts: dict[str, str], chars: int) -> dict[str, str]:
+    """Equal character budget per language, so no language dominates merges."""
+    return {lang: t[:chars] for lang, t in texts.items()}
+
+
 # ---- shell -------------------------------------------------------------------
 
 
@@ -92,7 +125,48 @@ def segment(tok, text: str) -> Iterable[Word]:
         yield tuple(t.value for t in tok.model.tokenize(piece))
 
 
+def build(argv: Sequence[str]) -> int:
+    """Joint merges for yo/ha/ig on balanced Wikipedia + FLORES dev text;
+    writes an expanded tokenizer directory and the new-token list."""
+    ap = argparse.ArgumentParser(description="build an expanded tokenizer")
+    ap.add_argument("--source", type=Path, default=Path("data/models/n-atlas-bf16"))
+    ap.add_argument("--wiki", type=Path, default=Path("data/wiki"))
+    ap.add_argument("--flores", type=Path, default=Path("data/flores200_dataset"))
+    ap.add_argument("--chars-per-lang", type=int, default=4_000_000)
+    ap.add_argument("--merges", type=int, default=15_000)
+    ap.add_argument("--out", type=Path, required=True)
+    args = ap.parse_args(argv)
+
+    import shutil
+
+    from tokenizers import Tokenizer
+
+    tok = Tokenizer.from_file(str(args.source / "tokenizer.json"))
+    codes = {"yo": "yor_Latn", "ha": "hau_Latn", "ig": "ibo_Latn"}
+    texts = {l: (args.flores / "dev" / f"{c}.dev").read_text(encoding="utf-8") + "\n" + (args.wiki / f"{l}.txt").read_text(encoding="utf-8")
+             for l, c in codes.items()}
+    words: Counter = Counter()
+    for text in balanced_corpus(texts, args.chars_per_lang).values():
+        words.update(segment(tok, text))
+    merges = learn_merges(words, args.merges)
+    tok_json = json.loads((args.source / "tokenizer.json").read_text(encoding="utf-8"))
+    first_id = json.loads((args.source / "config.json").read_text())["vocab_size"]
+    new_json, added = expand(tok_json, merges, first_id)
+    args.out.mkdir(parents=True, exist_ok=True)
+    (args.out / "tokenizer.json").write_text(json.dumps(new_json, ensure_ascii=False), encoding="utf-8")
+    for f in ["tokenizer_config.json", "special_tokens_map.json", "generation_config.json"]:
+        shutil.copy(args.source / f, args.out / f)
+    config = json.loads((args.source / "config.json").read_text())
+    config["vocab_size"] = first_id + len(added)
+    (args.out / "config.json").write_text(json.dumps(config, indent=2) + "\n")
+    (args.out / "new_tokens.json").write_text(json.dumps({"first_id": first_id, "merges": len(merges), "tokens": added}, ensure_ascii=False, indent=0) + "\n", encoding="utf-8")
+    print(f"{len(merges)} merges, {len(added)} new tokens (ids {first_id}..{first_id + len(added) - 1}) -> {args.out}", file=sys.stderr)
+    return 0
+
+
 def main(argv: Sequence[str]) -> int:
+    if argv and argv[0] == "build":
+        return build(argv[1:])
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--tokenizer", type=Path, default=Path("data/models/n-atlas-bf16/tokenizer.json"))
     ap.add_argument("--wiki", type=Path, default=Path("data/wiki"))
