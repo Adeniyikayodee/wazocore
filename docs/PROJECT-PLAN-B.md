@@ -495,3 +495,7 @@ Local MLX training failed (swap: ~15 tok/s; lr 5e-4 diverged), so V3 ran in PyTo
 **V3 passes:** quality is within ±1 chrF for Hausa and Igbo and higher for Yoruba, at about 1.5× fewer tokens. The sample is 30 sentences, so the chrF noise is about ±1–2; the token cut is far outside it.
 
 **GGUF:** exported from the bf16 weights to `N-ATLaS-vx.Q4_K_M.gguf` (4.77 GiB, 4.90 BPW). llama.cpp's converter identifies the pre-tokenizer by a hash of sample tokens; the new merges change that hash, so it is mapped to `llama-bpe` after checking that the pre-tokenizer, normaliser, decoder and post-processor are byte-identical to the original. V4 next: check that llama.cpp tokenisation matches the reference, then measure paired words/s.
+
+**V4 checks (26 Sep, laptop):**
+- **Tokenisation parity:** llama.cpp (`llama-tokenize`, Homebrew build 9430) and the reference tokenizer give identical ids on 160/160 FLORES devtest sentences (40 per language, English included).
+- **Known issue, fragment tokens:** 12 of the 15,000 new tokens are incomplete UTF-8 characters (for example a space plus the first two bytes of `ṣ`). The model occasionally follows one with the wrong byte and emits an invalid character: 1 of 90 GPU test translations (0 of 90 for the original), and it crashed llama-server's reply parser once. Fix for the release build: have `vocab_expand` reject merges whose result is not whole UTF-8, then retrain (~1.5 GPU hours). Until then, the paired benchmark records such failures per model instead of crashing.
