@@ -1,0 +1,150 @@
+{
+ "method": "in-place BPE continuation on Wikipedia + FLORES dev; measured on FLORES devtest",
+ "vocab_before": 128256,
+ "rows": [
+  {
+   "lang": "yo",
+   "new_tokens": 2000,
+   "train_chars": 6123372,
+   "tokens_before": 73950,
+   "tokens_after": 47716,
+   "tokens_per_word_before": 2.9338252796953106,
+   "tokens_per_word_after": 1.8930413393636436,
+   "reduction": 1.5497946181574316,
+   "tax_vs_en_before": 2.721151015602002,
+   "tax_vs_en_after": 1.755813953488372
+  },
+  {
+   "lang": "yo",
+   "new_tokens": 5000,
+   "train_chars": 6123372,
+   "tokens_before": 73950,
+   "tokens_after": 44246,
+   "tokens_per_word_before": 2.9338252796953106,
+   "tokens_per_word_after": 1.7553757041974134,
+   "reduction": 1.6713375220358901,
+   "tax_vs_en_before": 2.721151015602002,
+   "tax_vs_en_after": 1.6281277597880484
+  },
+  {
+   "lang": "yo",
+   "new_tokens": 10000,
+   "train_chars": 6123372,
+   "tokens_before": 73950,
+   "tokens_after": 42549,
+   "tokens_per_word_before": 2.9338252796953106,
+   "tokens_per_word_after": 1.6880504641751963,
+   "reduction": 1.7379961926249736,
+   "tax_vs_en_before": 2.721151015602002,
+   "tax_vs_en_after": 1.565682955549014
+  },
+  {
+   "lang": "yo",
+   "new_tokens": 20000,
+   "train_chars": 6123372,
+   "tokens_before": 73950,
+   "tokens_after": 41278,
+   "tokens_per_word_before": 2.9338252796953106,
+   "tokens_per_word_after": 1.6376259620725224,
+   "reduction": 1.7915112166287126,
+   "tax_vs_en_before": 2.721151015602002,
+   "tax_vs_en_after": 1.5189137474241978
+  },
+  {
+   "lang": "ha",
+   "new_tokens": 2000,
+   "train_chars": 6135584,
+   "tokens_before": 53585,
+   "tokens_after": 37059,
+   "tokens_per_word_before": 2.1301081252981398,
+   "tokens_per_word_after": 1.473167435204325,
+   "reduction": 1.4459375590274968,
+   "tax_vs_en_before": 1.9717765675596115,
+   "tax_vs_en_after": 1.363666470415072
+  },
+  {
+   "lang": "ha",
+   "new_tokens": 5000,
+   "train_chars": 6135584,
+   "tokens_before": 53585,
+   "tokens_after": 33862,
+   "tokens_per_word_before": 2.1301081252981398,
+   "tokens_per_word_after": 1.3460804579424392,
+   "reduction": 1.582452306420176,
+   "tax_vs_en_before": 1.9717765675596115,
+   "tax_vs_en_after": 1.2460259052104798
+  },
+  {
+   "lang": "ha",
+   "new_tokens": 10000,
+   "train_chars": 6135584,
+   "tokens_before": 53585,
+   "tokens_after": 32329,
+   "tokens_per_word_before": 2.1301081252981398,
+   "tokens_per_word_after": 1.285140721895373,
+   "reduction": 1.6574901790961676,
+   "tax_vs_en_before": 1.9717765675596115,
+   "tax_vs_en_after": 1.1896158375036796
+  },
+  {
+   "lang": "ha",
+   "new_tokens": 20000,
+   "train_chars": 6135584,
+   "tokens_before": 53585,
+   "tokens_after": 31557,
+   "tokens_per_word_before": 2.1301081252981398,
+   "tokens_per_word_after": 1.2544522181586897,
+   "reduction": 1.698038470070032,
+   "tax_vs_en_before": 1.9717765675596115,
+   "tax_vs_en_after": 1.161208419193406
+  },
+  {
+   "lang": "ig",
+   "new_tokens": 2000,
+   "train_chars": 6127682,
+   "tokens_before": 65227,
+   "tokens_after": 40849,
+   "tokens_per_word_before": 2.6177709997190672,
+   "tokens_per_word_after": 1.639402817353614,
+   "reduction": 1.596783274988372,
+   "tax_vs_en_before": 2.4001692670002943,
+   "tax_vs_en_after": 1.5031277597880484
+  },
+  {
+   "lang": "ig",
+   "new_tokens": 5000,
+   "train_chars": 6127682,
+   "tokens_before": 65227,
+   "tokens_after": 38346,
+   "tokens_per_word_before": 2.6177709997190672,
+   "tokens_per_word_after": 1.5389493117148934,
+   "reduction": 1.7010118395660565,
+   "tax_vs_en_before": 2.4001692670002943,
+   "tax_vs_en_after": 1.4110244333235207
+  },
+  {
+   "lang": "ig",
+   "new_tokens": 10000,
+   "train_chars": 6127682,
+   "tokens_before": 65227,
+   "tokens_after": 37134,
+   "tokens_per_word_before": 2.6177709997190672,
+   "tokens_per_word_after": 1.490307821968937,
+   "reduction": 1.7565304034038887,
+   "tax_vs_en_before": 2.4001692670002943,
+   "tax_vs_en_after": 1.36642625846335
+  },
+  {
+   "lang": "ig",
+   "new_tokens": 20000,
+   "train_chars": 6127682,
+   "tokens_before": 65227,
+   "tokens_after": 36295,
+   "tokens_per_word_before": 2.6177709997190672,
+   "tokens_per_word_after": 1.4566360316249949,
+   "reduction": 1.7971345915415347,
+   "tax_vs_en_before": 2.4001692670002943,
+   "tax_vs_en_after": 1.3355534294966147
+  }
+ ]
+}
