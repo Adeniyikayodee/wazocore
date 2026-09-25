@@ -100,6 +100,19 @@ def teal(root: Path) -> str | None:
             + "\n\n## TEAL: C2 (own-language minus English calibration, paired per chunk)\n\n" + c2)
 
 
+def sim(root: Path) -> str | None:
+    rows = []
+    for f in sorted(glob.glob(str(root / "sim" / "*.json"))):
+        d = json.loads(Path(f).read_text())
+        preds = {p["policy"]: p for p in d.get("predictions", [])}
+        for r in d["results"]:
+            p = preds.get(r["policy"], {})
+            rows.append([d["trace"]["lang"], d["trace"]["profile"], r["policy"], f"{100 * r['byte_hit_rate']:.1f}%",
+                         f"{r['miss_bytes_per_token'] / 1e6:.0f}", f"{p.get('tok_s_overlapped', float('nan')):.2f}"])
+    head = ["Lang", "Profile", "Policy", "Byte hit rate", "Miss MB/token", "Predicted tok/s"]
+    return "## G1: storage streaming (atlas-sim, 50% MLP cache, M4 storage)\n\n" + table(head, rows) if rows else None
+
+
 def convert(root: Path) -> str | None:
     f = root / "convert" / "n-atlas-q4g64-verify.txt"
     if not f.exists():
@@ -113,7 +126,7 @@ def convert(root: Path) -> str | None:
     return "## .satl conversion error vs bf16\n\n" + table(["Tensor", "Count", "Mean rel RMSE", "Max"], rows)
 
 
-SECTIONS: list[Section] = [probe, tokenizer, baseline, int8, format_quality, teal, convert]
+SECTIONS: list[Section] = [probe, tokenizer, baseline, int8, format_quality, teal, sim, convert]
 
 
 def render(root: Path) -> str:
