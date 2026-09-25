@@ -159,7 +159,47 @@ fn teal_taps_calibrate_mask_and_trace() {
     let bits: u64 = trace.iter().map(|w| w.count_ones() as u64).sum();
     assert_eq!(bits, taps.kept[GATE_UP].0 + taps.kept[DOWN].0);
 
-    // Stepwise decode refuses a sparse plan rather than silently ignoring it.
+}
+
+/// Sparse decode skips inactive columns; it must agree with zero-masked
+/// prefill within int8 tolerance, and with the reference kernels.
+#[test]
+fn sparse_decode_skips_columns_consistently() {
+    use atlas_rt::forward::{Taps, prefill_tapped};
+    use atlas_rt::teal;
+
+    let r = reference();
+    let (bytes, data) = tiny_q4();
+    let (header, _) = decode_prefix(&bytes).unwrap();
+    let w = weights(&header, &bytes[data..]).unwrap();
+    let n = r.tokens.len();
+    let dense = Plan::dense(&w.config, rope_inv_freq(&w.config).unwrap(), Kernels::Fast);
+    let mut cal = Taps { hist: Some(teal::empty_histograms(w.config.layers)), ..Taps::default() };
     let mut kv = KvCache::new(&w.config, n);
-    assert!(step(&w, &half, &mut kv, r.tokens[0]).is_err());
+    prefill_tapped(&w, &dense, &mut kv, &r.tokens, Want::Last, &mut cal).unwrap();
+    let th = teal::thresholds(&cal.hist.unwrap(), 0.3).unwrap();
+    let sparse = Plan { sparsity: Some(th), ..dense.clone() };
+
+    let decode = |plan: &Plan| {
+        let mut kv = KvCache::new(&w.config, n);
+        r.tokens.iter().map(|&t| step(&w, plan, &mut kv, t).unwrap()).collect::<Vec<_>>()
+    };
+    let stepped = decode(&sparse);
+    let mut kv = KvCache::new(&w.config, n);
+    let masked = prefill_tapped(&w, &sparse, &mut kv, &r.tokens, Want::All, &mut Taps::default()).unwrap();
+    let reference = decode(&Plan { kernels: Kernels::Reference, ..sparse.clone() });
+    let dense_out = decode(&dense);
+    let mean_kl = |a: &[Vec<f32>], b: &[Vec<f32>]| a.iter().zip(b).map(|(x, y)| kl(x, y)).sum::<f64>() / a.len() as f64;
+    let (vs_masked, vs_ref, vs_dense) = (mean_kl(&masked, &stepped), mean_kl(&reference, &stepped), mean_kl(&dense_out, &stepped));
+    eprintln!("sparse step vs zero-mask {vs_masked:.2e}, vs reference {vs_ref:.2e}, vs dense {vs_dense:.2e}");
+    // Near-threshold channels flip between paths (tiny numeric differences
+    // change the active set), so agreement is judged relative to the effect
+    // of sparsity itself: implementation differences must stay well below it.
+    assert!(vs_masked < 0.25 * vs_dense, "zero-mask vs skip: {vs_masked} vs sparsity effect {vs_dense}");
+    assert!(vs_ref < 0.25 * vs_dense, "fast vs reference: {vs_ref} vs sparsity effect {vs_dense}");
+
+    // A threshold every value passes keeps all columns: identical to dense.
+    // (Threshold 0 is not: it drops exact zeros, which regroups int8 blocks.)
+    let keep_all = Plan { sparsity: Some(vec![[-1.0; 4]; w.config.layers]), ..dense.clone() };
+    assert_eq!(decode(&keep_all), dense_out);
 }

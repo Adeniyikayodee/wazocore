@@ -58,6 +58,10 @@ enum Cmd {
     },
     /// Teacher-forced fidelity of the fast path against the f32 reference
     Compare {
+        /// Compare dense decode against sparse decode with this TEAL profile
+        /// (instead of fast vs reference kernels)
+        #[arg(long)]
+        profile: Option<PathBuf>,
         #[arg(long)]
         model: PathBuf,
         #[arg(long)]
@@ -175,6 +179,12 @@ enum Cmd {
         /// Also time batched prefill of this many prompt tokens (3 runs)
         #[arg(long)]
         prefill_tokens: Option<usize>,
+        /// Paired dense-vs-sparse decode timing with this TEAL profile
+        #[arg(long)]
+        profile: Option<PathBuf>,
+        /// Write the paired result as JSON
+        #[arg(long)]
+        out: Option<PathBuf>,
     },
 }
 
@@ -201,7 +211,10 @@ fn main() -> ExitCode {
         Cmd::Generate { model, tokenizer, prompt, system, max_tokens, ctx } => {
             generate(&model, &tokenizer, &system, &prompt, max_tokens, ctx, kernels)
         }
-        Cmd::Bench { model, tokens, warmup, prefill_tokens } => bench(&model, tokens, warmup, prefill_tokens, kernels),
+        Cmd::Bench { model, tokens, warmup, prefill_tokens, profile, out } => match profile {
+            Some(p) => bench_paired(&model, &p, tokens, warmup, out.as_deref(), &hardware),
+            None => bench(&model, tokens, warmup, prefill_tokens, kernels),
+        },
         Cmd::Kernels { model, reps, batch } => kernel_bench(&model, reps, batch, kernels),
         Cmd::TealCalibrate { model, tokenizer, flores, langs, tokens, ctx, sparsities, out } => {
             teal_calibrate(&model, &tokenizer, &flores, &langs, tokens, ctx, &sparsities, &out)
@@ -212,8 +225,8 @@ fn main() -> ExitCode {
         Cmd::TealTrace { model, tokenizer, flores, profile, lang, split, tokens, ctx, out } => {
             teal_trace(&model, &tokenizer, &flores, &profile, &lang, &split, tokens, ctx, &out)
         }
-        Cmd::Compare { model, tokenizer, text, label, tokens, out } => {
-            compare(&model, &tokenizer, &text, &label, tokens, &out, &hardware)
+        Cmd::Compare { profile, model, tokenizer, text, label, tokens, out } => {
+            compare(&model, &tokenizer, &text, &label, tokens, profile.as_deref(), &out, &hardware)
         }
         Cmd::Perplexity { model, tokenizer, text, ctx, chunks, out } => {
             perplexity(&model, &tokenizer, &text, ctx, chunks, kernels, &out, &hardware)
@@ -402,12 +415,14 @@ fn kernel_bench(model: &Path, reps: usize, batch: usize, kernels: Kernels) -> Re
 /// Runs the reference and fast kernels teacher-forced over the same tokens
 /// and reports per-token KL(reference ‖ fast), top-1 agreement and the NLL
 /// of the true next token under each.
+#[allow(clippy::too_many_arguments)]
 fn compare(
     model: &Path,
     tok_path: &Path,
     text: &Path,
     label: &str,
     n: usize,
+    profile: Option<&Path>,
     out: &Path,
     hardware: &serde_json::Value,
 ) -> Result<(), AnyError> {
@@ -429,8 +444,23 @@ fn compare(
         eprintln!("{label}: {k:?} {} tokens in {:.0}s", logits.len(), t0.elapsed().as_secs_f64());
         Ok(logits)
     };
-    let fast = run(Kernels::Fast)?;
-    let reference = run(Kernels::Reference)?;
+    // Default: reference (f32 activations) vs fast. With a profile: dense
+    // fast vs sparse fast decode, token by token through the skip path.
+    let (reference, fast) = match profile {
+        None => {
+            let fast = run(Kernels::Fast)?;
+            (run(Kernels::Reference)?, fast)
+        }
+        Some(p) => {
+            let prof: atlas_rt::teal::Profile = serde_json::from_slice(&std::fs::read(p)?)?;
+            let sparse = Plan { sparsity: Some(prof.thresholds), ..Plan::dense(&w.config, inv_freq.clone(), Kernels::Fast) };
+            let mut kv = KvCache::new(&w.config, ids.len());
+            let t0 = Instant::now();
+            let stepped = ids[..ids.len() - 1].iter().map(|&t| step(&w, &sparse, &mut kv, t)).collect::<Result<Vec<_>, _>>()?;
+            eprintln!("{label}: sparse decode {} tokens in {:.0}s", stepped.len(), t0.elapsed().as_secs_f64());
+            (run(Kernels::Fast)?, stepped)
+        }
+    };
     let next = &ids[1..];
     let kls: Vec<f64> = reference.iter().zip(&fast).map(|(r, f)| kl(r, f)).collect();
     let agree = reference.iter().zip(&fast).filter(|(r, f)| ops::argmax(r) == ops::argmax(f)).count();
@@ -450,6 +480,7 @@ fn compare(
         "nll_reference": mean(&nll_ref),
         "nll_fast": mean(&nll_fast),
         "kl_per_token": kls,
+        "comparison": profile.map_or("reference vs fast kernels (dense)".to_string(), |p| format!("dense vs sparse decode ({})", p.display())),
         "hardware": hardware,
     });
     std::fs::write(out, serde_json::to_string_pretty(&report)? + "\n")?;
@@ -751,5 +782,65 @@ fn teal_trace(model: &Path, tok_path: &Path, flores: &Path, profile: &Path, lang
         .collect();
     std::fs::write(out, bytes)?;
     eprintln!("wrote {} ({} tokens)", out.display(), chunks.len() * ctx);
+    Ok(())
+}
+
+/// Dense and sparse decode steps alternate token by token (order swapped
+/// every token) on separate KV caches, so thermal drift affects both
+/// equally; the statistic is the per-step speed ratio sparse / dense.
+fn bench_paired(model: &Path, profile: &Path, tokens: usize, warmup: usize, out: Option<&Path>, hardware: &serde_json::Value) -> Result<(), AnyError> {
+    let (header, data, map) = open(model)?;
+    let w = weights(&header, &map[data as usize..])?;
+    let prof: atlas_rt::teal::Profile = serde_json::from_slice(&std::fs::read(profile)?)?;
+    let dense = Plan::dense(&w.config, ops::rope_inv_freq(&w.config)?, Kernels::Fast);
+    let sparse = Plan { sparsity: Some(prof.thresholds.clone()), ..dense.clone() };
+    let (mut kv_d, mut kv_s) = (KvCache::new(&w.config, warmup + tokens), KvCache::new(&w.config, warmup + tokens));
+    let timed = |plan: &Plan, kv: &mut KvCache, t: u32| -> Result<f64, AnyError> {
+        let t0 = Instant::now();
+        step(&w, plan, kv, t)?;
+        Ok(t0.elapsed().as_secs_f64())
+    };
+    let mut pairs: Vec<(f64, f64)> = Vec::new();
+    for i in 0..warmup + tokens {
+        let t = (i * 7919 % 50_000 + 1000) as u32;
+        let (d, s) = if i % 2 == 0 {
+            let d = timed(&dense, &mut kv_d, t)?;
+            (d, timed(&sparse, &mut kv_s, t)?)
+        } else {
+            let s = timed(&sparse, &mut kv_s, t)?;
+            (timed(&dense, &mut kv_d, t)?, s)
+        };
+        if i >= warmup {
+            pairs.push((d, s));
+        }
+    }
+    let ratios: Vec<f64> = pairs.iter().map(|(d, s)| d / s).collect();
+    let (mean, lo, hi) = atlas_rt::teal::bootstrap(&ratios, 2000);
+    let median = |mut v: Vec<f64>| {
+        v.sort_by(f64::total_cmp);
+        v[v.len() / 2]
+    };
+    let (dense_tok_s, sparse_tok_s) = (1.0 / median(pairs.iter().map(|p| p.0).collect()), 1.0 / median(pairs.iter().map(|p| p.1).collect()));
+    println!(
+        "{} threads | {}: dense {:.2} tok/s, sparse {:.2} tok/s | speed-up mean {:.3} [{:.3}, {:.3}], median {:.3}",
+        rayon::current_num_threads(),
+        profile.display(),
+        dense_tok_s,
+        sparse_tok_s,
+        mean,
+        lo,
+        hi,
+        median(ratios.clone())
+    );
+    if let Some(path) = out {
+        let report = serde_json::json!({
+            "model": model.display().to_string(), "profile": profile.display().to_string(),
+            "target_sparsity": prof.sparsity, "threads": rayon::current_num_threads(), "tokens": tokens, "warmup": warmup,
+            "dense_tok_s_median": dense_tok_s, "sparse_tok_s_median": sparse_tok_s,
+            "speedup": {"mean": mean, "ci95": [lo, hi], "median": median(ratios.clone())},
+            "pairs_s": pairs, "hardware": hardware,
+        });
+        std::fs::write(path, serde_json::to_string_pretty(&report)? + "\n")?;
+    }
     Ok(())
 }

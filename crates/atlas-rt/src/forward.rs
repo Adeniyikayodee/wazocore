@@ -73,6 +73,21 @@ impl Plan {
         }
     }
 
+    /// Input channels of site `s` in layer `l` that take part: all of them
+    /// when dense, else those with |x| > threshold (TEAL). Skipped channels
+    /// are never read, which is where sparse decode saves bytes. The active
+    /// list also decides which columns share an int8 block, so even
+    /// threshold 0 (which drops exact zeros) can shift rounding slightly.
+    fn active(&self, l: usize, s: usize, x: &[f32], all: &[u32]) -> Vec<u32> {
+        match &self.sparsity {
+            None => all.to_vec(),
+            Some(th) => {
+                let t = th[l][s];
+                all.iter().copied().filter(|&j| x[j as usize].abs() > t).collect()
+            }
+        }
+    }
+
     fn columns(&self, w: &Columns, x: &[f32], active: &[u32]) -> Result<Vec<f32>, KernelError> {
         match self.kernels {
             Kernels::Reference => columns_gemv_ref(w, x, active),
@@ -124,27 +139,24 @@ pub fn step(w: &Weights, plan: &Plan, kv: &mut KvCache, token: u32) -> Result<Ve
     if token as usize >= c.vocab {
         return Err(StepError::BadToken { token, vocab: c.vocab });
     }
-    if plan.sparsity.is_some() {
-        return Err(StepError::Unsupported("sparse decode (use prefill_tapped until S4)"));
-    }
     let eps = c.rms_norm_eps as f32;
     let (q_dim, kv_dim) = (c.n_heads * c.head_dim, kv.kv_dim);
     let pos = kv.len;
     let mut x = row(&w.embed, token as usize)?;
     for (l, layer) in w.layers.iter().enumerate() {
         let h = rmsnorm(&x, &layer.attn_norm, eps);
-        let qkv = plan.columns(&layer.qkv, &h, &plan.all_hidden)?;
+        let qkv = plan.columns(&layer.qkv, &h, &plan.active(l, QKV, &h, &plan.all_hidden))?;
         let q = rope(&qkv[..q_dim], c.head_dim, &plan.inv_freq, pos);
         let k = rope(&qkv[q_dim..q_dim + kv_dim], c.head_dim, &plan.inv_freq, pos);
         kv.keys[l].extend_from_slice(&k);
         kv.values[l].extend_from_slice(&qkv[q_dim + kv_dim..]);
         let att = attention(&q, &kv.keys[l], &kv.values[l], pos + 1, c);
-        x = add(&x, &plan.columns(&layer.o, &att, &plan.all_q)?);
+        x = add(&x, &plan.columns(&layer.o, &att, &plan.active(l, O, &att, &plan.all_q))?);
 
         let h = rmsnorm(&x, &layer.mlp_norm, eps);
-        let gu = plan.columns(&layer.gate_up, &h, &plan.all_hidden)?;
+        let gu = plan.columns(&layer.gate_up, &h, &plan.active(l, GATE_UP, &h, &plan.all_hidden))?;
         let a = swiglu(&gu[..c.ffn], &gu[c.ffn..]);
-        x = add(&x, &plan.columns(&layer.down, &a, &plan.all_ffn)?);
+        x = add(&x, &plan.columns(&layer.down, &a, &plan.active(l, DOWN, &a, &plan.all_ffn))?);
     }
     kv.len += 1;
     Ok(plan.rows(&w.lm_head, &rmsnorm(&x, &w.final_norm, eps))?)
@@ -184,7 +196,9 @@ pub struct Taps {
 }
 
 /// `prefill` with instrumentation and, if `plan.sparsity` is set, TEAL
-/// masking at every site. Fast kernels only.
+/// masking at every site (masked values are zeroed; `step` instead skips
+/// the columns, which groups int8 blocks differently, so the two agree
+/// within int8 tolerance rather than exactly). Fast kernels only.
 pub fn prefill_tapped(w: &Weights, plan: &Plan, kv: &mut KvCache, tokens: &[u32], want: Want, taps: &mut Taps) -> Result<Vec<Vec<f32>>, StepError> {
     let tapped = taps.hist.is_some() || taps.trace.is_some() || plan.sparsity.is_some();
     if tapped && plan.kernels == Kernels::Reference {
