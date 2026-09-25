@@ -1,17 +1,17 @@
 """Paired words/s: original N-ATLaS vs the vocabulary-expanded model in
 llama.cpp (PROJECT-PLAN-B §14, V4).
 
-Two `llama-server`s (same binary, same flags) answer the same FLORES
-translation prompts. Each prompt goes to both servers back to back and the
-order alternates between prompts, so device drift (a fanless laptop
-throttles) falls on both models equally. The quantity compared is words
+The two models (same `llama-server` binary and flags) answer the same
+FLORES translation prompts. Only one model is in memory at a time (two
+5 GB models on a 16 GB laptop page each other out): for each sentence
+index both models answer it in every language, the first-mover
+alternating, so device drift (a fanless laptop throttles) falls on both
+equally. Load time is excluded; timings come from the server. The quantity compared is words
 (and characters) of generated text per second of decoding, which is what a
 reader sees; tokens/s would hide the point, since the expanded model
 spends fewer tokens per word.
 
-    uv run python -m atlas_trace.paired_vx --original http://127.0.0.1:8088 \
-        --expanded http://127.0.0.1:8089 --flores data/flores200_dataset \
-        --prompts 20 --out results/vocab/paired-words-per-s.json
+    scripts/paired_vx.sh LABEL THREADS [PROMPTS] [NGL]
 """
 
 from __future__ import annotations
@@ -24,7 +24,7 @@ from dataclasses import asdict
 from pathlib import Path
 from typing import Sequence
 
-from atlas_trace.llamacpp_baseline import NAMES, Complete, Prompt, Sample, make_prompts, read_devtest, server_client, to_sample
+from atlas_trace.llamacpp_baseline import NAMES, Prompt, Sample, make_prompts, read_devtest, server_client, to_sample
 
 # ---- pure core ---------------------------------------------------------------
 
@@ -74,52 +74,85 @@ def render(rows: Sequence[dict]) -> str:
 # ---- shell -------------------------------------------------------------------
 
 
-def run(prompts: Sequence[Prompt], clients: dict[str, Complete]) -> tuple[dict[str, list[Sample]], list[dict]]:
-    """Paired samples, plus the failures: a server error (e.g. a reply that
-    is not valid UTF-8) drops that prompt's pair and is recorded."""
+def serve(bin_: str, gguf: Path, port: int, threads: int, ngl: int, log: Path):
+    """Starts llama-server on one model; returns the process once healthy."""
+    import subprocess
+    import time
+    import urllib.request
+
+    proc = subprocess.Popen([bin_, "-m", str(gguf), "-t", str(threads), "-c", "2048", "-np", "1", "-ngl", str(ngl),
+                             "--port", str(port), "--no-webui"], stdout=log.open("a"), stderr=subprocess.STDOUT)
+    while True:
+        if proc.poll() is not None:
+            raise RuntimeError(f"llama-server exited; see {log}")
+        try:
+            urllib.request.urlopen(f"http://127.0.0.1:{port}/health", timeout=2)
+            return proc
+        except OSError:
+            time.sleep(0.5)
+
+
+def run(prompts: Sequence[Prompt], models: dict[str, Path], args) -> tuple[dict[str, list[Sample]], list[dict]]:
+    """One model in memory at a time: for each sentence index, both models
+    answer that sentence in every language, first-mover alternating
+    (`order`). Server errors (e.g. a reply that is not valid UTF-8) drop the
+    pair and are recorded."""
     import urllib.error
 
-    for c in clients.values():
-        c(prompts[0].text)  # warm-up, discarded
-    out: dict[str, list[Sample]] = {k: [] for k in clients}
+    blocks: dict[int, list[Prompt]] = {}
+    for p in prompts:
+        blocks.setdefault(p.index, []).append(p)
+    got: dict[tuple[str, str, int], Sample] = {}
     failures: list[dict] = []
-    for i, p in enumerate(prompts):
-        pair = {}
+    for i, block in sorted(blocks.items()):
         for name in order(i):
+            proc = serve(args.server_bin, models[name], 8088, args.threads, args.ngl, args.out.with_suffix(f".{name}.log"))
             try:
-                timings, text = clients[name](p.text)
-                pair[name] = to_sample(p, timings, text)
-            except urllib.error.HTTPError as e:
-                failures.append({"model": name, "lang": p.lang, "index": p.index, "error": e.read().decode("utf-8", "replace")[:300]})
-                print(f"{p.lang} #{p.index}: {name} failed ({e.code})", file=sys.stderr)
-        if len(pair) < 2:
-            continue
-        for name, sample in pair.items():
-            out[name].append(sample)
-        o, v = pair["original"], pair["expanded"]
-        print(f"{p.lang} #{p.index}: orig {o.gen_tokens} tok/{o.gen_ms / 1e3:.1f}s  vx {v.gen_tokens} tok/{v.gen_ms / 1e3:.1f}s", file=sys.stderr)
+                complete = server_client("http://127.0.0.1:8088", args.max_tokens)
+                complete(block[0].text)  # warm-up after load, discarded
+                for p in block:
+                    try:
+                        timings, text = complete(p.text)
+                        got[(name, p.lang, p.index)] = to_sample(p, timings, text)
+                    except urllib.error.HTTPError as e:
+                        failures.append({"model": name, "lang": p.lang, "index": p.index, "error": e.read().decode("utf-8", "replace")[:300]})
+                        print(f"{p.lang} #{p.index}: {name} failed ({e.code})", file=sys.stderr)
+            finally:
+                proc.terminate()
+                proc.wait()
+        print(f"sentence {i + 1}/{len(blocks)} done", file=sys.stderr)
+    out: dict[str, list[Sample]] = {m: [] for m in models}
+    for p in prompts:
+        if all((m, p.lang, p.index) in got for m in models):
+            for m in models:
+                out[m].append(got[(m, p.lang, p.index)])
     return out, failures
 
 
 def main(argv: Sequence[str]) -> int:
+    import shutil
+
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
-    ap.add_argument("--original", default="http://127.0.0.1:8088")
-    ap.add_argument("--expanded", default="http://127.0.0.1:8089")
+    ap.add_argument("--original", type=Path, required=True, help="GGUF")
+    ap.add_argument("--expanded", type=Path, required=True, help="GGUF")
+    ap.add_argument("--server-bin", default=shutil.which("llama-server"))
+    ap.add_argument("--threads", type=int, default=4)
+    ap.add_argument("--ngl", type=int, default=0, help="layers on the GPU (0 = CPU only)")
     ap.add_argument("--flores", type=Path, required=True)
     ap.add_argument("--prompts", type=int, default=20, help="per language")
     ap.add_argument("--max-tokens", type=int, default=256)
     ap.add_argument("--meta", type=Path, help="JSON merged into the output")
     ap.add_argument("--out", type=Path, required=True)
     args = ap.parse_args(argv)
+    args.out.parent.mkdir(parents=True, exist_ok=True)
     prompts = make_prompts(read_devtest(args.flores), args.prompts)
-    clients = {"original": server_client(args.original, args.max_tokens), "expanded": server_client(args.expanded, args.max_tokens)}
-    samples, failures = run(prompts, clients)
+    models = {"original": args.original, "expanded": args.expanded}
+    samples, failures = run(prompts, models, args)
     rows = [paired_summary(l, [s for s in samples["original"] if s.lang == l], [s for s in samples["expanded"] if s.lang == l]) for l in NAMES]
     print(render(rows))
-    print(f"failures: {len(failures)} " + json.dumps({m: sum(f['model'] == m for f in failures) for m in clients}))
+    print(f"failures: {len(failures)} " + json.dumps({m: sum(f['model'] == m for f in failures) for m in models}))
     report = {"meta": json.loads(args.meta.read_text()) if args.meta else {}, "summary": rows, "failures": failures,
               "samples": {k: [asdict(s) for s in v] for k, v in samples.items()}}
-    args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(report, indent=2, ensure_ascii=False) + "\n")
     return 0
 
