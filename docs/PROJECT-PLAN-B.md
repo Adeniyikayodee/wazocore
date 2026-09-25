@@ -376,6 +376,15 @@ The simulation used 30% sparsity with English thresholds, 4,096 devtest tokens p
 
 Streaming stays out, as §2.4 predicted from the byte budget; the storage stretch goal is closed. `results/sim/`.
 
+### 12.1e S4: sparse decode works, but C3 fails (25 Sep)
+
+- **Sparse vs our own dense decode (paired in-process, P-cores):** 10% 1.02×, 20% 1.09×, **30% 1.17× [1.15, 1.18]**, 40% 1.27×.
+- **Against llama.cpp (interleaved rounds, P-cores):** atlas-rt dense 0.29× [0.28, 0.30], sparse 0.34× [0.32, 0.35]. llama.cpp decodes at 12–16 tok/s; atlas-rt at 3.6–5.6.
+  - **Correction:** the earlier "dense parity" (§12.1) came from sequential comparisons against llama-server and throttled llama-bench runs. It was wrong. llama.cpp's CPU kernels are about 3× faster than ours.
+- **Efficiency cores:** inconclusive. llama.cpp is unstable (0.5–2.1 tok/s), atlas-rt about 1 tok/s.
+- **Shipped-path quality at 30%** (one 512-token passage per language): KL 0.15–0.16, consistent with S3. ΔNLL of +0.05 for en, yo and ha exceeds the B budgets; this needs re-checking on S3's chunks.
+- **Verdict:** C3 fails; the sparsity gain cannot overcome a 3× kernel gap. Per the G2 rule, the engine ships as a validated reference and study.
+
 ### 12.2 Design deviations
 
 | Plan | Implemented | Why |
