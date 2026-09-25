@@ -439,3 +439,29 @@ Storage streaming beyond the atlas-sim G1 decision · Android / Tier C · Pi 5 m
 ### Deviations this causes
 - Thresholds are calibrated on the shipped q4 model, not bf16.
 - C3 is claimed for M4 P-core and E-core tiers only.
+
+---
+
+## 14. v4 scope lock (25 Sep): cut the token tax with vocabulary expansion
+
+**Why the pivot:**
+- Sparse decode works (+17% at 30%), but llama.cpp is about 3× faster than our kernels, so C3 cannot be won (§12.1e).
+- Research on 25 Sep found the following already done by others: measuring the token tax (3 papers, 2025–26); speculative decoding for low-resource languages (2024, 2026); per-language quantisation loss (2024–26); African-language continued pre-training (AfriqueLLM, 64 H100s).
+- **Nobody has expanded a vocabulary for Yoruba, Hausa or Igbo.** Every public Llama-3 model for these languages, N-ATLaS included, keeps the 128,256-token vocabulary.
+- In-place expansion (arXiv 2607.15232) gave 2.2–3.7× per-character decode speed-ups for other languages. Low-budget recipes exist (2406.11477: 0.01 GB of text; 2608.03494: 6× fewer training steps with subword-composition initialisation).
+
+**Measured feasibility:**
+- 5,000 new tokens per language cut FLORES devtest tokens by 1.67× (yo), 1.58× (ha) and 1.70× (ig); the Yoruba tax drops from 2.72× to 1.63× English.
+- MLX LoRA training of 4-bit N-ATLaS on the M4 runs at about 55–63 tokens/s with 10 GB peak memory, which is about 2M tokens overnight.
+
+**Headline:** *N-ATLaS for Nigerian languages at the speed of English: in-place vocabulary expansion that makes Yoruba, Hausa and Igbo generation about 1.6× faster in words/s on every engine (llama.cpp, Ollama, LM Studio), with per-language quality evidence.*
+
+| # | Step | Done when |
+|---|---|---|
+| V1 | Expanded tokenizer (joint merges for yo, ha, ig) and expanded model; initialise new rows (input: mean of pieces; output: length-weighted mean) | Tokenizer round-trips all text; English tokenisation is essentially unchanged; token savings match the ceiling |
+| V2 | Zero-training quality: bits per character on FLORES devtest, original vs expanded | Gap measured per language |
+| V3 | Overnight MLX training runs (new rows plus LoRA; yo/ha/ig plus some English) | Per-language bits per character within an agreed tolerance of the original (set after V2) |
+| V4 | Export to GGUF from the bf16 weights (no double quantisation); **paired** words/s against the original in llama.cpp; per-language report card | Real speed-up and quality measured |
+| V5 | Release (N-ATLaS licence: share-alike, name ending "Powered by Awarri") plus the expansion kit, README, tester kit, docs and video | Submission-ready |
+
+**Kept as supporting work:** atlas-rt (validated engine and tools), the C1/C2 findings, and the negative results. **Fallback:** if training cannot recover quality, the submission is the ceiling, the recipe, the tooling and the evidence.
