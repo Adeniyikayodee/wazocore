@@ -350,6 +350,21 @@ Hypothesis: most of Yoruba's, Hausa's and Igbo's extra tokens continue a word al
 
 **Measurement rule (applies to every speed claim from now on):** the dev machine is a **fanless MacBook Air** whose decode speed swung from 17 to 7 tok/s within 20 minutes. Sequential A/B runs are invalid (the sequential files `results/spec/base1|ngram|base2.json` show this). **Every speed comparison must use the paired, interleaved design** of `paired_spec.py`.
 
+### 12.1c TEAL on N-ATLaS: C1 supported, C2 null (25 Sep, local, q4 model)
+
+Calibration used 8,192 FLORES dev tokens per language. Evaluation used 8 chunks × 256 devtest tokens per language, fidelity measured against the dense fast path. Tables are in `results/TABLES.md`; raw data in `results/teal/eval-matrix.json`.
+
+- **C1 (supported):**
+  - English thresholds over-prune the **attention-output** input for yo/ha/ig by 15–20% relative (for example 47% instead of 40%); the other inputs are within 1–3 points.
+  - At 40%, the Nigerian languages lose more next-token quality than English: ΔNLL en +0.016 [−0.032, +0.082], yo +0.051 [+0.012, +0.096], ha +0.028 [+0.000, +0.062], ig +0.084 [+0.037, +0.135].
+  - At ≤ 30%, losses are near zero or negative for every language.
+- **C2 (null, reported per §1):** own-language thresholds restore the target sparsity at `o`, but quality is equal or **worse** (for example yo 40%: ΔKL +0.038 [+0.015, +0.064]). The extra loss is not a calibration artefact: these languages appear intrinsically more sensitive at high sparsity, and the `o` input tolerates more pruning than a uniform rule gives it. **English thresholds are kept.** The lever this points to is per-site allocation (TEAL's greedy method), not per-language calibration.
+- **Operating points:**
+  - **B** (ΔNLL ≤ that language's Q4_K_M loss) = **30%** for all four (English alone would allow 40%). Igbo's upper CI bound (+0.046) exceeds its budget (0.020), so Igbo at 30% is marginal.
+  - **A** (KL ≤ 0.05) = 10%.
+  - Byte-reduction ceiling at 30% ≈ 1.35×.
+- **Unexplained:** ΔNLL is significantly *negative* at 10–30% for en and ha (sparse gives the true token more probability than dense). The sign and alignment have been checked, but the effect needs more chunks before it is interpreted.
+
 ### 12.2 Design deviations
 
 | Plan | Implemented | Why |
@@ -395,6 +410,7 @@ Hypothesis: most of Yoruba's, Hausa's and Igbo's extra tokens continue a word al
 ### Step log
 - **S1 done (24 Sep), with one shortfall accepted.** Batched prefill equals stepwise decode bit for bit, and NEON equals its scalar spec. Prefill runs at 11–13 tok/s on 6 threads on the throttled M4 (about 2.8× decode), **below the ≥ 20 tok/s target**. Profiling shows about a third of thread time idle (serial per-token work) and about 15% in per-token folding. Accepted because S1 is only an enabler: S2/S3 runs take hours, not days.
 
+- **S3 results (25 Sep):** C1 supported, C2 null, operating point 30% (§12.1c). Remaining for S3: traces at 30% for the atlas-sim G1 decision.
 - **S2 done (24 Sep).** Least-squares q4 fitting (converter only: same bytes, layout and kernels) lowers reconstruction error 7.4% and closes the English gap: `.satl` − Q4_K_M = +0.005 nats [−0.036, +0.041] (was +0.050 [+0.015, +0.082]). All four languages' intervals include 0. Point estimates remain slightly positive (+0.004 to +0.021), so `.satl` is at parity, not ahead. A fallback exists if needed: group 32 for qkv/down in Q4_K_M's sensitive layers (+1.5% bytes). `data/models/n-atlas-q4g64s.satl` is now the model for S3/S4.
 
 ### Cut (stated as limitations, not attempted)
