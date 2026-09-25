@@ -8,6 +8,7 @@ dependencies = ["tokenizers>=0.20"]
 [dependency-groups]
 dev = ["pytest>=8"]
 ref = ["torch>=2.4", "transformers>=4.51", "safetensors>=0.4"]
+mlx = ["mlx>=0.30", "mlx-lm>=0.31", "numpy>=1.26"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
