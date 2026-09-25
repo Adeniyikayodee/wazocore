@@ -63,3 +63,17 @@ def test_generation_stats_counts_new_tokens_and_stop():
     s = generation_stats([5, 130000, 130001, 9, 2], canonical=2, first_new=128256, eos={2})
     assert s == {"stopped": True, "tokens": 4, "new_tokens": 2, "canonical_tokens": 2, "vs_canonical": 2.0}
     assert not generation_stats([5, 6], 2, 128256, {2})["stopped"]
+
+
+def test_windows_pack_without_overlap_or_padding():
+    from atlas_trace.vx_torch import windows
+
+    assert windows(list(range(7)), 3) == [[0, 1, 2], [3, 4, 5]]
+    assert windows([1, 2], 3) == []
+
+
+def test_prompts_name_the_language_and_carry_the_sentence():
+    from atlas_trace.vx_torch import reverse_prompts, translation_prompts
+
+    assert translation_prompts(["Hi."], "Hausa")[0].startswith("Translate the following English text into Hausa.")
+    assert reverse_prompts(["Sannu."], "Hausa")[0].endswith("\n\nSannu.")

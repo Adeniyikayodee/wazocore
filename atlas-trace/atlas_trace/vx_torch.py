@@ -75,6 +75,20 @@ def _arange(n: int, device):
 
     return torch.arange(n, device=device)
 
+def windows(ids: Sequence[int], length: int) -> list[list[int]]:
+    """Consecutive non-overlapping `length`-token windows of a packed
+    stream (conversations already carry their own BOS)."""
+    return [list(ids[i:i + length]) for i in range(0, len(ids) - length + 1, length)]
+
+
+def translation_prompts(src: Sequence[str], tgt_name: str) -> list[str]:
+    return [f"Translate the following English text into {tgt_name}. Reply with the translation only.\n\n{s}" for s in src]
+
+
+def reverse_prompts(src: Sequence[str], src_name: str) -> list[str]:
+    return [f"Translate the following {src_name} text into English. Reply with the translation only.\n\n{s}" for s in src]
+
+
 def lm_loss(model, batch):
     """Mean next-token cross-entropy over a [B, T] batch."""
     import torch.nn.functional as F
@@ -162,8 +176,16 @@ def stage_train(args) -> int:
 
     texts = {l: (args.data / "wiki" / f"{l}.txt").read_text(encoding="utf-8")[: args.chars_per_lang] for l in CODES}
     per_lang = {l: chunks(tok.encode(t, add_special_tokens=False), args.seq, tok.bos_token_id) for l, t in texts.items()}
+    shares = {"yo": 0.3, "ha": 0.3, "ig": 0.3, "en": 0.1}
+    if args.chat:
+        convs = [json.loads(l)["messages"] for l in args.chat.read_text(encoding="utf-8").splitlines()]
+        stream = [i for c in convs for i in tok.apply_chat_template(c, tokenize=True, return_dict=False)]
+        per_lang["chat"] = windows(stream, args.seq)
+        text_share = 1.0 - args.chat_share
+        shares = {**{l: v * text_share for l, v in shares.items()}, "chat": args.chat_share}
+        print(f"chat: {len(convs)} conversations, {len(per_lang['chat'])} windows", file=sys.stderr)
     steps = args.tokens // (args.seq * args.batch)
-    data = mixture(per_lang, {"yo": 0.3, "ha": 0.3, "ig": 0.3, "en": 0.1}, steps * args.batch, args.seed)
+    data = mixture(per_lang, shares, steps * args.batch, args.seed)
     opt = torch.optim.AdamW(params, lr=args.lr, weight_decay=0.0, betas=(0.9, 0.95))
     args.out.mkdir(parents=True, exist_ok=True)
     log = (args.out / "log.jsonl").open("a")
@@ -202,6 +224,45 @@ def stage_train(args) -> int:
 NAMES = {"yo": "Yoruba", "ha": "Hausa", "ig": "Igbo"}
 
 
+def eos_ids(tok, model) -> set[int]:
+    g = model.generation_config.eos_token_id
+    return {i for i in [tok.eos_token_id, *(g if isinstance(g, list) else [g])] if i is not None}
+
+
+def stage_distill(args) -> int:
+    """The original model's own greedy replies to translation requests
+    (English <-> yo/ha/ig) on FLORES *dev* sentences; devtest stays for
+    evaluation. Training the expanded model on these re-tokenised replies
+    teaches it to produce the original's answers, and to end them, with
+    the new tokens."""
+    import torch
+
+    model, tok = load_model(args.model)
+    model = model.to(args.device).eval()
+    tok.padding_side = "left"
+    tok.pad_token = tok.pad_token or tok.eos_token
+    eos = eos_ids(tok, model)
+    dev = lambda code: (args.flores / "dev" / f"{code}.dev").read_text(encoding="utf-8").splitlines()[: args.n]
+    prompts = []
+    for lang, name in NAMES.items():
+        prompts += translation_prompts(dev(CODES["en"]), name) + reverse_prompts(dev(CODES[lang]), name)
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    with args.out.open("w", encoding="utf-8") as f:
+        for b in range(0, len(prompts), args.batch):
+            chunk = prompts[b:b + args.batch]
+            enc = tok.apply_chat_template([[{"role": "user", "content": p}] for p in chunk], add_generation_prompt=True,
+                                          return_tensors="pt", return_dict=True, padding=True).to(args.device)
+            with torch.no_grad():
+                out = model.generate(**enc, max_new_tokens=args.max_tokens, do_sample=False, pad_token_id=tok.pad_token_id)
+            for p, g in zip(chunk, out[:, enc["input_ids"].shape[1]:].tolist()):
+                reply = tok.decode(g, skip_special_tokens=True).strip()
+                stopped = any(i in eos for i in g)
+                if stopped and reply:
+                    f.write(json.dumps({"messages": [{"role": "user", "content": p}, {"role": "assistant", "content": reply}]}, ensure_ascii=False) + "\n")
+            print(f"{b + len(chunk)}/{len(prompts)}", file=sys.stderr)
+    return 0
+
+
 def generation_stats(gen: Sequence[int], canonical: int, first_new: int, eos: set[int]) -> dict:
     """What one generated reply says about the expansion: did it stop, how
     many of its tokens are new, and how its length compares with the
@@ -222,7 +283,7 @@ def stage_sample(args) -> int:
     model, tok = load_model(args.model)
     model = model.to(args.device).eval()
     first_new = 128256
-    eos = {i for i in [tok.eos_token_id, *(model.generation_config.eos_token_id or [])] if i is not None}
+    eos = eos_ids(tok, model)
     src = (args.flores / "devtest" / "eng_Latn.devtest").read_text(encoding="utf-8").splitlines()[: args.n]
     rows = []
     for lang, name in NAMES.items():
@@ -269,8 +330,17 @@ def main(argv: Sequence[str]) -> int:
     t.add_argument("--report", type=int, default=10)
     t.add_argument("--seed", type=int, default=0)
     t.add_argument("--flores", type=Path, default=Path("work/data/flores200_dataset"))
+    t.add_argument("--chat", type=Path, help="distilled conversations (JSONL from the distill stage)")
+    t.add_argument("--chat-share", type=float, default=0.4)
     t.add_argument("--eval-every", type=int, default=100, help="steps between BPC checks (0: off)")
     t.add_argument("--eval-sentences", type=int, default=50)
+    d = sub.add_parser("distill")
+    d.add_argument("--model", type=Path, required=True)
+    d.add_argument("--flores", type=Path, required=True)
+    d.add_argument("--n", type=int, default=997, help="FLORES dev sentences per language")
+    d.add_argument("--batch", type=int, default=64)
+    d.add_argument("--max-tokens", type=int, default=256)
+    d.add_argument("--out", type=Path, required=True)
     s = sub.add_parser("sample")
     s.add_argument("--model", type=Path, required=True)
     s.add_argument("--flores", type=Path, required=True)
@@ -278,7 +348,7 @@ def main(argv: Sequence[str]) -> int:
     s.add_argument("--max-tokens", type=int, default=160)
     s.add_argument("--out", type=Path, required=True)
     args = ap.parse_args(argv)
-    stages = {"expand": stage_expand, "bpc": stage_bpc, "train": stage_train, "sample": stage_sample}
+    stages = {"distill": stage_distill, "expand": stage_expand, "bpc": stage_bpc, "train": stage_train, "sample": stage_sample}
     return stages[args.stage](args)
 
 if __name__ == "__main__":
