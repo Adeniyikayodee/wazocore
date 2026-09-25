@@ -199,19 +199,48 @@ def stage_train(args) -> int:
     print(f"saved {args.out}", file=sys.stderr)
     return 0
 
+NAMES = {"yo": "Yoruba", "ha": "Hausa", "ig": "Igbo"}
+
+
+def generation_stats(gen: Sequence[int], canonical: int, first_new: int, eos: set[int]) -> dict:
+    """What one generated reply says about the expansion: did it stop, how
+    many of its tokens are new, and how its length compares with the
+    tokenizer's own encoding of the same text (1.0 = the model writes with
+    the tokens the tokenizer would choose; >1 = it spells words out with
+    old, shorter pieces and loses the speed-up)."""
+    body = [i for i in gen if i not in eos]
+    return {"stopped": any(i in eos for i in gen), "tokens": len(body),
+            "new_tokens": sum(1 for i in body if i >= first_new),
+            "canonical_tokens": canonical, "vs_canonical": len(body) / max(1, canonical)}
+
+
 def stage_sample(args) -> int:
+    """Greedy chat translations of FLORES devtest English sentences into
+    yo/ha/ig, with `generation_stats` for each."""
     import torch
 
     model, tok = load_model(args.model)
     model = model.to(args.device).eval()
-    msgs = [{"role": "user", "content": args.prompt}]
-    ids = tok.apply_chat_template(msgs, add_generation_prompt=True, return_tensors="pt", return_dict=True)["input_ids"].to(args.device)
-    with torch.no_grad():
-        out = model.generate(ids, max_new_tokens=args.max_tokens, do_sample=False)
-    gen = out[0, ids.shape[1]:].tolist()
-    print(tok.decode(gen, skip_special_tokens=True))
-    print(f"({len(gen)} tokens, {sum(1 for i in gen if i >= 128256)} new)", file=sys.stderr)
+    first_new = 128256
+    eos = {i for i in [tok.eos_token_id, *(model.generation_config.eos_token_id or [])] if i is not None}
+    src = (args.flores / "devtest" / "eng_Latn.devtest").read_text(encoding="utf-8").splitlines()[: args.n]
+    rows = []
+    for lang, name in NAMES.items():
+        refs = (args.flores / "devtest" / f"{CODES[lang]}.devtest").read_text(encoding="utf-8").splitlines()
+        for k, sentence in enumerate(src):
+            msgs = [{"role": "user", "content": f"Translate the following English text into {name}. Reply with the translation only.\n\n{sentence}"}]
+            ids = tok.apply_chat_template(msgs, add_generation_prompt=True, return_tensors="pt", return_dict=True)["input_ids"].to(args.device)
+            with torch.no_grad():
+                out = model.generate(ids, max_new_tokens=args.max_tokens, do_sample=False)
+            gen = out[0, ids.shape[1]:].tolist()
+            text = tok.decode(gen, skip_special_tokens=True).strip()
+            stats = generation_stats(gen, len(tok.encode(text, add_special_tokens=False)), first_new, eos)
+            rows.append({"lang": lang, "i": k, "output": text, "reference": refs[k], **stats})
+            print(f"{lang}{k}: stop={stats['stopped']} tok={stats['tokens']} new={stats['new_tokens']} x{stats['vs_canonical']:.2f} | {text[:90]}", file=sys.stderr)
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    args.out.write_text(json.dumps({"model": str(args.model), "rows": rows}, indent=1, ensure_ascii=False) + "\n")
     return 0
+
 
 def main(argv: Sequence[str]) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
@@ -244,8 +273,10 @@ def main(argv: Sequence[str]) -> int:
     t.add_argument("--eval-sentences", type=int, default=50)
     s = sub.add_parser("sample")
     s.add_argument("--model", type=Path, required=True)
-    s.add_argument("--prompt", default="Translate the following English text into Yoruba. Reply with the translation only.\n\nGood morning, how is your family?")
-    s.add_argument("--max-tokens", type=int, default=40)
+    s.add_argument("--flores", type=Path, required=True)
+    s.add_argument("--n", type=int, default=5, help="sentences per language")
+    s.add_argument("--max-tokens", type=int, default=160)
+    s.add_argument("--out", type=Path, required=True)
     args = ap.parse_args(argv)
     stages = {"expand": stage_expand, "bpc": stage_bpc, "train": stage_train, "sample": stage_sample}
     return stages[args.stage](args)

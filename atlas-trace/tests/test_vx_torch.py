@@ -55,3 +55,11 @@ def test_training_moves_only_new_rows_and_chosen_layers(tiny):
     assert torch.equal(after["lm_head.weight"][:256], before["lm_head.weight"][:256])
     assert not torch.equal(after["model.layers.0.mlp.up_proj.weight"], before["model.layers.0.mlp.up_proj.weight"])
     assert torch.equal(after["model.layers.1.mlp.up_proj.weight"], before["model.layers.1.mlp.up_proj.weight"])
+
+
+def test_generation_stats_counts_new_tokens_and_stop():
+    from atlas_trace.vx_torch import generation_stats
+
+    s = generation_stats([5, 130000, 130001, 9, 2], canonical=2, first_new=128256, eos={2})
+    assert s == {"stopped": True, "tokens": 4, "new_tokens": 2, "canonical_tokens": 2, "vs_canonical": 2.0}
+    assert not generation_stats([5, 6], 2, 128256, {2})["stopped"]
