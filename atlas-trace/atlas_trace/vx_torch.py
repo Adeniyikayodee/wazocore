@@ -1,5 +1,5 @@
-"""Vocabulary expansion for N-ATLaS on a CUDA GPU (PyTorch): the cloud
-version of `vx_model` + `vx_train` (PROJECT-PLAN-B §14, V1–V3).
+"""Vocabulary expansion for N-ATLaS on a CUDA GPU (PyTorch): build the
+expanded model, train it, distil the original's replies, and evaluate.
 
 Recipe (arXiv 2406.11477, 2608.03494): new input rows = mean of the
 token's original pieces; new output rows = byte-length-weighted mean; then
@@ -25,8 +25,7 @@ import time
 from pathlib import Path
 from typing import Sequence
 
-from atlas_trace.vx_model import bits_per_char, byte_decoder, char_lengths, decompose, init_rows
-from atlas_trace.vx_train import chunks, lr_at, mixture
+from atlas_trace.vx_core import bits_per_char, byte_decoder, char_lengths, chunks, decompose, init_rows, lr_at, mixture
 
 CODES = {"en": "eng_Latn", "yo": "yor_Latn", "ha": "hau_Latn", "ig": "ibo_Latn"}
 

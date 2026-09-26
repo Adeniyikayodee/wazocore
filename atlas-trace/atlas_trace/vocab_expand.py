@@ -162,7 +162,7 @@ def build(argv: Sequence[str]) -> int:
     words: Counter = Counter()
     for text in balanced_corpus(texts, args.chars_per_lang).values():
         words.update(segment(tok, text))
-    from atlas_trace.vx_model import byte_decoder
+    from atlas_trace.vx_core import byte_decoder
 
     byte_of = byte_decoder()
     merges = learn_merges(words, args.merges, allowed=lambda t: whole_utf8(t, byte_of))
