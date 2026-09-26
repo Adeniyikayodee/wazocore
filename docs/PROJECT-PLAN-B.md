@@ -529,3 +529,13 @@ The 30-sentence gate was too small, so both were judged on 100 FLORES devtest se
 - The report card states the Igbo cost; it is not hidden.
 - More distilled behaviour data moved Igbo by only 0.4 chrF, so another round was not judged worth it before release.
 - The 30-sentence v1 numbers (§14.1) overstated quality; v1 is withdrawn (fragment tokens) and its weights deleted.
+- **v3 paired words/s (26 Sep), `results/vocab/m4-cpu-v3-paired.json`:** same setup as V4 (llama.cpp 9430, CPU, 4 threads, 20 sentences per language, one model in memory, alternating first-mover). llama.cpp tokenisation parity: 160/160.
+
+  | | words/s original → v3 | words/s × | chars/s × | tokens/word | decode tok/s |
+  |---|---|---|---|---|---|
+  | en | 5.49 → 5.40 | 0.98 | 0.97 | 1.28 → 1.30 | 7.05 → 7.01 |
+  | yo | 2.35 → 2.81 | 1.19 | 1.31 | 2.92 → 2.55 | 6.87 → 7.15 |
+  | ha | 3.25 → 4.89 | 1.50 | 1.50 | 2.10 → 1.41 | 6.83 → 6.91 |
+  | ig | 2.68 → 4.36 | 1.63 | 1.61 | 2.54 → 1.62 | 6.80 → 7.06 |
+
+  0 failures in 80 (v1: 1). Absolute speeds are about 18% below the 25 Sep run (device state); the pairing keeps the ratios fair. The Yoruba words/s gain is smaller than its chars/s gain because v3's Yoruba replies used longer words in this sample, so the report card quotes both. English decode tok/s is unchanged; the −2% words/s comes from different outputs.
