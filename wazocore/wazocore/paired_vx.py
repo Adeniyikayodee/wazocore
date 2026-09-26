@@ -26,7 +26,7 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Callable, Sequence
 
-from atlas_trace.tokens_per_word import LANGS, count_chars, count_words
+from wazocore.tokens_per_word import LANGS, count_chars, count_words
 
 # ---- pure core ---------------------------------------------------------------
 

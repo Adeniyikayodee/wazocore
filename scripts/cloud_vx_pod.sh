@@ -27,8 +27,8 @@ $PY -c "import torch; assert torch.cuda.is_available(), 'no CUDA GPU'"
 [ -f $M/n-atlas/config.json ] || /workspace/venv/bin/hf download NCAIR1/N-ATLaS --local-dir $M/n-atlas \
     --exclude "*.gguf" --exclude "original/*"
 
-cd /workspace/atlas-trace
-V="$PY -m atlas_trace.vx_torch"
+cd /workspace/wazocore
+V="$PY -m wazocore.vx_torch"
 if [ ! -s $W/chat-distill.jsonl ]; then
     log distill-flores; $V distill --model $M/n-atlas --flores $F --batch 256 --out $W/chat-distill.jsonl
 fi

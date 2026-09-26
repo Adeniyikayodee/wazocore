@@ -8,4 +8,5 @@ __pycache__/
 /data
 .DS_Store
 /vendor
-!atlas-trace/tests/fixtures/**
+!wazocore/tests/fixtures/**
+results/**/*.log

@@ -36,7 +36,7 @@ Requirements: Python 3.11 with [uv](https://docs.astral.sh/uv/), llama.cpp on
 N-ATLaS bf16 files in `data/models/n-atlas-bf16`. Then:
 
 ```sh
-uv run --project atlas-trace --group ref python -m atlas_trace.vocab_expand build --out data/models/n-atlas-vx2
+uv run --project wazocore --group ref python -m wazocore.vocab_expand build --out data/models/n-atlas-vx2
 ```
 
 **2. Train, evaluate and export (GPU, about 2 hours).** See `docs/cloud-vx.md`.
@@ -70,14 +70,14 @@ text, and rerun steps 1–3.
 
 | Path | What it is |
 |---|---|
-| `atlas-trace/atlas_trace/vocab_expand.py` | BPE continuation on top of the original tokenizer (pure core, tested) |
-| `atlas-trace/atlas_trace/vx_torch.py` | Expansion, training, distillation, BPC, sampling and scoring on a CUDA GPU |
-| `atlas-trace/atlas_trace/paired_vx.py` | Paired llama.cpp words/s benchmark |
+| `wazocore/wazocore/vocab_expand.py` | BPE continuation on top of the original tokenizer (pure core, tested) |
+| `wazocore/wazocore/vx_torch.py` | Expansion, training, distillation, BPC, sampling and scoring on a CUDA GPU |
+| `wazocore/wazocore/paired_vx.py` | Paired llama.cpp words/s benchmark |
 | `scripts/` | Cloud upload, the pod pipeline, benchmark launchers |
 | `results/vocab/` | Every measurement behind the tables above |
 | `crates/` | Earlier work: a Rust CPU runtime and tools for TEAL sparsity (see plan §12–13) |
 
-Tests: `uv run --project atlas-trace --group ref pytest atlas-trace/tests` and
+Tests: `uv run --project wazocore --group ref pytest wazocore/tests` and
 `cargo test`.
 
 ## Licence and attribution

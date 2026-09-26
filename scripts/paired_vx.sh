@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Paired words/s, original vs vocabulary-expanded N-ATLaS in llama.cpp
-# (PROJECT-PLAN-B §14, V4). atlas_trace.paired_vx loads one model at a
+# (PROJECT-PLAN-B §14, V4). wazocore.paired_vx loads one model at a
 # time and alternates which answers each sentence first.
 #
 #   scripts/paired_vx.sh LABEL THREADS [PROMPTS] [NGL] [EXPANDED.gguf]
@@ -18,7 +18,7 @@ cat > "$meta" <<JSON
  "threads": $threads, "ngl": $ngl, "ctx": 2048, "slots": 1, "one_model_in_memory": true,
  "original": "$(shasum -a 256 "$orig" | cut -c1-16)", "expanded": "$(shasum -a 256 "$vx" | cut -c1-16)"}
 JSON
-uv run --quiet --project "$root/atlas-trace" python -m atlas_trace.paired_vx \
+uv run --quiet --project "$root/wazocore" python -m wazocore.paired_vx \
     --original "$orig" --expanded "$vx" --threads "$threads" --ngl "$ngl" \
     --flores "$root/data/flores200_dataset" --prompts "$prompts" --meta "$meta" \
     --out "$out/$label-paired.json"

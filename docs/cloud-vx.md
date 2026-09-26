@@ -2,7 +2,7 @@
 
 Why: local MLX training on the 16 GB laptop swaps (~15 tok/s), so the
 V3 run (PROJECT-PLAN-B §14) needs one 80 GB GPU for a few hours.
-Script: `atlas-trace/atlas_trace/vx_torch.py`.
+Script: `wazocore/wazocore/vx_torch.py`.
 
 ## Quick path (v2 vocabulary, one script)
 
@@ -24,33 +24,33 @@ The steps below are the manual version the script automates.
 ## 2. Upload (from the repo root on the laptop, ~140 MB)
 
     export POD="root@HOST"; export PORT=PORT
-    rsync -az -e "ssh -p $PORT" --exclude .venv --exclude __pycache__ atlas-trace $POD:/workspace/
+    rsync -az -e "ssh -p $PORT" --exclude .venv --exclude __pycache__ wazocore $POD:/workspace/
     rsync -az -e "ssh -p $PORT" data/wiki data/flores200_dataset $POD:/workspace/work/data/
     rsync -az -e "ssh -p $PORT" data/models/n-atlas-vx/ $POD:/workspace/work/n-atlas-vx-tok/
 
 ## 3. On the pod
 
-    cd /workspace/atlas-trace
+    cd /workspace/wazocore
     pip install -q "transformers>=5.0" safetensors
     hf auth login          # read-only token; N-ATLaS is gated
     hf download NCAIR1/N-ATLaS --local-dir ../work/n-atlas
-    cd /workspace/atlas-trace && export W=../work F=../work/data/flores200_dataset
-    python -m atlas_trace.vx_torch expand --base $W/n-atlas --vx $W/n-atlas-vx-tok --out $W/vx-init
-    python -m atlas_trace.vx_torch bpc --model $W/n-atlas --flores $F --out $W/bpc-original.json
-    python -m atlas_trace.vx_torch bpc --model $W/vx-init --flores $F --out $W/bpc-init.json
+    cd /workspace/wazocore && export W=../work F=../work/data/flores200_dataset
+    python -m wazocore.vx_torch expand --base $W/n-atlas --vx $W/n-atlas-vx-tok --out $W/vx-init
+    python -m wazocore.vx_torch bpc --model $W/n-atlas --flores $F --out $W/bpc-original.json
+    python -m wazocore.vx_torch bpc --model $W/vx-init --flores $F --out $W/bpc-init.json
 
 Pilot (catch divergence or out-of-memory in minutes, not hours):
 
-    python -m atlas_trace.vx_torch train --model $W/vx-init --data $W/data --flores $F \
+    python -m wazocore.vx_torch train --model $W/vx-init --data $W/data --flores $F \
         --out $W/vx-pilot --tokens 400000 --eval-every 25
 
 Loss must fall and yo/ha/ig BPC must drop below the `bpc-init` values.
 Out of memory: `--batch 8`. Then the full run (~5M tokens) in tmux:
 
     tmux new -s vx
-    python -m atlas_trace.vx_torch train --model $W/vx-init --data $W/data --flores $F --out $W/vx-trained
-    python -m atlas_trace.vx_torch bpc --model $W/vx-trained --flores $F --out $W/bpc-trained.json
-    python -m atlas_trace.vx_torch sample --model $W/vx-trained
+    python -m wazocore.vx_torch train --model $W/vx-init --data $W/data --flores $F --out $W/vx-trained
+    python -m wazocore.vx_torch bpc --model $W/vx-trained --flores $F --out $W/bpc-trained.json
+    python -m wazocore.vx_torch sample --model $W/vx-trained
 
 Gate (V3): trained BPC within +3% of `bpc-original` per language, both
 measured here on the same GPU (the laptop's results/vocab/bpc-original.json

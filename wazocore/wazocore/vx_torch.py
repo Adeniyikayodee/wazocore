@@ -9,11 +9,11 @@ zero gradient, so every existing token keeps its exact embedding.
 
 Stages (see docs/cloud-vx.md; `work/data` holds the laptop's data/wiki and
 data/flores200_dataset, `n-atlas-vx-tok` its data/models/n-atlas-vx):
-    python -m atlas_trace.vx_torch expand --base work/n-atlas --vx work/n-atlas-vx-tok --out work/vx-init
-    python -m atlas_trace.vx_torch bpc    --model work/n-atlas  --flores work/data/flores200_dataset --out work/bpc-original.json
-    python -m atlas_trace.vx_torch bpc    --model work/vx-init  --flores work/data/flores200_dataset --out work/bpc-init.json
-    python -m atlas_trace.vx_torch train  --model work/vx-init --data work/data --out work/vx-trained
-    python -m atlas_trace.vx_torch bpc    --model work/vx-trained --flores work/data/flores200_dataset --out work/bpc-trained.json
+    python -m wazocore.vx_torch expand --base work/n-atlas --vx work/n-atlas-vx-tok --out work/vx-init
+    python -m wazocore.vx_torch bpc    --model work/n-atlas  --flores work/data/flores200_dataset --out work/bpc-original.json
+    python -m wazocore.vx_torch bpc    --model work/vx-init  --flores work/data/flores200_dataset --out work/bpc-init.json
+    python -m wazocore.vx_torch train  --model work/vx-init --data work/data --out work/vx-trained
+    python -m wazocore.vx_torch bpc    --model work/vx-trained --flores work/data/flores200_dataset --out work/bpc-trained.json
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ import time
 from pathlib import Path
 from typing import Sequence
 
-from atlas_trace.vx_core import bits_per_char, byte_decoder, char_lengths, chunks, decompose, init_rows, lr_at, mixture
+from wazocore.vx_core import bits_per_char, byte_decoder, char_lengths, chunks, decompose, init_rows, lr_at, mixture
 
 CODES = {"en": "eng_Latn", "yo": "yor_Latn", "ha": "hau_Latn", "ig": "ibo_Latn"}
 

@@ -1,14 +1,13 @@
 [project]
-name = "atlas-trace"
+name = "wazocore"
 version = "0.1.0"
-description = "N-ATLAS calibration, activation traces and quality evaluation"
+description = "WazoCore: in-place vocabulary expansion for N-ATLaS (Yoruba, Hausa, Igbo)"
 requires-python = ">=3.11"
 dependencies = ["tokenizers>=0.20"]
 
 [dependency-groups]
 dev = ["pytest>=8"]
-ref = ["torch>=2.4", "transformers>=4.51", "safetensors>=0.4"]
-mlx = ["mlx>=0.30", "mlx-lm>=0.31", "numpy>=1.26"]
+ref = ["torch>=2.4", "transformers>=5.0", "safetensors>=0.4", "numpy>=1.26"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]

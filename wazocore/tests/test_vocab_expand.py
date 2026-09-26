@@ -1,6 +1,6 @@
 import pytest
 
-from atlas_trace.vocab_expand import apply_merges, balanced_corpus, expand, learn_merges
+from wazocore.vocab_expand import apply_merges, balanced_corpus, expand, learn_merges
 
 
 def test_learns_most_frequent_pairs_in_order():
@@ -50,8 +50,8 @@ def test_disallowed_merges_are_skipped_and_learning_continues():
 
 
 def test_whole_utf8_rejects_partial_characters():
-    from atlas_trace.vocab_expand import whole_utf8
-    from atlas_trace.vx_core import byte_decoder
+    from wazocore.vocab_expand import whole_utf8
+    from wazocore.vx_core import byte_decoder
 
     b = byte_decoder()
     enc = {v: k for k, v in b.items()}

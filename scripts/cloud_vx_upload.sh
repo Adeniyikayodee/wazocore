@@ -6,7 +6,7 @@ host=${1:?host}; port=${2:?port}; vx=${3:-data/models/n-atlas-vx2}
 root=$(cd "$(dirname "$0")/.." && pwd); cd "$root"
 e="ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new -i $HOME/.ssh/runpod_natlas -p $port"
 $e root@$host 'mkdir -p /workspace/work/prior /workspace/work/data'
-rsync -az -e "$e" --exclude .venv --exclude __pycache__ --exclude .pytest_cache atlas-trace root@$host:/workspace/
+rsync -az -e "$e" --exclude .venv --exclude __pycache__ --exclude .pytest_cache wazocore root@$host:/workspace/
 rsync -az -e "$e" scripts/cloud_vx_pod.sh root@$host:/workspace/
 rsync -az -e "$e" data/wiki data/flores200_dataset root@$host:/workspace/work/data/
 rsync -az -e "$e" "$vx"/ root@$host:/workspace/work/vx-tok/

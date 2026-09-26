@@ -17,7 +17,7 @@ def tiny():
 
 
 def test_expand_appends_initialised_rows_and_keeps_originals(tiny):
-    from atlas_trace.vx_torch import expand_model
+    from wazocore.vx_torch import expand_model
 
     emb0 = tiny.get_input_embeddings().weight.detach().clone()
     head0 = tiny.get_output_embeddings().weight.detach().clone()
@@ -33,7 +33,7 @@ def test_expand_appends_initialised_rows_and_keeps_originals(tiny):
 def test_training_moves_only_new_rows_and_chosen_layers(tiny):
     import torch
 
-    from atlas_trace.vx_torch import expand_model, lm_loss, set_trainable
+    from wazocore.vx_torch import expand_model, lm_loss, set_trainable
 
     m = expand_model(tiny, {256: [3, 5], 257: [7, 8]}, {256: [1.0, 1.0], 257: [1.0, 1.0]})
     before = {n: p.detach().clone() for n, p in m.named_parameters()}
@@ -58,7 +58,7 @@ def test_training_moves_only_new_rows_and_chosen_layers(tiny):
 
 
 def test_generation_stats_counts_new_tokens_and_stop():
-    from atlas_trace.vx_torch import generation_stats
+    from wazocore.vx_torch import generation_stats
 
     s = generation_stats([5, 130000, 130001, 9, 2], canonical=2, first_new=128256, eos={2})
     assert s == {"stopped": True, "tokens": 4, "new_tokens": 2, "canonical_tokens": 2, "vs_canonical": 2.0}
@@ -66,21 +66,21 @@ def test_generation_stats_counts_new_tokens_and_stop():
 
 
 def test_windows_pack_without_overlap_or_padding():
-    from atlas_trace.vx_torch import windows
+    from wazocore.vx_torch import windows
 
     assert windows(list(range(7)), 3) == [[0, 1, 2], [3, 4, 5]]
     assert windows([1, 2], 3) == []
 
 
 def test_prompts_name_the_language_and_carry_the_sentence():
-    from atlas_trace.vx_torch import reverse_prompts, translation_prompts
+    from wazocore.vx_torch import reverse_prompts, translation_prompts
 
     assert translation_prompts(["Hi."], "Hausa")[0].startswith("Translate the following English text into Hausa.")
     assert reverse_prompts(["Sannu."], "Hausa")[0].endswith("\n\nSannu.")
 
 
 def test_score_rows_counts_per_language():
-    from atlas_trace.vx_torch import score_rows
+    from wazocore.vx_torch import score_rows
 
     rows = [{"lang": "yo", "output": "ab�", "reference": "ab", "stopped": True, "tokens": 2, "new_tokens": 1},
             {"lang": "ha", "output": "xyz", "reference": "xyz", "stopped": False, "tokens": 3, "new_tokens": 0}]
@@ -90,7 +90,7 @@ def test_score_rows_counts_per_language():
 
 
 def test_wiki_sentences_are_deterministic_and_bounded():
-    from atlas_trace.vx_torch import wiki_sentences
+    from wazocore.vx_torch import wiki_sentences
 
     text = "Short. " + ". ".join(f"This is sentence number {i} about a topic" for i in range(50)) + "\nAnother line that is long enough to keep"
     a = wiki_sentences(text, 10, seed=1)
@@ -100,7 +100,7 @@ def test_wiki_sentences_are_deterministic_and_bounded():
 
 
 def test_paired_bootstrap_sees_a_consistent_improvement():
-    from atlas_trace.vx_torch import paired_bootstrap
+    from wazocore.vx_torch import paired_bootstrap
 
     refs = ["x"] * 20
     score = lambda hyp, ref: sum(h == r for h, r in zip(hyp, ref)) / len(ref) * 100
@@ -109,7 +109,7 @@ def test_paired_bootstrap_sees_a_consistent_improvement():
 
 
 def test_wiki_sentences_can_drop_english():
-    from atlas_trace.vx_torch import wiki_sentences
+    from wazocore.vx_torch import wiki_sentences
 
     text = "This is one of the English sentences in the dump\nỌ natara mmachibido iwu nke abụọ maka afọ asatọ"
     assert wiki_sentences(text, 5, 0, drop_english=True) == ["Ọ natara mmachibido iwu nke abụọ maka afọ asatọ."]

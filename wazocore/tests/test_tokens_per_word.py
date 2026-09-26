@@ -2,7 +2,7 @@ import unicodedata
 
 import pytest
 
-from atlas_trace.tokens_per_word import audit, count_chars, count_words
+from wazocore.tokens_per_word import audit, count_chars, count_words
 
 
 def chars_as_tokens(texts):

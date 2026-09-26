@@ -102,7 +102,7 @@ App memory budgets *(est.)*: 4 GB phone ≈ 2 GB · 6 GB phone ≈ 3 GB · 8 GB 
 | Component | Language | Role |
 |---|---|---|
 | `atlas-probe` | Rust | Day-1 hardware probes: memory bandwidth (STREAM-style), storage read profile (seq + 4/16/64 KB random), core topology. Emits a JSON hardware manifest. |
-| `atlas-trace` | Python (PyTorch, Colab) | TEAL hooks on N-ATLAS; per-language calibration; quality eval; **activation-trace recorder** (per token, per layer, per matrix: active-channel bitmaps). |
+| `wazocore` | Python (PyTorch, Colab) | TEAL hooks on N-ATLAS; per-language calibration; quality eval; **activation-trace recorder** (per token, per layer, per matrix: active-channel bitmaps). |
 | `atlas-sim` | Rust | **Trace-driven simulator.** Replays traces against cache policies (LRU, LFU, global-static, per-language-static, Belady optimum) and a storage/bandwidth model. Predicts bytes/token and tok/s per device class. Decides Gate G1 before any streaming code exists. |
 | `atlas-convert` | Rust | bf16 safetensors → `.satl` weight file (column-major sparse-friendly quantization); per-language profile builder. |
 | `atlas-rt` | Rust | The runtime: forward pass, sparse kernels, per-language profiles, KV snapshots, CLI + C ABI + Android build. |
@@ -226,7 +226,7 @@ Sparsity level is chosen **per language** as the highest that passes all gates. 
 | Phase | Dates | Work | Exit gate |
 |---|---|---|---|
 | **P0 Physics & baselines** | 24–25 Sep | `atlas-probe` on laptop / Pi 5 / phone(s). llama.cpp N-ATLAS Q4_K_M baseline per language: prefill tok/s, decode tok/s, words/s, RSS. Tokens per word per language with N-ATLAS's tokenizer. **Recruit the 2 beta testers now.** | **G0 (25 Sep):** device tiers fixed from measured bandwidth and storage |
-| **P1 Science (GPU)** | 25–28 Sep | `atlas-trace`: TEAL with English vs per-language calibration; effective sparsity per language; KL / chrF++ / AfriMMLU. Record traces (~20k tokens/language). `atlas-sim`: hit rates per matrix and policy vs Belady; predicted tok/s per tier. | **G1 (28 Sep):** per-language sparsity levels chosen; **streaming in/out** (in only if simulated ≥ 2 tok/s on Tier D with h ≥ 0.9) |
+| **P1 Science (GPU)** | 25–28 Sep | `wazocore`: TEAL with English vs per-language calibration; effective sparsity per language; KL / chrF++ / AfriMMLU. Record traces (~20k tokens/language). `atlas-sim`: hit rates per matrix and policy vs Belady; predicted tok/s per tier. | **G1 (28 Sep):** per-language sparsity levels chosen; **streaming in/out** (in only if simulated ≥ 2 tok/s on Tier D with h ≥ 0.9) |
 | **P2 Engine** | 28 Sep – 4 Oct | `atlas-convert` + `.satl`; dense Rust forward pass matches PyTorch; `.satl` dense quality vs Q4_K_M; scalar → NEON → AVX2 sparse kernels; profiles; KV snapshots; CLI | **G2 (2 Oct):** Pi 5 decode ≥ 1.2× llama.cpp at the quality gates. If not: ship as study + reference engine and put the remaining days into rigour and docs. |
 | **P3 Devices** | 4–7 Oct | Android build; Tier C runs; code-switching profile; (if G1 passed) streaming on Tier D | **G3 (7 Oct):** feature freeze |
 | **P4 Validation & packaging** | 7–10 Oct | Beta testers reproduce on their hardware; native-speaker A/B; docs; benchmark report; 3–5 min video | — |
@@ -240,7 +240,7 @@ Sparsity level is chosen **per language** as the highest that passes all gates. 
 
 | NAIC requirement | Deliverable |
 |---|---|
-| Working artefact | Public repo: `atlas-rt` (CLI, library, C ABI, Android build), `atlas-convert`, `.satl` N-ATLAS weights, per-language profiles, `atlas-probe`, `atlas-sim`, `atlas-trace` |
+| Working artefact | Public repo: `atlas-rt` (CLI, library, C ABI, Android build), `atlas-convert`, `.satl` N-ATLAS weights, per-language profiles, `atlas-probe`, `atlas-sim`, `wazocore` |
 | N-ATLAS integration evidence | Engine runs N-ATLAS natively; profiles are calibrated on N-ATLAS activations; logits parity report vs the reference model |
 | Real-world validation (PS1: ≥ 2 external beta testers) | Testers reproduce the Pi 5 / laptop benchmarks and integrate the library; native-speaker A/B study |
 | Technical documentation | Architecture, `.satl` spec, kernel design, benchmark methodology, hardware manifests |
@@ -321,7 +321,7 @@ Sparsity level is chosen **per language** as the highest that passes all gates. 
 
 ## 12. Findings and deviations (living log)
 
-Every number here is regenerated in `results/TABLES.md` (`python -m atlas_trace.tables`).
+Every number here is regenerated in `results/TABLES.md` (`python -m wazocore.tables`).
 
 ### 12.1 Measured (24 Sep, Apple M4 dev machine)
 
@@ -346,7 +346,7 @@ Hypothesis: most of Yoruba's, Hausa's and Igbo's extra tokens continue a word al
 | **Real llama.cpp**, `--spec-type ngram-cache` with that corpus, **paired A/B** (8 prompts per language) | Speed ratio medians: yo 0.87, ha 0.60, ig 1.32, en 0.89. All CIs include 1. Real acceptance was 31% of drafted tokens |
 | Real llama.cpp, untrained Llama-3.2-1B draft | Acceptance 6–23%; decode fell to about 1.6 tok/s |
 
-**Decision:** fails the ≥ 1.25× Yoruba criterion, so it is dropped. Batch verification on CPU costs more than cheap drafts save. Only 21/32 outputs were identical, because llama.cpp's batched verification changes arithmetic enough to flip greedy choices. Scripts: `atlas-trace/atlas_trace/spec_probe.py` and `paired_spec.py`; data: `results/spec/`.
+**Decision:** fails the ≥ 1.25× Yoruba criterion, so it is dropped. Batch verification on CPU costs more than cheap drafts save. Only 21/32 outputs were identical, because llama.cpp's batched verification changes arithmetic enough to flip greedy choices. Scripts: `wazocore/wazocore/spec_probe.py` and `paired_spec.py`; data: `results/spec/`.
 
 **Measurement rule (applies to every speed claim from now on):** the dev machine is a **fanless MacBook Air** whose decode speed swung from 17 to 7 tok/s within 20 minutes. Sequential A/B runs are invalid (the sequential files `results/spec/base1|ngram|base2.json` show this). **Every speed comparison must use the paired, interleaved design** of `paired_spec.py`.
 

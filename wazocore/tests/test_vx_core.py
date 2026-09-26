@@ -4,7 +4,7 @@ import pytest
 
 import numpy as np
 
-from atlas_trace.vx_core import bits_per_char, byte_decoder, char_lengths, chunks, decompose, init_rows, lr_at, mixture
+from wazocore.vx_core import bits_per_char, byte_decoder, char_lengths, chunks, decompose, init_rows, lr_at, mixture
 
 
 def test_decompose_recurses_to_original_pieces():

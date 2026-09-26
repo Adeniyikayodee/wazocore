@@ -7,7 +7,7 @@ engine's tokens/s into comparable words/s and sentences/s per language.
 Pure functions compute everything from (texts, tokenizer); `main` does the I/O.
 
 Usage:
-    uv run --with tokenizers python -m atlas_trace.tokens_per_word \
+    uv run --with tokenizers python -m wazocore.tokens_per_word \
         --flores data/flores200_dataset --split dev \
         --tokenizer data/tokenizers/n-atlas-fp8-mirror/tokenizer.json \
         --out results/tokenizer/n-atlas-flores200-dev.json

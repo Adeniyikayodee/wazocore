@@ -1,6 +1,6 @@
 import pytest
 
-from atlas_trace.paired_vx import Sample, make_prompts, order, paired_summary
+from wazocore.paired_vx import Sample, make_prompts, order, paired_summary
 
 CORPUS = {lang: [f"{lang} sentence {i}" for i in range(3)] for lang in ("en", "yo", "ha", "ig")}
 
