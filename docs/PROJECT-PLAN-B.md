@@ -510,3 +510,22 @@ Local MLX training failed (swap: ~15 tok/s; lr 5e-4 diverged), so V3 ran in PyTo
 
   Decode tokens/s is unchanged, so the larger vocabulary is free; the gain is all from fewer tokens per word. Output lengths match (characters within 5%). One expanded-model failure (the fragment-token issue, Igbo sentence 1) out of 80. **V4 met on CPU.** Still open: the Metal/GPU path, and the fragment-token fix before release.
 - **Fragment-token fix prepared (26 Sep):** `vocab_expand` now accepts only merges whose token is whole UTF-8. The v2 vocabulary (`data/models/n-atlas-vx2`, same data and 15,000 merges) has 0 fragment tokens (v1: 12) and shares 14,945 tokens with v1. Token cut on FLORES devtest: yo 1.587× (v1 1.617×; the dropped fragments helped with tone marks), ha 1.583×, ig 1.689× (unchanged), en unchanged; exact round-trip on all devtest. Retraining is one script (`scripts/cloud_vx_upload.sh` + `scripts/cloud_vx_pod.sh`, ~1.5 GPU hours). It reuses the distilled conversations and the original model's scores, which do not depend on the tokenizer.
+
+### 14.2 v2 and v3 retrains (26 Sep, second A100 pod)
+
+The 30-sentence gate was too small, so both were judged on 100 FLORES devtest sentences per language with a paired bootstrap (1,000 resamples) against the original. Evidence: `results/vocab/cloud-v2/`, `results/vocab/cloud-v3/`.
+
+| | original | v2: fragment-free vocab, 6k distilled replies, 40% share | **v3: + 24k Wikipedia replies, 60% share** |
+|---|---|---|---|
+| yo chrF++ | 24.45 | 26.45 (+2.0, CI +0.1…+3.9) | 25.25 (+0.8, CI −0.9…+2.5) |
+| ha chrF++ | 49.03 | 47.01 (−2.0, CI −3.9…−0.0) | 47.89 (−1.1, CI −2.9…+0.8) |
+| ig chrF++ | 39.19 | 36.93 (−2.3, CI −3.8…−0.8) | 37.30 (−1.9, CI −3.6…−0.4) |
+| stops yo/ha/ig (of 100) | 94/99/100 | 96/99/95 | 95/100/98 |
+| invalid UTF-8 replies | 1 | 0 | 0 |
+| characters per token yo/ha/ig | 1.64/2.62/2.11 | 2.36/3.78/3.34 | 2.41/3.95/3.40 |
+
+**Decision: v3 is the release candidate.**
+- Yoruba and Hausa are statistically indistinguishable from the original. Igbo is 1.9 chrF++ lower (about 5% relative, significant). Stopping is at least as reliable. The token cut is 1.47× (yo), 1.51× (ha), 1.61× (ig).
+- The report card states the Igbo cost; it is not hidden.
+- More distilled behaviour data moved Igbo by only 0.4 chrF, so another round was not judged worth it before release.
+- The 30-sentence v1 numbers (§14.1) overstated quality; v1 is withdrawn (fragment tokens) and its weights deleted.

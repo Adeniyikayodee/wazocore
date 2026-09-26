@@ -1,0 +1,41 @@
+{
+ "model": "/workspace/work/vx-trained",
+ "rows": [
+  {
+   "lang": "en",
+   "sentences": 300,
+   "chars": 38798,
+   "tokens": 8064,
+   "nll_nats": 28227.003356933594,
+   "bpc": 1.0496148709264452,
+   "tokens_per_char": 0.20784576524563123
+  },
+  {
+   "lang": "yo",
+   "sentences": 300,
+   "chars": 37881,
+   "tokens": 13712,
+   "nll_nats": 59045.539669036865,
+   "bpc": 2.2487449451474895,
+   "tokens_per_char": 0.3619756606214197
+  },
+  {
+   "lang": "ha",
+   "sentences": 300,
+   "chars": 41389,
+   "tokens": 10150,
+   "nll_nats": 43942.04898071289,
+   "bpc": 1.5316865870394167,
+   "tokens_per_char": 0.2452342409819034
+  },
+  {
+   "lang": "ig",
+   "sentences": 300,
+   "chars": 39108,
+   "tokens": 11199,
+   "nll_nats": 50632.79977416992,
+   "bpc": 1.8678451759363501,
+   "tokens_per_char": 0.2863608468855477
+  }
+ ]
+}
