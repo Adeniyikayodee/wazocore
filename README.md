@@ -5,14 +5,14 @@ Tools and evidence for **in-place vocabulary expansion** of
 LLM. The expanded model, **WazoCore Powered by Awarri.**, writes Yoruba, Hausa and Igbo in about 1.5× fewer
 tokens, so replies come about 1.5× faster in llama.cpp, Ollama, LM Studio or any
 other engine, with no engine changes. The whole method runs on one laptop plus
-about 2 rented GPU hours.
+about 3 rented GPU hours.
 
-| | tokens per word, original → expanded | words/s speed-up (llama.cpp, CPU) | chrF++ vs original (100 sentences) |
+| | tokens per word, original → expanded | words/s speed-up (llama.cpp, CPU) | chrF++ vs original (200 sentences) |
 |---|---|---|---|
-| Yoruba | 2.92 → 2.55 | 1.19× (1.31× by characters) | +0.8 (not significant) |
-| Hausa | 2.10 → 1.41 | 1.50× | −1.1 (not significant) |
-| Igbo | 2.54 → 1.62 | 1.63× | −1.9 (significant, about 5%) |
-| English | 1.28 → 1.30 | 0.98× | not affected by design |
+| Yoruba | 2.92 → 1.99 | 1.55× | +1.0 (not significant) |
+| Hausa | 2.10 → 1.43 | 1.64× | −1.1 (not significant) |
+| Igbo | 2.54 → 1.58 | 1.60× | −1.3 (significant, about 3%) |
+| English | 1.28 → 1.31 | 0.96× | not affected by design |
 
 Model card: `release/MODEL_CARD.md`. Method, what failed on the way, and
 results: `docs/METHOD.md`.
@@ -39,7 +39,7 @@ N-ATLaS bf16 files in `data/models/n-atlas-bf16`. Then:
 uv run --project wazocore --group ref python -m wazocore.vocab_expand build --out data/models/n-atlas-vx2
 ```
 
-**2. Train, evaluate and export (GPU, about 2 hours).** See `docs/cloud-vx.md`.
+**2. Train, evaluate and export (GPU, about 3 hours).** See `docs/cloud-vx.md`.
 In short:
 
 ```sh
@@ -47,9 +47,11 @@ scripts/cloud_vx_upload.sh HOST PORT            # from the laptop
 bash /workspace/cloud_vx_pod.sh                  # on the pod, after hf auth login
 ```
 
-The pod script runs the v3 recipe: it builds the expanded model, trains it
-(60% the original model's own replies, 40% Wikipedia), measures BPC and the
-100-sentence chrF++ gate with bootstrap intervals, and exports a Q4_K_M GGUF.
+The pod script runs the v4 recipe. It builds the expanded model and trains
+it on 85% the original model's own replies and 15% carefully spelled
+Wikipedia, with a KL anchor to the original. It then measures BPC and the
+200-sentence chrF++ gate with bootstrap intervals, exports a Q4_K_M GGUF, and
+runs the no-new-tokens control.
 If `data/runs/cloud/chat-*.jsonl` exist, the upload reuses them; otherwise the
 pod regenerates the distilled replies (about 45 extra minutes).
 

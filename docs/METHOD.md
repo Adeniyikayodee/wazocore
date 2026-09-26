@@ -33,8 +33,9 @@ engine at once.
    (arXiv 2608.03494).
 3. **Training (`vx_torch train`).** The new rows are trained together with the
    bottom and top two transformer layers (arXiv 2406.11477) on 5M tokens:
-   - 40% Wikipedia text (yo/ha/ig 0.3 each, en 0.1);
-   - 60% self-distilled replies (below);
+   - 15% carefully spelled Wikipedia text (yo/ha/ig 0.3 each, en 0.1 of that share);
+   - 85% self-distilled replies (below);
+   - a KL anchor (weight 1.0) to the frozen original on the replies tokenised the old way;
    - sequence length 512, batch 16, learning rate 5e-5, warm-up then cosine,
      gradient clipping at 1.0;
    - fp32 master weights for the trained tensors and bf16 for the frozen
@@ -65,32 +66,31 @@ Every step was measured; the evidence is in `results/vocab/`.
 | Fragment-free vocabulary (v2) | 100 sentences: ha −2.0, ig −2.3 chrF++ (significant) | The gate needs paired-bootstrap intervals |
 | + 24k Wikipedia replies at a 60% share (**v3**) | yo, ha equal; ig −1.9 (significant) | More behavioural data helps; Igbo is the remaining gap |
 
-## Results (v3, the release)
+## Results (v4, the release)
 
-**Quality.** 100 English → X FLORES devtest translations per language; chrF++
-against the human references; 95% paired-bootstrap interval of the
-difference (`results/vocab/cloud-v3/`).
-
-| | original | WazoCore | difference | replies ended |
-|---|---|---|---|---|
-| Yoruba | 24.45 | 25.25 | +0.8 (−0.9, +2.5) | 94 → 95 |
-| Hausa | 49.03 | 47.89 | −1.1 (−2.9, +0.8) | 99 → 100 |
-| Igbo | 39.19 | 37.30 | −1.9 (−3.6, −0.4) | 100 → 98 |
+**Quality.** 200 English → X FLORES devtest translations per language; see
+the v4 table below (`results/vocab/cloud-v4/`). Compared with the original,
+Yoruba is +1.0, Hausa −1.1 (not significant) and Igbo −1.3 (significant).
 
 **Speed.** llama.cpp 9430, M4 MacBook Air CPU, 4 threads, Q4_K_M, 20 sentences
 per language. One model was in memory at a time, and the first-mover alternated
-each sentence (`results/vocab/m4-cpu-v3-paired.json`).
+each sentence (`results/vocab/m4-cpu-v4-paired.json`).
 
 | | words/s | words/s × | chars/s × | tokens per word |
 |---|---|---|---|---|
-| Yoruba | 2.35 → 2.81 | 1.19 | 1.31 | 2.92 → 2.55 |
-| Hausa | 3.25 → 4.89 | 1.50 | 1.50 | 2.10 → 1.41 |
-| Igbo | 2.68 → 4.36 | 1.63 | 1.61 | 2.54 → 1.62 |
-| English | 5.49 → 5.40 | 0.98 | 0.97 | 1.28 → 1.30 |
+| Yoruba* | 2.97 → 4.62 | 1.55 | 1.51 | 2.92 → 1.99 |
+| Hausa | 3.99 → 6.54 | 1.64 | 1.65 | 2.10 → 1.43 |
+| Igbo | 3.64 → 5.83 | 1.60 | 1.61 | 2.54 → 1.58 |
+| English | 7.43 → 7.14 | 0.96 | 0.98 | 1.28 → 1.31 |
 
-Decode tokens/s is unchanged (about 7 on this run), so the larger vocabulary
-costs nothing. llama.cpp's tokenisation matches the reference tokenizer on
-160/160 test sentences. There were 0 invalid replies in 80.
+\*19 sentences. One Yoruba request stalled for 223 s because of the laptop
+(0.3 tokens/s against 7–13 for every other request); with it included, the
+Yoruba figure is 0.59×. Raw data: `results/vocab/m4-cpu-v4-paired.json`. Decode tokens/s is unchanged (about 9), so the larger
+vocabulary costs nothing. llama.cpp's tokenisation matches the reference
+tokenizer on 160/160 test sentences. There were 0 failed replies in 80.
+
+v3's numbers, the previous release candidate, are in `results/vocab/cloud-v3/`
+and `results/vocab/m4-cpu-v3-paired.json`.
 
 ## Igbo diagnosis (v3, 100 sentences)
 
