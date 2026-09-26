@@ -109,15 +109,37 @@ costs nothing. llama.cpp's tokenisation matches the reference tokenizer on
 - **The tokenizer is not the cause.** The expansion made hooked and plain
   spellings equally cheap (1 token each for common words).
 
+## v4 and the control run (200 sentences)
+
+v4 trains on 85% distilled replies and 15% carefully spelled Wikipedia, with
+a KL anchor (weight 1.0) to the frozen original on replies tokenised the old
+way. The control run uses the identical recipe on the original model, with
+no new tokens. Evidence: `results/vocab/cloud-v4/`.
+
+| vs original | Yoruba | Hausa | Igbo | Hausa ƙɗɓ /100 chars | Igbo dots /100 chars | loops /600 |
+|---|---|---|---|---|---|---|
+| original | 25.81 | 48.97 | 38.60 | 0.39 | 9.25 | 2 |
+| control | +0.3 (−0.8, +1.4) | −0.7 (−1.7, +0.5) | −0.4 (−1.3, +0.5) | 0.29 | 9.41 | 1 |
+| **v4** | +1.0 (−0.1, +2.1) | −1.1 (−2.5, +0.2) | **−1.3 (−2.2, −0.3)** | 0.29 | 8.59 | 4 |
+
+- **The Hausa spelling loss comes from the training recipe.** The control
+  drops the hooked letters just as much. The Wikipedia filter did not fix
+  it, so the Wikipedia hypothesis above was wrong.
+- **Of Igbo's −1.3, about −0.4 is recipe and about −0.9 is the vocabulary
+  change.** The control's Igbo is statistically equal to the original.
+- **The extra repetition loops come with the new tokens** (control 1, v4 4).
+- **v4 is the release candidate.** Yoruba is +1.0, Hausa is within noise,
+  Igbo is −1.3 (v3: −1.9 on 100 sentences), and it uses 1.53× (yo),
+  1.47× (ha) and 1.65× (ig) fewer tokens per character.
+
 ## Open work
 
-- **Close the Igbo gap (v4).** Candidates:
-  - replace most of the raw Wikipedia share with distilled replies, or filter it
-    for orthography;
-  - add a KL anchor to the frozen original on old-tokenised text, against drift
-    and loops;
-  - run a control (same recipe, no new tokens) to separate drift from vocabulary;
-  - score on 200 sentences.
+- **Close the rest of the Igbo gap.** It is mostly a vocabulary effect now.
+  Candidates:
+  - more training signal for the rarely seen Igbo tokens;
+  - pruning the Igbo tokens behind the loops;
+  - a lighter recipe (a stronger KL anchor, fewer trained layers) for the
+    Hausa spelling drift.
 - **Measure more of the model.** So far only one direction and one domain were
   scored; X → English, chat, and speed on GPU (Metal/CUDA) remain.
 - **Test other runtimes.** Ollama and LM Studio have not been tested.

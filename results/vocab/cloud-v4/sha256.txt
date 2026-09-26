@@ -1,0 +1,2 @@
+dd742b8d76111e7a52a3091b976cdad253604211e31447a80006e8de3cf76168  /workspace/work/N-ATLaS-vx.Q4_K_M.gguf
+c0f5a957edc39c85a90d1c5911ad386f518f668b134d513123ae3d6e31c92d48  /workspace/work/vx-trained/model.safetensors
