@@ -3,13 +3,13 @@
 # (PROJECT-PLAN-B §14, V4). atlas_trace.paired_vx loads one model at a
 # time and alternates which answers each sentence first.
 #
-#   scripts/paired_vx.sh LABEL THREADS [PROMPTS] [NGL]
+#   scripts/paired_vx.sh LABEL THREADS [PROMPTS] [NGL] [EXPANDED.gguf]
 set -euo pipefail
 
 label=${1:?label}; threads=${2:?threads}; prompts=${3:-20}; ngl=${4:-0}
 root=$(cd "$(dirname "$0")/.." && pwd)
 orig="$root/data/models/N-ATLaS.Q4_K_M.gguf"
-vx="$root/data/models/gguf-vx/N-ATLaS-vx.Q4_K_M.gguf"
+vx=${5:-$root/data/models/gguf-vx3/N-ATLaS-vx3.Q4_K_M.gguf}
 out="$root/results/vocab"; mkdir -p "$out"
 
 meta=$(mktemp)
