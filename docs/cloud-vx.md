@@ -8,7 +8,7 @@ Script: `atlas-trace/atlas_trace/vx_torch.py`.
 
 1. Deploy the pod (section 1). The key `~/.ssh/runpod_natlas.pub` must be in RunPod Settings **before** deploying.
 2. From the laptop: `scripts/cloud_vx_upload.sh HOST PORT`. This uploads the code, data, the v2 tokenizer, the distilled conversations, and the original model's scores from the 25 Sep run.
-3. On the pod (web terminal): `/workspace/venv/bin/hf auth login` with a read token (or `hf auth login` if the venv does not exist yet), then
+3. On the pod (web terminal): `/workspace/venv/bin/hf auth login` with a read token (the upload script installs `hf` and prints the GPU name), then
    `tmux new -s vx 'bash /workspace/cloud_vx_pod.sh 2>&1 | tee /workspace/run.log'`.
 4. Expected run: ~1.5 h on an A100 80GB (download 2 min, training ~35 min, eval ~20 min, GGUF ~15 min). Outputs land in `/workspace/work/`: `results/`, `N-ATLaS-vx.Q4_K_M.gguf`, and the trained model (in `/dev/shm/work/vx-trained` if the disk is small).
 5. Copy back the GGUF, `results/` and the trained model, and check `results/sha256.txt` before deleting the pod.
