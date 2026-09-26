@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Paired words/s, original vs vocabulary-expanded N-ATLaS in llama.cpp
-# (PROJECT-PLAN-B §14, V4). wazocore.paired_vx loads one model at a
+# (docs/METHOD.md). wazocore.paired_vx loads one model at a
 # time and alternates which answers each sentence first.
 #
 #   scripts/paired_vx.sh LABEL THREADS [PROMPTS] [NGL] [EXPANDED.gguf]

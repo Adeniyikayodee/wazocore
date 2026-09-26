@@ -14,8 +14,8 @@ about 2 rented GPU hours.
 | Igbo | 2.54 → 1.62 | 1.63× | −1.9 (significant, about 5%) |
 | English | 1.28 → 1.30 | 0.98× | not affected by design |
 
-Full results, method and the model card: `release/MODEL_CARD.md`. The decision
-log, including the failed attempts: `docs/PROJECT-PLAN-B.md` §12–14.
+Model card: `release/MODEL_CARD.md`. Method, what failed on the way, and
+results: `docs/METHOD.md`.
 
 ## Why this matters
 
@@ -71,14 +71,14 @@ text, and rerun steps 1–3.
 | Path | What it is |
 |---|---|
 | `wazocore/wazocore/vocab_expand.py` | BPE continuation on top of the original tokenizer (pure core, tested) |
+| `wazocore/wazocore/vx_core.py` | Pure helpers: new-row initialisation, data windows, schedule |
 | `wazocore/wazocore/vx_torch.py` | Expansion, training, distillation, BPC, sampling and scoring on a CUDA GPU |
 | `wazocore/wazocore/paired_vx.py` | Paired llama.cpp words/s benchmark |
+| `wazocore/wazocore/tokens_per_word.py` | Token-tax audit of a tokenizer on FLORES |
 | `scripts/` | Cloud upload, the pod pipeline, benchmark launchers |
-| `results/vocab/` | Every measurement behind the tables above |
-| `crates/` | Earlier work: a Rust CPU runtime and tools for TEAL sparsity (see plan §12–13) |
+| `results/vocab/`, `results/tokenizer/` | Every measurement behind the tables above |
 
-Tests: `uv run --project wazocore --group ref pytest wazocore/tests` and
-`cargo test`.
+Tests: `uv run --project wazocore --group ref pytest wazocore/tests`.
 
 ## Licence and attribution
 

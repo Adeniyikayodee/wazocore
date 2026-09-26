@@ -1,5 +1,5 @@
 """Paired words/s: original N-ATLaS vs the vocabulary-expanded model in
-llama.cpp (PROJECT-PLAN-B §14, V4).
+llama.cpp (docs/METHOD.md).
 
 The two models (same `llama-server` binary and flags) answer the same
 FLORES translation prompts. Only one model is in memory at a time (two

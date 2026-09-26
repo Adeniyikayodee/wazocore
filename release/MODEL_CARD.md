@@ -88,8 +88,8 @@ has **not been tested yet**.
 4. **Export.** GGUF from the bf16 weights, then quantised to Q4_K_M.
    llama.cpp's tokenisation matches the reference on all 160 test sentences.
 
-Code, data recipe and every measurement: the NATLAS repository
-(`docs/PROJECT-PLAN-B.md` §14).
+Code, data recipe and every measurement: the WazoCore repository
+(`docs/METHOD.md`).
 
 ## Limitations
 

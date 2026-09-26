@@ -5,7 +5,7 @@
 # Inputs under $W: vx-tok/ (expanded tokenizer), data/{wiki,flores200_dataset},
 # chat-distill.jsonl and chat-wiki.jsonl (the original model's replies;
 # regenerated if absent, ~15 and ~45 min), prior/eval100-original.json.
-# Recipe v3 (PROJECT-PLAN-B §14.2): 60% distilled replies, 40% Wikipedia.
+# Recipe v3 (docs/METHOD.md): 60% distilled replies, 40% Wikipedia.
 set -euo pipefail
 export HF_HOME=${HF_HOME:-/workspace/.cache/huggingface}
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True

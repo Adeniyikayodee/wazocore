@@ -1,4 +1,4 @@
-"""Tokens-per-word audit of the N-ATLaS tokenizer on FLORES-200 (PROJECT-PLAN-B §2.2).
+"""Tokens-per-word audit of the N-ATLaS tokenizer on FLORES-200.
 
 FLORES is sentence-parallel, so beyond tokens/word we report the *language tax*:
 tokens needed to express the same sentences as English. That ratio converts an

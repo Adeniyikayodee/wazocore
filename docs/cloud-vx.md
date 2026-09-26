@@ -1,7 +1,7 @@
 # V3 on a rented GPU (vocabulary-expansion training)
 
 Why: local MLX training on the 16 GB laptop swaps (~15 tok/s), so the
-V3 run (PROJECT-PLAN-B §14) needs one 80 GB GPU for a few hours.
+training run (`docs/METHOD.md`) needs one 80 GB GPU for a few hours.
 Script: `wazocore/wazocore/vx_torch.py`.
 
 ## Quick path (v2 vocabulary, one script)
@@ -75,6 +75,6 @@ From the laptop:
 - **Separate environment for llama.cpp:** llama.cpp's converter requirements downgrade transformers (to 4.57) and install a CPU-only torch. Give it its own venv (`/workspace/venv-gguf`) and never install it into the training venv.
 - **Tokenizer class:** transformers 5 saves `tokenizer_class: TokenizersBackend`, which the older converter cannot load. Convert from a symlinked copy whose `tokenizer_config.json` says `PreTrainedTokenizerFast`.
 - **Pre-tokenizer hash:** the converter rejects the expanded tokenizer because its pre-tokenizer hash is unknown. After checking that the pre-tokenizer is unchanged, add the reported `chkhsh` → `res = "llama-bpe"` in `conversion/base.py`.
-- **Recipe:** the winning run adds self-distillation (`distill`, then `train --chat`); see PROJECT-PLAN-B §14.1.
+- **Recipe:** the winning run adds self-distillation (`distill`, then `train --chat`); see `docs/METHOD.md`.
 
 **Stop and delete the pod afterwards**: it bills per hour while it exists.

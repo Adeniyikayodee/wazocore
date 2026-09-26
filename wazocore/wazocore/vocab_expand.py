@@ -1,12 +1,11 @@
-"""Experiment: how many tokens would Yoruba/Hausa/Igbo save if N-ATLaS's
-tokenizer were expanded in place (PROJECT-PLAN-B §12, research 25 Sep)?
+"""In-place vocabulary expansion of the N-ATLaS tokenizer for Yoruba,
+Hausa and Igbo (arXiv 2607.15232).
 
-In-place expansion (arXiv 2607.15232) continues the existing BPE: text is
-first segmented by the current tokenizer, then new merges are learned on
-top, so every existing token is kept and each new token has an exact
-decomposition into old ones. This measures the ceiling: tokens per word on
-FLORES devtest before and after, with merges learned only on other text
-(Wikipedia + FLORES dev). No model training is involved.
+The existing BPE is continued: text is first segmented by the current
+tokenizer, then new merges are learned on top, so every existing token
+keeps its id and each new token has an exact decomposition into old ones.
+`build` writes the expanded tokenizer; the default command measures the
+token savings on FLORES devtest (merges learned only on other text).
 """
 
 from __future__ import annotations
