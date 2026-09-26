@@ -9,7 +9,7 @@ set -euo pipefail
 label=${1:?label}; threads=${2:?threads}; prompts=${3:-20}; ngl=${4:-0}
 root=$(cd "$(dirname "$0")/.." && pwd)
 orig="$root/data/models/N-ATLaS.Q4_K_M.gguf"
-vx=${5:-$root/data/models/gguf-vx3/N-ATLaS-vx3.Q4_K_M.gguf}
+vx=${5:-$root/data/models/gguf-vx4/WazoCore-8B-v4.Q4_K_M.gguf}
 out="$root/results/vocab"; mkdir -p "$out"
 
 meta=$(mktemp)
