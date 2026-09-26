@@ -499,3 +499,13 @@ Local MLX training failed (swap: ~15 tok/s; lr 5e-4 diverged), so V3 ran in PyTo
 **V4 checks (26 Sep, laptop):**
 - **Tokenisation parity:** llama.cpp (`llama-tokenize`, Homebrew build 9430) and the reference tokenizer give identical ids on 160/160 FLORES devtest sentences (40 per language, English included).
 - **Known issue, fragment tokens:** 12 of the 15,000 new tokens are incomplete UTF-8 characters (for example a space plus the first two bytes of `ṣ`). The model occasionally follows one with the wrong byte and emits an invalid character: 1 of 90 GPU test translations (0 of 90 for the original), and it crashed llama-server's reply parser once. Fix for the release build: have `vocab_expand` reject merges whose result is not whole UTF-8, then retrain (~1.5 GPU hours). Until then, the paired benchmark records such failures per model instead of crashing.
+- **Paired words/s (V4), `results/vocab/m4-cpu-paired.json`:** llama.cpp 9430, CPU, 4 threads, M4 MacBook Air; 20 FLORES devtest translations per language; one model in memory at a time, first-mover alternating per sentence.
+
+  | | words/s original → vx | speed-up | tokens/word | decode tok/s |
+  |---|---|---|---|---|
+  | en | 6.66 → 6.67 | 1.00× | 1.28 → 1.29 | 8.55 → 8.61 |
+  | yo | 2.82 → 3.73 | 1.32× (chars/s 1.38×) | 2.92 → 2.24 | 8.24 → 8.36 |
+  | ha | 3.93 → 5.88 | 1.50× | 2.10 → 1.42 | 8.25 → 8.34 |
+  | ig | 3.27 → 5.18 | 1.59× | 2.56 → 1.58 | 8.35 → 8.20 |
+
+  Decode tokens/s is unchanged, so the larger vocabulary is free; the gain is all from fewer tokens per word. Output lengths match (characters within 5%). One expanded-model failure (the fragment-token issue, Igbo sentence 1) out of 80. **V4 met on CPU.** Still open: the Metal/GPU path, and the fragment-token fix before release.
