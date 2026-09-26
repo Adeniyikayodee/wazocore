@@ -87,3 +87,30 @@ def test_score_rows_counts_per_language():
     r = score_rows(rows, lambda hyp, ref: float(len(hyp)))
     assert r["yo"] == {"n": 1, "chrf++": 1.0, "stopped": 1, "tokens": 2, "chars": 3, "new_tokens": 1, "invalid_utf8": 1}
     assert r["ha"]["stopped"] == 0 and r["ig"]["n"] == 0
+
+
+def test_wiki_sentences_are_deterministic_and_bounded():
+    from atlas_trace.vx_torch import wiki_sentences
+
+    text = "Short. " + ". ".join(f"This is sentence number {i} about a topic" for i in range(50)) + "\nAnother line that is long enough to keep"
+    a = wiki_sentences(text, 10, seed=1)
+    assert a == wiki_sentences(text, 10, seed=1) and a != wiki_sentences(text, 10, seed=2)
+    assert len(a) == 10 and all(40 <= len(x) <= 301 and x.endswith(".") for x in a)
+    assert "Short." not in a
+
+
+def test_paired_bootstrap_sees_a_consistent_improvement():
+    from atlas_trace.vx_torch import paired_bootstrap
+
+    refs = ["x"] * 20
+    score = lambda hyp, ref: sum(h == r for h, r in zip(hyp, ref)) / len(ref) * 100
+    r = paired_bootstrap(["y"] * 10 + ["x"] * 10, ["x"] * 20, refs, score, rounds=200)
+    assert r["delta"] == 50.0 and r["ci95"][0] > 0 and r["p_worse"] == 0.0
+
+
+def test_wiki_sentences_can_drop_english():
+    from atlas_trace.vx_torch import wiki_sentences
+
+    text = "This is one of the English sentences in the dump\nỌ natara mmachibido iwu nke abụọ maka afọ asatọ"
+    assert wiki_sentences(text, 5, 0, drop_english=True) == ["Ọ natara mmachibido iwu nke abụọ maka afọ asatọ."]
+    assert len(wiki_sentences(text, 5, 0)) == 2

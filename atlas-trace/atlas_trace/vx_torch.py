@@ -81,6 +81,43 @@ def windows(ids: Sequence[int], length: int) -> list[list[int]]:
     return [list(ids[i:i + length]) for i in range(0, len(ids) - length + 1, length)]
 
 
+ENGLISH_MARKERS = (" the ", " of the ", " and the ", " is a ", " in the ")
+
+
+def wiki_sentences(text: str, n: int, seed: int, lo: int = 40, hi: int = 300, drop_english: bool = False) -> list[str]:
+    """`n` distinct sentences of `lo`-`hi` characters from a Wikipedia dump
+    (split on line breaks and ". "), chosen deterministically by `seed`.
+    `drop_english` skips sentences with common English phrases: the
+    yo/ha/ig dumps quote English, which would teach "translating" English
+    as if it were the source language."""
+    import random
+
+    pool = []
+    for line in text.splitlines():
+        for part in line.split(". "):
+            part = part.strip()
+            if lo <= len(part) <= hi and not (drop_english and any(m in f" {part.lower()} " for m in ENGLISH_MARKERS)):
+                pool.append(part if part.endswith((".", "?", "!")) else part + ".")
+    pool = sorted(set(pool))
+    random.Random(seed).shuffle(pool)
+    return pool[:n]
+
+
+def paired_bootstrap(a: Sequence[str], b: Sequence[str], refs: Sequence[str], chrf, rounds: int = 1000, seed: int = 0) -> dict:
+    """chrF difference b - a on the same sentences with a 95% interval from
+    resampling sentences (both systems resampled together)."""
+    import random
+
+    rng, n, diffs = random.Random(seed), len(refs), []
+    pick = lambda xs, idx: [xs[i] for i in idx]
+    for _ in range(rounds):
+        idx = [rng.randrange(n) for _ in range(n)]
+        diffs.append(chrf(pick(b, idx), pick(refs, idx)) - chrf(pick(a, idx), pick(refs, idx)))
+    diffs.sort()
+    return {"delta": chrf(b, refs) - chrf(a, refs), "ci95": [diffs[int(0.025 * rounds)], diffs[int(0.975 * rounds) - 1]],
+            "p_worse": sum(d < 0 for d in diffs) / rounds}
+
+
 def translation_prompts(src: Sequence[str], tgt_name: str) -> list[str]:
     return [f"Translate the following English text into {tgt_name}. Reply with the translation only.\n\n{s}" for s in src]
 
@@ -242,10 +279,13 @@ def stage_distill(args) -> int:
     tok.padding_side = "left"
     tok.pad_token = tok.pad_token or tok.eos_token
     eos = eos_ids(tok, model)
-    dev = lambda code: (args.flores / "dev" / f"{code}.dev").read_text(encoding="utf-8").splitlines()[: args.n]
+    if args.wiki:  # Wikipedia sentences; a different sample of English per target language
+        src = lambda lang, k: wiki_sentences((args.wiki / f"{lang}.txt").read_text(encoding="utf-8"), args.n, seed=k, drop_english=lang != "en")
+    else:  # FLORES dev
+        src = lambda lang, k: (args.flores / "dev" / f"{CODES[lang]}.dev").read_text(encoding="utf-8").splitlines()[: args.n]
     prompts = []
-    for lang, name in NAMES.items():
-        prompts += translation_prompts(dev(CODES["en"]), name) + reverse_prompts(dev(CODES[lang]), name)
+    for k, (lang, name) in enumerate(NAMES.items()):
+        prompts += translation_prompts(src("en", k), name) + reverse_prompts(src(lang, 10 + k), name)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with args.out.open("w", encoding="utf-8") as f:
         for b in range(0, len(prompts), args.batch):
@@ -320,12 +360,23 @@ def score_rows(rows: Sequence[dict], chrf) -> dict:
 def stage_score(args) -> int:
     import sacrebleu
 
-    chrf = lambda hyp, ref: round(sacrebleu.corpus_chrf(hyp, [ref], word_order=2).score, 2)
+    chrf = lambda hyp, ref: sacrebleu.corpus_chrf(list(hyp), [list(ref)], word_order=2).score
     report = {}
     for path in args.samples:
         report[path.stem] = score_rows(json.loads(path.read_text(encoding="utf-8"))["rows"], chrf)
         for lang, r in report[path.stem].items():
             print(f"{path.stem} {lang}: chrF++ {r['chrf++']:.2f} stop {r['stopped']}/{r['n']} chars/token {r['chars'] / max(1, r['tokens']):.2f} invalid {r['invalid_utf8']}", file=sys.stderr)
+    if len(args.samples) == 2:  # paired comparison: second vs first
+        base, new = (json.loads(p.read_text(encoding="utf-8"))["rows"] for p in args.samples)
+        report["paired"] = {}
+        for lang in NAMES:
+            a = sorted((r for r in base if r["lang"] == lang), key=lambda r: r["i"])
+            b = sorted((r for r in new if r["lang"] == lang), key=lambda r: r["i"])
+            if not a or [r["i"] for r in a] != [r["i"] for r in b]:
+                continue
+            report["paired"][lang] = paired_bootstrap([r["output"] for r in a], [r["output"] for r in b], [r["reference"] for r in a], chrf)
+            r = report["paired"][lang]
+            print(f"{lang}: delta {r['delta']:+.2f} chrF++, 95% [{r['ci95'][0]:+.2f}, {r['ci95'][1]:+.2f}], P(worse) {r['p_worse']:.2f}", file=sys.stderr)
     args.out.write_text(json.dumps(report, indent=1) + "\n")
     return 0
 
@@ -364,7 +415,8 @@ def main(argv: Sequence[str]) -> int:
     d = sub.add_parser("distill")
     d.add_argument("--model", type=Path, required=True)
     d.add_argument("--flores", type=Path, required=True)
-    d.add_argument("--n", type=int, default=997, help="FLORES dev sentences per language")
+    d.add_argument("--n", type=int, default=997, help="source sentences per language and direction")
+    d.add_argument("--wiki", type=Path, help="take sources from WIKI/{en,yo,ha,ig}.txt instead of FLORES dev")
     d.add_argument("--batch", type=int, default=64)
     d.add_argument("--max-tokens", type=int, default=256)
     d.add_argument("--out", type=Path, required=True)
