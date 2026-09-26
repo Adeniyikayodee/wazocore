@@ -40,3 +40,22 @@ def test_expand_rejects_id_gaps():
 
 def test_balanced_corpus_truncates_each_language():
     assert balanced_corpus({"yo": "abcdef", "ha": "xy"}, 3) == {"yo": "abc", "ha": "xy"}
+
+
+def test_disallowed_merges_are_skipped_and_learning_continues():
+    words = {("a", "b", "c"): 5, ("x", "y"): 4}
+    merges = learn_merges(words, 5, allowed=lambda t: t != "ab")
+    assert ("a", "b") not in merges
+    assert merges[0] == ("b", "c") and ("x", "y") in merges
+
+
+def test_whole_utf8_rejects_partial_characters():
+    from atlas_trace.vocab_expand import whole_utf8
+    from atlas_trace.vx_model import byte_decoder
+
+    b = byte_decoder()
+    enc = {v: k for k, v in b.items()}
+    token = lambda raw: "".join(enc[x] for x in raw)
+    assert whole_utf8(token(" ṣé".encode()), b)
+    assert not whole_utf8(token(" ṣ".encode()[:3]), b)   # space + 2 of 3 bytes
+    assert not whole_utf8(token("ṣ".encode()[1:]), b)    # starts mid-character

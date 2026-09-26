@@ -17,15 +17,16 @@ import json
 import sys
 from collections import Counter, defaultdict
 from pathlib import Path
-from typing import Iterable, Sequence
+from typing import Callable, Iterable, Sequence
 
 Word = tuple[str, ...]
 
 
-def learn_merges(words: dict[Word, int], n_merges: int) -> list[tuple[str, str]]:
+def learn_merges(words: dict[Word, int], n_merges: int, allowed: Callable[[str], bool] = lambda _: True) -> list[tuple[str, str]]:
     """Standard BPE continuation over pre-segmented words (weighted by
-    frequency): repeatedly merge the most frequent adjacent pair. Pair
-    counts are updated incrementally; a lazy max-heap picks the best pair."""
+    frequency): repeatedly merge the most frequent adjacent pair whose
+    result is `allowed`. Pair counts are updated incrementally; a lazy
+    max-heap picks the best pair."""
     seqs: list[list[str]] = [list(w) for w in words]
     freq: list[int] = list(words.values())
     pairs: Counter = Counter()
@@ -41,6 +42,8 @@ def learn_merges(words: dict[Word, int], n_merges: int) -> list[tuple[str, str]]
         c, p = heapq.heappop(heap)
         if pairs.get(p, 0) != -c or -c < 2:
             continue  # stale entry, or nothing worth merging
+        if not allowed(p[0] + p[1]):
+            continue  # dropped from the heap; re-checked only if its count grows
         merges.append(p)
         new = p[0] + p[1]
         touched: Counter = Counter()
@@ -67,6 +70,17 @@ def learn_merges(words: dict[Word, int], n_merges: int) -> list[tuple[str, str]]
             if d > 0 and pairs.get(q, 0) > 0:
                 heapq.heappush(heap, (-pairs[q], q))
     return merges
+
+
+def whole_utf8(token: str, byte_of: dict[str, int]) -> bool:
+    """True if a byte-level token decodes to complete UTF-8 characters.
+    A token ending mid-character lets the model emit an invalid byte
+    sequence if the next token does not complete it (seen in V3/V4)."""
+    try:
+        bytes(byte_of[c] for c in token).decode("utf-8")
+        return True
+    except UnicodeDecodeError:
+        return False
 
 
 def apply_merges(tokens: Sequence[str], ranks: dict[tuple[str, str], int]) -> list[str]:
@@ -148,7 +162,10 @@ def build(argv: Sequence[str]) -> int:
     words: Counter = Counter()
     for text in balanced_corpus(texts, args.chars_per_lang).values():
         words.update(segment(tok, text))
-    merges = learn_merges(words, args.merges)
+    from atlas_trace.vx_model import byte_decoder
+
+    byte_of = byte_decoder()
+    merges = learn_merges(words, args.merges, allowed=lambda t: whole_utf8(t, byte_of))
     tok_json = json.loads((args.source / "tokenizer.json").read_text(encoding="utf-8"))
     first_id = json.loads((args.source / "config.json").read_text())["vocab_size"]
     new_json, added = expand(tok_json, merges, first_id)
