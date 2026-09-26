@@ -87,3 +87,44 @@ def lr_at(step: int, peak: float, warmup: int, total: int) -> float:
         return peak * (step + 1) / warmup
     progress = min(1.0, (step - warmup) / max(1, total - warmup))
     return peak * (0.1 + 0.9 * 0.5 * (1 + math.cos(math.pi * progress)))
+
+
+ENGLISH_MARKERS = (" the ", " of the ", " and the ", " is a ", " in the ")
+
+# Plain spellings of common Hausa words that are written with hooked letters
+# (ɗan, ƙasa, ...) and undotted spellings of common Igbo words (ndị, bụ, ...):
+# Wikipedia uses these careless forms often enough for a model to learn them.
+CARELESS = {
+    "ha": {"dan", "kasa", "kasar", "daya", "wadanda", "kungiyar", "karkashin", "yaki", "bangare", "kwallon", "kafa", "hada", "dari"},
+    "ig": {"ndi", "bu", "ozo", "ulo", "ochichi", "muru"},
+}
+IGBO_DOTS = set("ịọụṅỊỌỤṄ")
+YORUBA_MARKS = {"̀", "́", "̣"}  # grave, acute, dot below (after NFD)
+
+
+def careful_line(line: str, lang: str) -> bool:
+    """True if a Wikipedia line looks carefully written in `lang`: not
+    English, and using the language's special letters the way its
+    references do. Lines failing this taught v3 careless spellings."""
+    import unicodedata
+
+    text = unicodedata.normalize("NFC", line.strip())
+    if len(text) < 20:
+        return False
+    if lang == "en":
+        return True
+    padded = f" {text.lower()} "
+    if any(m in padded for m in ENGLISH_MARKERS):
+        return False
+    words = set("".join(c if c.isalnum() else " " for c in text.lower()).split())
+    if words & CARELESS.get(lang, set()):
+        return False
+    if lang == "ig":
+        return sum(c in IGBO_DOTS for c in text) / len(text) >= 0.03
+    if lang == "yo":
+        return sum(c in YORUBA_MARKS for c in unicodedata.normalize("NFD", text)) / len(text) >= 0.05
+    return True
+
+
+def careful_text(text: str, lang: str) -> str:
+    return "\n".join(l for l in text.splitlines() if careful_line(l, lang))

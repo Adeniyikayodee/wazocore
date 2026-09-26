@@ -52,6 +52,19 @@ def test_lr_warms_up_then_decays_to_a_tenth():
     assert lr_at(55, 1.0, 10, 100) < lr_at(20, 1.0, 10, 100)
 
 
+def test_careful_line_rejects_careless_spellings_and_english():
+    from wazocore.vx_core import careful_line
+
+    assert careful_line("Ndị obodo ahụ bụ ndị ọrụ ugbo nke ọma n'ụlọ ha.", "ig")
+    assert not careful_line("Ndi obodo ahu bu ndi oru ugbo nke oma n'ulo ha.", "ig")
+    assert careful_line("Ɗan wasan ƙwallon ƙafa ne daga ƙasar Najeriya.", "ha")
+    assert not careful_line("Dan wasan kwallon kafa ne daga kasar Najeriya.", "ha")
+    assert careful_line("Àwọn ọmọ ilé-ìwé náà lọ sí ọjà ní àárọ̀ ọjọ́ Ajé.", "yo")
+    assert not careful_line("Awon omo ile-iwe naa lo si oja ni aaro ojo Aje ana.", "yo")
+    assert not careful_line("This is one of the lines in the dump that is English.", "ha")
+    assert careful_line("Any English line of reasonable length is kept.", "en")
+
+
 def test_mixture_always_returns_exactly_total():
     per = {"a": [[1]], "b": [[2]], "c": [[3]], "chat": [[4]]}
     shares = {"a": 0.045, "b": 0.045, "c": 0.045, "chat": 0.865}
