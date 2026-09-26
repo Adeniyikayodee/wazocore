@@ -77,3 +77,13 @@ def test_prompts_name_the_language_and_carry_the_sentence():
 
     assert translation_prompts(["Hi."], "Hausa")[0].startswith("Translate the following English text into Hausa.")
     assert reverse_prompts(["Sannu."], "Hausa")[0].endswith("\n\nSannu.")
+
+
+def test_score_rows_counts_per_language():
+    from atlas_trace.vx_torch import score_rows
+
+    rows = [{"lang": "yo", "output": "ab�", "reference": "ab", "stopped": True, "tokens": 2, "new_tokens": 1},
+            {"lang": "ha", "output": "xyz", "reference": "xyz", "stopped": False, "tokens": 3, "new_tokens": 0}]
+    r = score_rows(rows, lambda hyp, ref: float(len(hyp)))
+    assert r["yo"] == {"n": 1, "chrf++": 1.0, "stopped": 1, "tokens": 2, "chars": 3, "new_tokens": 1, "invalid_utf8": 1}
+    assert r["ha"]["stopped"] == 0 and r["ig"]["n"] == 0

@@ -4,6 +4,17 @@ Why: local MLX training on the 16 GB laptop swaps (~15 tok/s), so the
 V3 run (PROJECT-PLAN-B §14) needs one 80 GB GPU for a few hours.
 Script: `atlas-trace/atlas_trace/vx_torch.py`.
 
+## Quick path (v2 vocabulary, one script)
+
+1. Deploy the pod (section 1). The key `~/.ssh/runpod_natlas.pub` must be in RunPod Settings **before** deploying.
+2. From the laptop: `scripts/cloud_vx_upload.sh HOST PORT`. This uploads the code, data, the v2 tokenizer, the distilled conversations, and the original model's scores from the 25 Sep run.
+3. On the pod (web terminal): `/workspace/venv/bin/hf auth login` with a read token (or `hf auth login` if the venv does not exist yet), then
+   `tmux new -s vx 'bash /workspace/cloud_vx_pod.sh 2>&1 | tee /workspace/run.log'`.
+4. Expected run: ~1.5 h on an A100 80GB (download 2 min, training ~35 min, eval ~20 min, GGUF ~15 min). Outputs land in `/workspace/work/`: `results/`, `N-ATLaS-vx.Q4_K_M.gguf`, and the trained model (in `/dev/shm/work/vx-trained` if the disk is small).
+5. Copy back the GGUF, `results/` and the trained model, and check `results/sha256.txt` before deleting the pod.
+
+The steps below are the manual version the script automates.
+
 ## 1. Pod
 
 - RunPod, 1× A100 80GB or H100 80GB, template "RunPod PyTorch", volume 150 GB.

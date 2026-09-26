@@ -303,6 +303,33 @@ def stage_sample(args) -> int:
     return 0
 
 
+def score_rows(rows: Sequence[dict], chrf) -> dict:
+    """Per-language gate numbers from `sample` rows: chrF++ against the
+    FLORES references (`chrf(outputs, references)`), stop count, tokens
+    and characters of the replies."""
+    out = {}
+    for lang in NAMES:
+        rs = [r for r in rows if r["lang"] == lang]
+        out[lang] = {"n": len(rs), "chrf++": chrf([r["output"] for r in rs], [r["reference"] for r in rs]),
+                     "stopped": sum(r["stopped"] for r in rs), "tokens": sum(r["tokens"] for r in rs),
+                     "chars": sum(len(r["output"]) for r in rs), "new_tokens": sum(r["new_tokens"] for r in rs),
+                     "invalid_utf8": sum("\ufffd" in r["output"] for r in rs)}
+    return out
+
+
+def stage_score(args) -> int:
+    import sacrebleu
+
+    chrf = lambda hyp, ref: round(sacrebleu.corpus_chrf(hyp, [ref], word_order=2).score, 2)
+    report = {}
+    for path in args.samples:
+        report[path.stem] = score_rows(json.loads(path.read_text(encoding="utf-8"))["rows"], chrf)
+        for lang, r in report[path.stem].items():
+            print(f"{path.stem} {lang}: chrF++ {r['chrf++']:.2f} stop {r['stopped']}/{r['n']} chars/token {r['chars'] / max(1, r['tokens']):.2f} invalid {r['invalid_utf8']}", file=sys.stderr)
+    args.out.write_text(json.dumps(report, indent=1) + "\n")
+    return 0
+
+
 def main(argv: Sequence[str]) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--device", default="cuda")
@@ -347,8 +374,11 @@ def main(argv: Sequence[str]) -> int:
     s.add_argument("--n", type=int, default=5, help="sentences per language")
     s.add_argument("--max-tokens", type=int, default=160)
     s.add_argument("--out", type=Path, required=True)
+    c = sub.add_parser("score")
+    c.add_argument("samples", type=Path, nargs="+", help="JSON from the sample stage")
+    c.add_argument("--out", type=Path, required=True)
     args = ap.parse_args(argv)
-    stages = {"distill": stage_distill, "expand": stage_expand, "bpc": stage_bpc, "train": stage_train, "sample": stage_sample}
+    stages = {"score": stage_score, "distill": stage_distill, "expand": stage_expand, "bpc": stage_bpc, "train": stage_train, "sample": stage_sample}
     return stages[args.stage](args)
 
 if __name__ == "__main__":
