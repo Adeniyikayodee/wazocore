@@ -20,13 +20,77 @@ import argparse
 import json
 import statistics
 import sys
-from dataclasses import asdict
+import unicodedata
+import urllib.request
+from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Sequence
+from typing import Callable, Sequence
 
-from atlas_trace.llamacpp_baseline import NAMES, Prompt, Sample, make_prompts, read_devtest, server_client, to_sample
+from atlas_trace.tokens_per_word import LANGS, count_chars, count_words
 
 # ---- pure core ---------------------------------------------------------------
+
+
+NAMES = {"en": "English", "yo": "Yoruba", "ha": "Hausa", "ig": "Igbo"}
+
+
+@dataclass(frozen=True)
+class Prompt:
+    lang: str  # target language of the generated text
+    index: int
+    text: str
+
+
+@dataclass(frozen=True)
+class Sample:
+    lang: str
+    index: int
+    prompt_tokens: int
+    prompt_ms: float
+    gen_tokens: int
+    gen_ms: float
+    gen_words: int
+    gen_chars: int
+    output: str
+
+
+def build_prompt(target: str, source_lang: str, source_text: str) -> str:
+    return (
+        f"Translate the following {NAMES[source_lang]} text into {NAMES[target]}. "
+        f"Reply with the translation only.\n\n{source_text}"
+    )
+
+
+def make_prompts(corpus: dict[str, Sequence[str]], n: int) -> list[Prompt]:
+    """en targets translate from yo; every other target translates from en.
+
+    Languages are interleaved (sentence i in every language, then i + 1) so
+    drift in device speed over the run (thermals, background load) spreads
+    evenly across languages instead of masquerading as a language effect.
+    """
+    def source(target: str) -> str:
+        return "yo" if target == "en" else "en"
+
+    return [
+        Prompt(t, i, build_prompt(t, source(t), corpus[source(t)][i]))
+        for i in range(n)
+        for t in NAMES
+    ]
+
+
+def to_sample(p: Prompt, timings: dict, output: str) -> Sample:
+    text = unicodedata.normalize("NFC", output.strip())
+    return Sample(
+        lang=p.lang,
+        index=p.index,
+        prompt_tokens=int(timings["prompt_n"]),
+        prompt_ms=float(timings["prompt_ms"]),
+        gen_tokens=int(timings["predicted_n"]),
+        gen_ms=float(timings["predicted_ms"]),
+        gen_words=count_words(text),
+        gen_chars=count_chars(text),
+        output=text,
+    )
 
 
 def order(i: int) -> tuple[str, str]:
@@ -72,6 +136,37 @@ def render(rows: Sequence[dict]) -> str:
 
 
 # ---- shell -------------------------------------------------------------------
+
+
+Complete = Callable[[str], tuple[dict, str]]
+
+
+def server_client(url: str, max_tokens: int) -> Complete:
+    def complete(prompt: str) -> tuple[dict, str]:
+        body = {
+            "messages": [{"role": "user", "content": prompt}],
+            "max_tokens": max_tokens,
+            "temperature": 0.0,
+            "seed": 0,
+            "cache_prompt": False,  # every prompt pays full prefill
+        }
+        req = urllib.request.Request(
+            f"{url}/v1/chat/completions",
+            data=json.dumps(body).encode(),
+            headers={"Content-Type": "application/json"},
+        )
+        with urllib.request.urlopen(req, timeout=600) as r:
+            resp = json.load(r)
+        return resp["timings"], resp["choices"][0]["message"]["content"]
+
+    return complete
+
+
+def read_devtest(root: Path) -> dict[str, list[str]]:
+    return {
+        lang: (root / "devtest" / f"{code}.devtest").read_text(encoding="utf-8").splitlines()
+        for lang, code in LANGS.items()
+    }
 
 
 def serve(bin_: str, gguf: Path, port: int, threads: int, ngl: int, log: Path):
