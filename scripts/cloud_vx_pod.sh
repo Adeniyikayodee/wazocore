@@ -3,7 +3,9 @@
 # after scripts/cloud_vx_upload.sh and `hf auth login` (read token) on the pod:
 #   bash /workspace/cloud_vx_pod.sh
 # Inputs under $W: vx-tok/ (expanded tokenizer), data/{wiki,flores200_dataset},
-# chat-distill.jsonl, prior/{bpc-original,eval30-original}.json.
+# chat-distill.jsonl and chat-wiki.jsonl (the original model's replies;
+# regenerated if absent, ~15 and ~45 min), prior/eval100-original.json.
+# Recipe v3 (PROJECT-PLAN-B §14.2): 60% distilled replies, 40% Wikipedia.
 set -euo pipefail
 export HF_HOME=${HF_HOME:-/workspace/.cache/huggingface}
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
@@ -27,14 +29,21 @@ $PY -c "import torch; assert torch.cuda.is_available(), 'no CUDA GPU'"
 
 cd /workspace/atlas-trace
 V="$PY -m atlas_trace.vx_torch"
+if [ ! -s $W/chat-distill.jsonl ]; then
+    log distill-flores; $V distill --model $M/n-atlas --flores $F --batch 256 --out $W/chat-distill.jsonl
+fi
+if [ ! -s $W/chat-wiki.jsonl ]; then
+    log distill; $V distill --model $M/n-atlas --flores $F --wiki $W/data/wiki --n 4000 --batch 256 --out $W/chat-wiki.jsonl
+fi
+cat $W/chat-distill.jsonl $W/chat-wiki.jsonl > $W/chat-all.jsonl
 log expand;  $V expand --base $M/n-atlas --vx $W/vx-tok --out $M/vx-init
 log train;   $V train --model $M/vx-init --data $W/data --flores $F --out $M/vx-trained \
-                 --chat $W/chat-distill.jsonl --eval-every 100
+                 --chat $W/chat-all.jsonl --chat-share 0.6 --eval-every 100
 rm -rf $M/vx-init
 cp $M/vx-trained/log.jsonl $R/train-log.jsonl
 log bpc;     $V bpc --model $M/vx-trained --flores $F --out $R/bpc-trained.json
-log sample;  $V sample --model $M/vx-trained --flores $F --n 30 --out $R/eval30-trained.json
-log score;   $V score $W/prior/eval30-original.json $R/eval30-trained.json --out $R/eval30-summary.json
+log sample;  $V sample --model $M/vx-trained --flores $F --n 100 --out $R/eval100-trained.json 2>/dev/null
+log score;   $V score $W/prior/eval100-original.json $R/eval100-trained.json --out $R/eval100-summary.json
 
 log gguf
 cd /workspace
