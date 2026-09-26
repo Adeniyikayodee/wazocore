@@ -114,3 +114,14 @@ def test_wiki_sentences_can_drop_english():
     text = "This is one of the English sentences in the dump\nỌ natara mmachibido iwu nke abụọ maka afọ asatọ"
     assert wiki_sentences(text, 5, 0, drop_english=True) == ["Ọ natara mmachibido iwu nke abụọ maka afọ asatọ."]
     assert len(wiki_sentences(text, 5, 0)) == 2
+
+
+def test_anchor_kl_is_zero_for_matching_old_logits_and_ignores_new_ones():
+    torch = pytest.importorskip("torch")
+    from wazocore.vx_torch import anchor_kl
+
+    teacher = torch.randn(2, 3, 5)
+    student = torch.cat([teacher, torch.full((2, 3, 2), 9.0)], dim=-1)  # 2 extra (new) tokens
+    assert anchor_kl(student, teacher, 5).item() < 1e-6
+    other = torch.cat([torch.randn(2, 3, 5), torch.zeros(2, 3, 2)], dim=-1)
+    assert anchor_kl(other, teacher, 5).item() > 0

@@ -25,7 +25,7 @@ import time
 from pathlib import Path
 from typing import Sequence
 
-from wazocore.vx_core import bits_per_char, byte_decoder, char_lengths, chunks, decompose, init_rows, lr_at, mixture
+from wazocore.vx_core import ENGLISH_MARKERS, bits_per_char, byte_decoder, careful_text, char_lengths, chunks, decompose, init_rows, lr_at, mixture
 
 CODES = {"en": "eng_Latn", "yo": "yor_Latn", "ha": "hau_Latn", "ig": "ibo_Latn"}
 
@@ -80,9 +80,6 @@ def windows(ids: Sequence[int], length: int) -> list[list[int]]:
     return [list(ids[i:i + length]) for i in range(0, len(ids) - length + 1, length)]
 
 
-ENGLISH_MARKERS = (" the ", " of the ", " and the ", " is a ", " in the ")
-
-
 def wiki_sentences(text: str, n: int, seed: int, lo: int = 40, hi: int = 300, drop_english: bool = False) -> list[str]:
     """`n` distinct sentences of `lo`-`hi` characters from a Wikipedia dump
     (split on line breaks and ". "), chosen deterministically by `seed`.
@@ -123,6 +120,18 @@ def translation_prompts(src: Sequence[str], tgt_name: str) -> list[str]:
 
 def reverse_prompts(src: Sequence[str], src_name: str) -> list[str]:
     return [f"Translate the following {src_name} text into English. Reply with the translation only.\n\n{s}" for s in src]
+
+
+def anchor_kl(student_logits, teacher_logits, n_old: int):
+    """KL(teacher || student) per position over the original vocabulary.
+    The student is renormalised over its first `n_old` logits, so the
+    anchor keeps its preferences among old tokens without pushing mass
+    away from the new ones."""
+    import torch.nn.functional as F
+
+    s = F.log_softmax(student_logits[..., :n_old].float(), dim=-1)
+    t = F.log_softmax(teacher_logits[..., :n_old].float(), dim=-1)
+    return (t.exp() * (t - s)).sum(-1).mean()
 
 
 def lm_loss(model, batch):
@@ -197,7 +206,10 @@ def stage_train(args) -> int:
     # bf16's resolution, so the updates would round away); the frozen
     # layers stay bf16 to fit an 80 GB GPU. Autocast runs matmuls in bf16.
     model, tok = load_model(args.model, torch.bfloat16)
-    first_new = json.loads((args.model / "new_tokens.json").read_text())["first_id"]
+    # Without new_tokens.json this is the control run: the original model,
+    # same recipe, every vocabulary row frozen.
+    nt = args.model / "new_tokens.json"
+    first_new = json.loads(nt.read_text())["first_id"] if nt.exists() else model.config.vocab_size
     n_layers = model.config.num_hidden_layers
     layers = [*range(args.edge_layers), *range(n_layers - args.edge_layers, n_layers)]
     for m in [model.get_input_embeddings(), model.get_output_embeddings(), *(model.model.layers[i] for i in layers)]:
@@ -211,6 +223,8 @@ def stage_train(args) -> int:
     print(f"trainable: {sum(p.numel() for p in params) / 1e6:.0f}M (new rows masked to {model.config.vocab_size - first_new}), layers {layers}", file=sys.stderr)
 
     texts = {l: (args.data / "wiki" / f"{l}.txt").read_text(encoding="utf-8")[: args.chars_per_lang] for l in CODES}
+    if args.careful_wiki:
+        texts = {l: careful_text(t, l) for l, t in texts.items()}
     per_lang = {l: chunks(tok.encode(t, add_special_tokens=False), args.seq, tok.bos_token_id) for l, t in texts.items()}
     shares = {"yo": 0.3, "ha": 0.3, "ig": 0.3, "en": 0.1}
     if args.chat:
@@ -220,8 +234,16 @@ def stage_train(args) -> int:
         text_share = 1.0 - args.chat_share
         shares = {**{l: v * text_share for l, v in shares.items()}, "chat": args.chat_share}
         print(f"chat: {len(convs)} conversations, {len(per_lang['chat'])} windows", file=sys.stderr)
-    steps = args.tokens // (args.seq * args.batch)
-    data = mixture(per_lang, shares, steps * args.batch, args.seed)
+    teacher, anchor = None, []
+    if args.kl_weight > 0:
+        teacher, ttok = load_model(args.teacher)
+        teacher = teacher.to(args.device).eval().requires_grad_(False)
+        convs = [json.loads(l)["messages"] for l in args.chat.read_text(encoding="utf-8").splitlines()]
+        anchor = windows([i for c in convs for i in ttok.apply_chat_template(c, tokenize=True, return_dict=False)], args.seq)
+        print(f"KL anchor: weight {args.kl_weight}, {len(anchor)} windows tokenised the original way", file=sys.stderr)
+    per_step = args.batch * args.accum
+    steps = args.tokens // (args.seq * per_step)
+    data = mixture(per_lang, shares, steps * per_step, args.seed)
     opt = torch.optim.AdamW(params, lr=args.lr, weight_decay=0.0, betas=(0.9, 0.95))
     args.out.mkdir(parents=True, exist_ok=True)
     log = (args.out / "log.jsonl").open("a")
@@ -229,19 +251,30 @@ def stage_train(args) -> int:
     for step in range(steps):
         for g in opt.param_groups:
             g["lr"] = lr_at(step, args.lr, max(1, steps // 30), steps)
-        batch = torch.tensor(data[step * args.batch:(step + 1) * args.batch], device=args.device)
-        with amp():
-            loss = lm_loss(model, batch)
-        loss.backward()
+        kl = torch.zeros(())
+        for k in range(args.accum):
+            lo = (step * args.accum + k) * args.batch
+            batch = torch.tensor(data[lo:lo + args.batch], device=args.device)
+            with amp():
+                loss = lm_loss(model, batch)
+                total = loss
+                if teacher is not None:
+                    j = (step * args.accum + k) * args.kl_batch
+                    a = torch.tensor([anchor[(j + i) % len(anchor)] for i in range(args.kl_batch)], device=args.device)
+                    with torch.no_grad():
+                        t_logits = teacher(input_ids=a).logits
+                    kl = anchor_kl(model(input_ids=a).logits, t_logits, teacher.config.vocab_size)
+                    total = loss + args.kl_weight * kl
+            (total / args.accum).backward()
         torch.nn.utils.clip_grad_norm_(params, args.clip)
         opt.step()
         opt.zero_grad(set_to_none=True)
         if (step + 1) % args.report == 0 or step + 1 == steps:
-            rec = {"step": step + 1, "tokens": (step + 1) * args.batch * args.seq, "loss": loss.item(),
-                   "tok_s": (step + 1) * args.batch * args.seq / (time.time() - t0), "lr": opt.param_groups[0]["lr"]}
+            rec = {"step": step + 1, "tokens": (step + 1) * per_step * args.seq, "loss": loss.item(), "kl": kl.item(),
+                   "tok_s": (step + 1) * per_step * args.seq / (time.time() - t0), "lr": opt.param_groups[0]["lr"]}
             log.write(json.dumps(rec) + "\n")
             log.flush()
-            print(f"step {rec['step']}/{steps} loss {rec['loss']:.3f} {rec['tok_s']:.0f} tok/s", file=sys.stderr)
+            print(f"step {rec['step']}/{steps} loss {rec['loss']:.3f} kl {rec['kl']:.4f} {rec['tok_s']:.0f} tok/s", file=sys.stderr)
         if args.eval_every and (step + 1) % args.eval_every == 0 and step + 1 < steps:
             model.eval()
             with amp():
@@ -253,7 +286,8 @@ def stage_train(args) -> int:
     model.config.use_cache = True
     model.to(torch.bfloat16).save_pretrained(args.out, safe_serialization=True)
     tok.save_pretrained(args.out)
-    (args.out / "new_tokens.json").write_text((args.model / "new_tokens.json").read_text())
+    if nt.exists():
+        (args.out / "new_tokens.json").write_text(nt.read_text())
     print(f"saved {args.out}", file=sys.stderr)
     return 0
 
@@ -411,6 +445,11 @@ def main(argv: Sequence[str]) -> int:
     t.add_argument("--chat-share", type=float, default=0.4)
     t.add_argument("--eval-every", type=int, default=100, help="steps between BPC checks (0: off)")
     t.add_argument("--eval-sentences", type=int, default=50)
+    t.add_argument("--accum", type=int, default=1, help="micro-batches per optimiser step")
+    t.add_argument("--careful-wiki", action="store_true", help="keep only carefully spelled Wikipedia lines")
+    t.add_argument("--teacher", type=Path, help="original model for the KL anchor")
+    t.add_argument("--kl-weight", type=float, default=0.0)
+    t.add_argument("--kl-batch", type=int, default=4, help="anchor windows per micro-batch")
     d = sub.add_parser("distill")
     d.add_argument("--model", type=Path, required=True)
     d.add_argument("--flores", type=Path, required=True)
