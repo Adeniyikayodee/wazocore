@@ -6,10 +6,10 @@ language: [yo, ha, ig, en]
 tags: [llama-3, vocabulary-expansion, yoruba, hausa, igbo, gguf]
 ---
 
-<!-- Working name. The final name must end with "Powered by Awarri." (N-ATLaS licence). -->
-# N-ATLaS-VX Powered by Awarri.
+<!-- The N-ATLaS licence requires renamed derivatives to end with "Powered by Awarri." -->
+# WazoCore Powered by Awarri.
 
-N-ATLaS with 15,000 new Yoruba, Hausa and Igbo tokens. It writes the same
+WazoCore is N-ATLaS with 15,000 new Yoruba, Hausa and Igbo tokens. It writes the same
 languages in about **1.5× fewer tokens**, so replies arrive about 1.5× faster
 on any engine, with no change to the runtime.
 
@@ -62,7 +62,7 @@ is about 5% lower** on this measure; that is the price of the speed-up today.
 The GGUF works with any llama.cpp-based runtime. With llama.cpp:
 
 ```sh
-llama-server -m N-ATLaS-VX.Q4_K_M.gguf -c 2048 --port 8080
+llama-server -m WazoCore-8B.Q4_K_M.gguf -c 2048 --port 8080
 curl -s localhost:8080/v1/chat/completions -H "Content-Type: application/json" \
   -d '{"messages":[{"role":"user","content":"Translate into Hausa: The clinic opens at eight in the morning."}]}'
 ```

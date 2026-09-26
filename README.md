@@ -1,8 +1,8 @@
-# NATLAS: N-ATLaS at the speed of English
+# WazoCore: N-ATLaS at the speed of English
 
 Tools and evidence for **in-place vocabulary expansion** of
 [N-ATLaS](https://huggingface.co/NCAIR1/N-ATLaS), Nigeria's open multilingual
-LLM. The expanded model writes Yoruba, Hausa and Igbo in about 1.5× fewer
+LLM. The expanded model, **WazoCore Powered by Awarri.**, writes Yoruba, Hausa and Igbo in about 1.5× fewer
 tokens, so replies come about 1.5× faster in llama.cpp, Ollama, LM Studio or any
 other engine, with no engine changes. The whole method runs on one laptop plus
 about 2 rented GPU hours.
