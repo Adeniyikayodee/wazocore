@@ -92,10 +92,32 @@ Decode tokens/s is unchanged (about 7 on this run), so the larger vocabulary
 costs nothing. llama.cpp's tokenisation matches the reference tokenizer on
 160/160 test sentences. There were 0 invalid replies in 80.
 
+## Igbo diagnosis (v3, 100 sentences)
+
+- **Loss is concentrated.** 17 Igbo sentences lose more than 10 chrF++ and 7
+  gain that much. The 10 worst account for 45% of the total loss.
+- **Two of them are repetition loops inside a word.** Examples are
+  `ahịa`+`ere`+`ere`… and `ọ`+`bar`+`abar`…, and they are the two replies that
+  never ended. The original model also loops on 2 of 300 replies (Yoruba), so
+  greedy decoding is partly to blame, but these two loops are new.
+- **The raw Wikipedia share teaches sloppy spelling.** Hausa Wikipedia spells
+  `dan`/`kasa` more often than `ɗan`/`ƙasa`, and v3's Hausa replies use hooked
+  letters at 0.28 per 100 characters (original 0.50, reference 0.42). About
+  12% of common Igbo words in Igbo Wikipedia are undotted (`ndi` for `ndị`),
+  whereas the original model's own replies are cleaner than Wikipedia (dotted
+  letters 8.67 per 100 characters, reference 8.43).
+- **The tokenizer is not the cause.** The expansion made hooked and plain
+  spellings equally cheap (1 token each for common words).
+
 ## Open work
 
-- **Close the Igbo gap.** Candidates: Igbo-weighted distillation, or more
-  training tokens.
+- **Close the Igbo gap (v4).** Candidates:
+  - replace most of the raw Wikipedia share with distilled replies, or filter it
+    for orthography;
+  - add a KL anchor to the frozen original on old-tokenised text, against drift
+    and loops;
+  - run a control (same recipe, no new tokens) to separate drift from vocabulary;
+  - score on 200 sentences.
 - **Measure more of the model.** So far only one direction and one domain were
   scored; X → English, chat, and speed on GPU (Metal/CUDA) remain.
 - **Test other runtimes.** Ollama and LM Studio have not been tested.
