@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 import pytest
 
-TINY = Path(__file__).resolve().parents[2] / "crates/atlas-rt/tests/fixtures/tiny"
+TINY = Path(__file__).resolve().parent / "fixtures/tiny"
 
 
 @pytest.fixture()

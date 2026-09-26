@@ -2,13 +2,10 @@
 # Model weights and large artefacts never enter git
 *.safetensors
 *.gguf
-*.satl
 *.bin
-!profiles/*.bin
-.atlas-probe-*
 __pycache__/
 .venv/
 /data
 .DS_Store
 /vendor
-!crates/atlas-rt/tests/fixtures/**
+!atlas-trace/tests/fixtures/**
