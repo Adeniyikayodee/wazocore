@@ -4,12 +4,18 @@
 #   bash /workspace/cloud_vx_pod.sh
 # Inputs under $W: vx-tok/ (expanded tokenizer), data/{wiki,flores200_dataset},
 # chat-distill.jsonl and chat-wiki.jsonl (the original model's replies;
-# regenerated if absent, ~15 and ~45 min), prior/eval100-original.json.
-# Recipe v3 (docs/METHOD.md): 60% distilled replies, 40% Wikipedia.
+# regenerated if absent, ~15 and ~45 min).
+# Recipe v4 (docs/METHOD.md): 85% distilled replies, 15% carefully spelled
+# Wikipedia, KL anchor to the original on old-tokenised replies. Then a
+# 200-sentence gate against the original and, with CONTROL=1 (default), the
+# same recipe on the original model to separate drift from vocabulary.
+# Knobs: CHAT_SHARE, KL, EVAL_N, CONTROL.
 set -euo pipefail
 export HF_HOME=${HF_HOME:-/workspace/.cache/huggingface}
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 W=${W:-/workspace/work}; R=$W/results; mkdir -p "$R"
+CHAT_SHARE=${CHAT_SHARE:-0.85}; KL=${KL:-1.0}; EVAL_N=${EVAL_N:-200}; CONTROL=${CONTROL:-1}
+RECIPE="--data $W/data --chat $W/chat-all.jsonl --chat-share $CHAT_SHARE --careful-wiki --batch 8 --accum 2 --eval-every 100"
 PY=/workspace/venv/bin/python; F=$W/data/flores200_dataset
 log() { echo "== $(date +%H:%M:%S) $*"; }
 
@@ -37,13 +43,14 @@ if [ ! -s $W/chat-wiki.jsonl ]; then
 fi
 cat $W/chat-distill.jsonl $W/chat-wiki.jsonl > $W/chat-all.jsonl
 log expand;  $V expand --base $M/n-atlas --vx $W/vx-tok --out $M/vx-init
-log train;   $V train --model $M/vx-init --data $W/data --flores $F --out $M/vx-trained \
-                 --chat $W/chat-all.jsonl --chat-share 0.6 --eval-every 100
+log train;   $V train --model $M/vx-init --flores $F --out $M/vx-trained $RECIPE \
+                 --teacher $M/n-atlas --kl-weight $KL --kl-batch 4
 rm -rf $M/vx-init
 cp $M/vx-trained/log.jsonl $R/train-log.jsonl
 log bpc;     $V bpc --model $M/vx-trained --flores $F --out $R/bpc-trained.json
-log sample;  $V sample --model $M/vx-trained --flores $F --n 100 --out $R/eval100-trained.json 2>/dev/null
-log score;   $V score $W/prior/eval100-original.json $R/eval100-trained.json --out $R/eval100-summary.json
+log sample;  $V sample --model $M/vx-trained --flores $F --n $EVAL_N --out $R/eval-trained.json 2>/dev/null
+[ -s $R/eval-original.json ] || { log sample-original; $V sample --model $M/n-atlas --flores $F --n $EVAL_N --out $R/eval-original.json 2>/dev/null; }
+log score;   $V score $R/eval-original.json $R/eval-trained.json --out $R/eval-summary.json
 
 log gguf
 cd /workspace
@@ -76,4 +83,12 @@ fi
 llama.cpp/build/bin/llama-quantize $M/vx.bf16.gguf $W/N-ATLaS-vx.Q4_K_M.gguf Q4_K_M | tail -3
 rm $M/vx.bf16.gguf
 sha256sum $W/N-ATLaS-vx.Q4_K_M.gguf $M/vx-trained/model.safetensors | tee $R/sha256.txt
+if [ "$CONTROL" = 1 ]; then
+    cd /workspace/wazocore
+    log control-train;  $V train --model $M/n-atlas --flores $F --out $M/control $RECIPE \
+                            --teacher $M/n-atlas --kl-weight $KL --kl-batch 4
+    log control-sample; $V sample --model $M/control --flores $F --n $EVAL_N --out $R/eval-control.json 2>/dev/null
+    log control-score;  $V score $R/eval-original.json $R/eval-control.json --out $R/eval-control-summary.json
+    rm -rf $M/control
+fi
 log ALL-DONE
