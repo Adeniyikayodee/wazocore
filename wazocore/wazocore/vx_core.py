@@ -68,10 +68,14 @@ def mixture(per_lang: dict[str, list[list[int]]], shares: dict[str, float], tota
     """Deterministic shuffled mix with each language's share of `total`
     chunks (cycling through a language's chunks if it runs short)."""
     rng = random.Random(seed)
+    # Largest-remainder allocation: the counts add up to exactly `total`.
+    exact = {lang: total * share / sum(shares.values()) for lang, share in shares.items()}
+    counts = {lang: int(x) for lang, x in exact.items()}
+    for lang in sorted(exact, key=lambda l: exact[l] - counts[l], reverse=True)[: total - sum(counts.values())]:
+        counts[lang] += 1
     out: list[list[int]] = []
-    for lang, share in shares.items():
+    for lang, n in counts.items():
         pool = per_lang[lang]
-        n = round(total * share)
         out += [pool[i % len(pool)] for i in range(n)] if pool else []
     rng.shuffle(out)
     return out

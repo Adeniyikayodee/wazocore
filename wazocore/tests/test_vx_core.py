@@ -50,3 +50,10 @@ def test_lr_warms_up_then_decays_to_a_tenth():
     assert lr_at(9, 1.0, 10, 100) == pytest.approx(1.0)
     assert lr_at(100, 1.0, 10, 100) == pytest.approx(0.1)
     assert lr_at(55, 1.0, 10, 100) < lr_at(20, 1.0, 10, 100)
+
+
+def test_mixture_always_returns_exactly_total():
+    per = {"a": [[1]], "b": [[2]], "c": [[3]], "chat": [[4]]}
+    shares = {"a": 0.045, "b": 0.045, "c": 0.045, "chat": 0.865}
+    for total in [1, 7, 16, 101]:
+        assert len(mixture(per, shares, total, seed=0)) == total
