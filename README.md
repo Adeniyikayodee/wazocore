@@ -1,94 +1,193 @@
-# WazoCore: N-ATLaS at the speed of English
+# WazoCore
 
-Tools and evidence for **in-place vocabulary expansion** of
-[N-ATLaS](https://huggingface.co/NCAIR1/N-ATLaS), Nigeria's open multilingual
-LLM. The expanded model, **WazoCore Powered by Awarri.**, writes Yoruba, Hausa and Igbo in about 1.5× fewer
-tokens, so replies come about 1.5× faster in llama.cpp, Ollama, LM Studio or any
-other engine, with no engine changes. The whole method runs on one laptop plus
-about 3 rented GPU hours.
+**In-place vocabulary expansion for Yoruba, Hausa and Igbo on N-ATLaS**
 
-| | tokens per word, original → expanded | words/s speed-up (llama.cpp, CPU) | chrF++ vs original (200 sentences) |
+[Method](docs/METHOD.md) · [Model card](release/MODEL_CARD.md) · [Results](results/vocab/) · [Citation](#citation)
+
+Large language models process text as tokens, and most vocabularies are built
+around English. [N-ATLaS](https://huggingface.co/NCAIR1/N-ATLaS), Nigeria's
+open multilingual model, inherits Llama-3's vocabulary. It needs 2.0–2.7× as
+many tokens to express the same sentence in Hausa, Igbo or Yoruba as in English,
+so generation in these languages is slower and more expensive.
+
+WazoCore adds 15,000 tokens learned from Yoruba, Hausa and Igbo text to N-ATLaS
+while keeping every original token unchanged, and then trains the model to use
+them. The resulting model generates 1.55–1.64× more words per second in these
+languages on unmodified inference engines. Translation quality is statistically
+unchanged for Yoruba and Hausa, and 1.3 chrF++ lower for Igbo. To our knowledge,
+this is the first vocabulary expansion of N-ATLaS or of any public Llama-3 model
+for these languages.
+
+## Results
+
+The comparison is WazoCore against the original N-ATLaS on FLORES-200 devtest,
+which was held out from all training.
+
+| Language | Tokens per word | Words/s speed-up | chrF++ Δ (95% CI) |
 |---|---|---|---|
-| Yoruba | 2.92 → 1.99 | 1.55× | +1.0 (not significant) |
-| Hausa | 2.10 → 1.43 | 1.64× | −1.1 (not significant) |
-| Igbo | 2.54 → 1.58 | 1.60× | −1.3 (significant, about 3%) |
-| English | 1.28 → 1.31 | 0.96× | not affected by design |
+| Yoruba | 2.92 → 1.99 | 1.55× | +1.0 (−0.1, +2.1) |
+| Hausa | 2.10 → 1.43 | 1.64× | −1.1 (−2.5, +0.2) |
+| Igbo | 2.54 → 1.58 | 1.60× | −1.3 (−2.2, −0.3) |
+| English | 1.28 → 1.31 | 0.96× | — |
 
-Model card: `release/MODEL_CARD.md`. Method, what failed on the way, and
-results: `docs/METHOD.md`.
+How the numbers were measured:
 
-## Why this matters
+- **Speed:** llama.cpp (build 9430), Q4_K_M, Apple M4 CPU with 4 threads, and
+  20 translations per language. The two models answered each sentence in turn,
+  with the first-mover alternating. Raw decoding speed (tokens/s) is unchanged,
+  so the gain comes entirely from fewer tokens per word.
+- **Quality:** greedy English → X translation of 200 sentences per language.
+  The confidence intervals come from a paired bootstrap with 1,000 resamples.
+- **Tokenisation:** llama.cpp's tokenisation matches the reference tokenizer on
+  all 160 test sentences.
 
-Llama-3's vocabulary was built mostly for English. A Yoruba word costs 2–3×
-more tokens than an English word, and every token costs time and money. This
-"token tax" makes N-ATLaS slower and more expensive in exactly the languages it
-exists for. Nobody had expanded the vocabulary of N-ATLaS, or of any public
-Yoruba, Hausa or Igbo Llama-3 model, before this work.
+The Yoruba speed figure excludes one sample in which the host stalled for 223 s
+(0.59× with it included). All raw measurements are in
+[`results/vocab/`](results/vocab/).
 
-## Reproduce
+## Approach
 
-Requirements: Python 3.11 with [uv](https://docs.astral.sh/uv/), llama.cpp on
-`PATH`, a Hugging Face read token with N-ATLaS access, and one rented 80 GB GPU
-(A100/H100).
+1. **Vocabulary.** We continue byte-pair encoding from the original tokenizer
+   and learn 15,000 merges jointly on Yoruba, Hausa and Igbo text. Merges that
+   would split a UTF-8 character are rejected, and all original token ids are
+   preserved.
+2. **Initialisation.** A new token's input embedding is the mean of its
+   constituent pieces' embeddings. Its output embedding is the byte-length-
+   weighted mean of theirs.
+3. **Training.** We train the new embedding rows and the first and last two
+   transformer layers on 5M tokens:
+   - 85% is the original model's own translations of about 30,000 requests
+     (self-distillation), re-tokenised with the new vocabulary;
+   - 15% is orthographically filtered Wikipedia text;
+   - a KL term anchors the model to the frozen original on the same text under
+     the original tokenisation.
 
-**1. Data and tokenizer (laptop, minutes).** Place the Wikipedia text in
-`data/wiki/{en,yo,ha,ig}.txt`, FLORES-200 in `data/flores200_dataset`, and the
-N-ATLaS bf16 files in `data/models/n-atlas-bf16`. Then:
+   Gradients to the original rows are masked, so those rows never change.
+4. **Evaluation.** Quality is measured by chrF++ with bootstrap intervals, and
+   speed by paired A/B runs. A control run trains the original model with the
+   identical recipe but no new tokens. It separates the effect of the
+   vocabulary change from the effect of training.
+
+[`docs/METHOD.md`](docs/METHOD.md) describes the method in full, including the
+approaches that did not work and why.
+
+## Getting started
+
+Requirements: Python 3.11+, [uv](https://docs.astral.sh/uv/), and
+[llama.cpp](https://github.com/ggml-org/llama.cpp) for inference and
+benchmarks.
 
 ```sh
-uv run --project wazocore --group ref python -m wazocore.vocab_expand build --out data/models/n-atlas-vx2
+git clone https://github.com/Adeniyikayodee/wazocore.git
+cd wazocore
+uv run --project wazocore --group ref pytest wazocore/tests
 ```
 
-**2. Train, evaluate and export (GPU, about 3 hours).** See `docs/cloud-vx.md`.
-In short:
+To run a WazoCore GGUF with llama.cpp:
 
 ```sh
-scripts/cloud_vx_upload.sh HOST PORT            # from the laptop
-bash /workspace/cloud_vx_pod.sh                  # on the pod, after hf auth login
+llama-server -m WazoCore-8B.Q4_K_M.gguf -c 2048 --port 8080
+curl -s localhost:8080/v1/chat/completions -H "Content-Type: application/json" \
+  -d '{"messages":[{"role":"user","content":"Translate into Hausa: The clinic opens at eight in the morning."}]}'
 ```
 
-The pod script runs the v4 recipe. It builds the expanded model and trains
-it on 85% the original model's own replies and 15% carefully spelled
-Wikipedia, with a KL anchor to the original. It then measures BPC and the
-200-sentence chrF++ gate with bootstrap intervals, exports a Q4_K_M GGUF, and
-runs the no-new-tokens control.
-If `data/runs/cloud/chat-*.jsonl` exist, the upload reuses them; otherwise the
-pod regenerates the distilled replies (about 45 extra minutes).
+The weights have not been released yet. The model card in
+[`release/`](release/MODEL_CARD.md) describes the planned release.
 
-**3. Check and benchmark (laptop, about 1 hour).**
+## Reproducing the results
 
-```sh
-scripts/paired_vx.sh m4-cpu 4 20 0 path/to/expanded.gguf
-```
+Reproduction needs access to N-ATLaS on Hugging Face and one 80 GB GPU
+(A100 or H100). The full pipeline takes about three GPU hours.
 
-This gives paired words/s against the original, with one model in memory at a
-time and the first-mover alternating.
+1. **Build the tokenizer** (CPU, minutes):
 
-**Another language?** Change the language codes in `vocab_expand` and
-`vx_torch` (`CODES`, `NAMES`), supply that language's Wikipedia and FLORES
-text, and rerun steps 1–3.
+   ```sh
+   uv run --project wazocore --group ref python -m wazocore.vocab_expand build --out data/models/n-atlas-vx2
+   ```
 
-## Layout
+2. **Train, evaluate and export** (GPU). `scripts/cloud_vx_pod.sh` runs these
+   steps in order:
+   - expansion;
+   - self-distillation, when cached replies are absent;
+   - training;
+   - the 200-sentence quality gate;
+   - GGUF export;
+   - the control run.
 
-| Path | What it is |
+   [`docs/cloud-vx.md`](docs/cloud-vx.md) covers pod setup.
+
+   ```sh
+   scripts/cloud_vx_upload.sh HOST PORT     # from your machine
+   bash /workspace/cloud_vx_pod.sh           # on the GPU host
+   ```
+
+3. **Benchmark speed** against the original model (CPU):
+
+   ```sh
+   scripts/paired_vx.sh LABEL 4 20 0 path/to/WazoCore.gguf
+   ```
+
+To extend the method to another language, change the language tables (`CODES`,
+`NAMES`) in `vocab_expand.py` and `vx_torch.py`, provide Wikipedia and FLORES-200
+text for it, and rerun the three steps.
+
+## Repository structure
+
+| Path | Contents |
 |---|---|
-| `wazocore/wazocore/vocab_expand.py` | BPE continuation on top of the original tokenizer (pure core, tested) |
-| `wazocore/wazocore/vx_core.py` | Pure helpers: new-row initialisation, data windows, schedule |
-| `wazocore/wazocore/vx_torch.py` | Expansion, training, distillation, BPC, sampling and scoring on a CUDA GPU |
-| `wazocore/wazocore/paired_vx.py` | Paired llama.cpp words/s benchmark |
-| `wazocore/wazocore/tokens_per_word.py` | Token-tax audit of a tokenizer on FLORES |
-| `scripts/` | Cloud upload, the pod pipeline, benchmark launchers |
-| `results/vocab/`, `results/tokenizer/` | Every measurement behind the tables above |
+| `wazocore/wazocore/vocab_expand.py` | BPE continuation on an existing tokenizer |
+| `wazocore/wazocore/vx_core.py` | Initialisation, data mixing and schedule (pure functions) |
+| `wazocore/wazocore/vx_torch.py` | Expansion, distillation, training, evaluation and scoring |
+| `wazocore/wazocore/paired_vx.py` | Paired words/s benchmark on llama.cpp |
+| `wazocore/wazocore/tokens_per_word.py` | Tokenizer audit on FLORES-200 |
+| `scripts/` | GPU pipeline and benchmark launchers |
+| `results/` | Raw measurements behind every reported number |
+| `docs/` | Method, findings and GPU runbook |
 
-Tests: `uv run --project wazocore --group ref pytest wazocore/tests`.
+## Limitations
 
-## Licence and attribution
+- **Igbo quality.** Igbo translation quality is 1.3 chrF++ below the original,
+  a statistically significant gap. The control run attributes about a third of
+  it to the training recipe and the rest to the vocabulary change.
+- **Hausa spelling.** The training recipe reduces the use of Hausa hooked
+  letters (ƙ ɗ ɓ): 0.29 per 100 characters against 0.39 for the original.
+- **Scope of the evaluation.** Quality was measured on English → X translation
+  in one domain (FLORES-200). Dialogue, reasoning and X → English were not
+  scored.
+- **Hardware coverage.** Speed was measured on one CPU. GPU inference has only
+  been smoke-tested (about 21 tokens/s with Metal on an M4).
+- **Inherited behaviour.** WazoCore keeps N-ATLaS's biases, its 8,092-token
+  context and the limits of its instruction tuning.
 
-The code is in this repository. Model weights derived from N-ATLaS are covered
-by the N-ATLaS Open-Source Research and Innovation License; see the model card.
+## Citation
+
+```bibtex
+@misc{adeniyi2026wazocore,
+  title  = {WazoCore: In-Place Vocabulary Expansion for Yoruba, Hausa and Igbo on N-ATLaS},
+  author = {Adeniyi, Kayode},
+  year   = {2026},
+  howpublished = {\url{https://github.com/Adeniyikayodee/wazocore}}
+}
+```
+
+## License
+
+Model weights derived from N-ATLaS are released under the N-ATLaS Open-Source
+Research and Innovation License. It requires attribution, the same licence for
+derivatives, and a name ending in "Powered by Awarri."; see the
+[model card](release/MODEL_CARD.md).
 
 > N-ATLaS is an initiative of the Federal Ministry of Communications,
 > Innovation and Digital Economy, and powered by Awarri Technologies.
 
-Contributions follow `CONTRIBUTING.md`: a functional core, errors as values, and
-atomic commits that explain why.
+## Acknowledgements
+
+This work builds on:
+- **N-ATLaS** by Awarri Technologies and the Federal Ministry of Communications,
+  Innovation and Digital Economy;
+- the **FLORES-200** benchmark (NLLB Team, Meta AI);
+- **Wikipedia** in Yoruba, Hausa and Igbo;
+- **llama.cpp**;
+- published work on vocabulary expansion (arXiv 2607.15232), low-budget
+  adaptation (arXiv 2406.11477) and subword-composition initialisation
+  (arXiv 2608.03494).
