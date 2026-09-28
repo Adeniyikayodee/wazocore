@@ -58,8 +58,12 @@ paired-bootstrap interval for the difference.
 | Hausa | 48.97 | 47.86 | −1.1 (−2.5 to +0.2) | 199 (original 199) |
 | Igbo | 38.60 | 37.33 | **−1.3 (−2.2 to −0.3)** | 198 (original 199) |
 
-Yoruba is slightly better than the original, and Hausa is statistically
-indistinguishable from it. **Igbo is about 3% lower** on this measure. A
+On a fresh test set never used in development (NTREX-128, 500 news sentences
+per language) and after retraining with a second seed, the pattern holds:
+Yoruba +0.1 to +0.4, Hausa −0.4 to −0.6 (not significant), Igbo −0.9 to −1.2.
+
+Yoruba is equal to or slightly better than the original, and Hausa is
+statistically indistinguishable from it. **Igbo is about 3% lower** on this measure. A
 control run shows that about a third of the Igbo gap, and a small drop in
 Hausa hooked letters (ƙ ɗ ɓ), come from the training recipe rather than the
 new vocabulary.

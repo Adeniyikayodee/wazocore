@@ -132,6 +132,38 @@ no new tokens. Evidence: `results/vocab/cloud-v4/`.
   Igbo is −1.3 (v3: −1.9 on 100 sentences), and it uses 1.53× (yo),
   1.47× (ha) and 1.65× (ig) fewer tokens per character.
 
+## Validation (fresh data, second seed)
+
+v4 was chosen while looking at FLORES devtest, and each version was trained
+once. To check that the result is not selection or luck, one pod session
+(`scripts/cloud_vx_validate.sh`, evidence in `results/vocab/validate/`) did
+three things:
+- scored v4 on **500 NTREX-128 news sentences per language**, never used in
+  development;
+- retrained the v4 recipe with **a second seed**;
+- sampled all models the same batched way.
+
+| chrF++ Δ vs original (95% CI) | Yoruba | Hausa | Igbo |
+|---|---|---|---|
+| v4 · NTREX (500) | +0.1 (−0.2, +0.4) | −0.6 (−1.3, +0.1) | −1.2 (−2.1, −0.3) |
+| seed 1 · NTREX (500) | +0.4 (+0.1, +0.7) | −0.4 (−1.0, +0.2) | −0.9 (−1.7, −0.0) |
+| v4 · FLORES (200) | +0.6 (−0.5, +1.6) | −0.9 (−2.1, +0.4) | −1.1 (−2.1, −0.1) |
+| seed 1 · FLORES (200) | +0.5 (−0.6, +1.5) | −0.7 (−1.9, +0.5) | −1.5 (−2.4, −0.5) |
+
+Tokens per character on NTREX fall 1.54× (yo), 1.41× (ha) and 1.62× (ig),
+matching FLORES.
+
+- **The results hold.** On both test sets and both seeds, Yoruba is equal or
+  slightly better, Hausa is within noise, and Igbo is about 1 chrF++ lower
+  (2–3%).
+- **Seed-to-seed spread is about ±0.3–0.5 chrF++.**
+- **The earlier Yoruba figure was optimistic.** The earlier +1.0 on FLORES
+  (unbatched) is +0.1 to +0.6 under these stricter tests, the expected
+  selection effect.
+- **NTREX Yoruba scores are low for every model** (about 13 chrF++). Its
+  references follow other conventions and contain some wrong characters (for
+  example ϙ for ọ), which affects all models equally.
+
 ## Open work
 
 - **Close the rest of the Igbo gap.** It is mostly a vocabulary effect now.

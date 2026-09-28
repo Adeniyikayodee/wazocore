@@ -41,6 +41,15 @@ How the numbers were measured:
 - **Tokenisation:** llama.cpp's tokenisation matches the reference tokenizer on
   all 160 test sentences.
 
+On a fresh test set never used in development (NTREX-128, 500 news sentences
+per language) and with a second training seed, the pattern repeats:
+- Yoruba: +0.1 and +0.4 chrF++;
+- Hausa: −0.6 and −0.4 (not significant);
+- Igbo: −1.2 and −0.9;
+- tokens per character fall 1.41–1.62×.
+
+See [Validation](docs/METHOD.md#validation-fresh-data-second-seed).
+
 The Yoruba speed figure excludes one sample in which the host stalled for 223 s
 (0.59× with it included). All raw measurements are in
 [`results/vocab/`](results/vocab/).
@@ -146,8 +155,8 @@ text for it, and rerun the three steps.
 
 ## Limitations
 
-- **Igbo quality.** Igbo translation quality is 1.3 chrF++ below the original,
-  a statistically significant gap. The control run attributes about a third of
+- **Igbo quality.** Igbo translation quality is about 1 chrF++ (2–3%) below the
+  original, a statistically significant gap on two test sets and two seeds. The control run attributes about a third of
   it to the training recipe and the rest to the vocabulary change.
 - **Hausa spelling.** The training recipe reduces the use of Hausa hooked
   letters (ƙ ɗ ɓ): 0.29 per 100 characters against 0.39 for the original.
