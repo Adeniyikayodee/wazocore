@@ -7,7 +7,7 @@ root=$(cd "$(dirname "$0")/.." && pwd); cd "$root"
 e="ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new -i $HOME/.ssh/runpod_natlas -p $port"
 $e root@$host 'mkdir -p /workspace/work/data'
 rsync -az -e "$e" --exclude .venv --exclude __pycache__ --exclude .pytest_cache wazocore root@$host:/workspace/
-rsync -az -e "$e" scripts/cloud_vx_pod.sh scripts/cloud_vx_validate.sh root@$host:/workspace/
+rsync -az -e "$e" scripts/cloud_vx_pod.sh scripts/cloud_vx_validate.sh scripts/cloud_gguf.sh root@$host:/workspace/
 [ -d data/ntrex ] && rsync -az -e "$e" data/ntrex/ root@$host:/workspace/work/ntrex/
 rsync -az -e "$e" data/wiki data/flores200_dataset root@$host:/workspace/work/data/
 rsync -az -e "$e" "$vx"/ root@$host:/workspace/work/vx-tok/

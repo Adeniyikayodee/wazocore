@@ -52,37 +52,7 @@ log sample;  $V sample --model $M/vx-trained --flores $F --n $EVAL_N --out $R/ev
 [ -s $R/eval-original.json ] || { log sample-original; $V sample --model $M/n-atlas --flores $F --n $EVAL_N --out $R/eval-original.json 2>/dev/null; }
 log score;   $V score $R/eval-original.json $R/eval-trained.json --out $R/eval-summary.json
 
-log gguf
-cd /workspace
-[ -d llama.cpp ] || git clone -q --depth 1 https://github.com/ggml-org/llama.cpp
-[ -x venv-gguf/bin/python ] || { python -m venv venv-gguf && venv-gguf/bin/pip install -q -r llama.cpp/requirements/requirements-convert_hf_to_gguf.txt; }
-command -v cmake >/dev/null || { apt-get update -qq && apt-get install -y -qq cmake >/dev/null; }
-[ -x llama.cpp/build/bin/llama-quantize ] || { cmake -S llama.cpp -B llama.cpp/build -DGGML_CUDA=OFF -DLLAMA_CURL=OFF >/dev/null \
-    && cmake --build llama.cpp/build --target llama-quantize -j 32 >/dev/null; }
-# transformers 5 writes a tokenizer class the converter's transformers 4 cannot load.
-S=$M/vx-gguf-src; rm -rf $S; mkdir -p $S
-for f in $M/vx-trained/*; do ln -s "$f" $S/; done
-rm $S/tokenizer_config.json
-sed 's/"TokenizersBackend"/"PreTrainedTokenizerFast"/' $M/vx-trained/tokenizer_config.json > $S/tokenizer_config.json
-convert() { venv-gguf/bin/python llama.cpp/convert_hf_to_gguf.py $S --outtype bf16 --outfile $M/vx.bf16.gguf 2>&1 | tee $R/convert.log; }
-if ! convert; then
-    # New merges change the pre-tokenizer fingerprint; the pre-tokenizer itself
-    # is Llama-3's (checked by vocab_expand tests), so map it to llama-bpe.
-    h=$(grep -o 'chkhsh: *[0-9a-f]*' $R/convert.log | tail -1 | awk '{print $2}')
-    [ -n "$h" ] || { log "convert failed for another reason"; exit 1; }
-    python3 - "$h" <<'PY'
-import sys, pathlib
-p = pathlib.Path("/workspace/llama.cpp/conversion/base.py"); s = p.read_text()
-anchor = "    def get_vocab_base_pre(self, tokenizer) -> str:"
-i = s.index("res = None", s.index(anchor)) + len("res = None")
-s = s[:i] + f'\n        if chkhsh == "{sys.argv[1]}":\n            res = "llama-bpe"  # N-ATLaS-vx: Llama-3 pre-tokenizer, added merges' + s[i:]
-p.write_text(s)
-PY
-    convert
-fi
-llama.cpp/build/bin/llama-quantize $M/vx.bf16.gguf $W/N-ATLaS-vx.Q4_K_M.gguf Q4_K_M | tail -3
-rm $M/vx.bf16.gguf
-sha256sum $W/N-ATLaS-vx.Q4_K_M.gguf $M/vx-trained/model.safetensors | tee $R/sha256.txt
+log gguf;    bash /workspace/cloud_gguf.sh $M/vx-trained $W/N-ATLaS-vx.Q4_K_M.gguf $R
 if [ "$CONTROL" = 1 ]; then
     cd /workspace/wazocore
     log control-train;  $V train --model $M/n-atlas --flores $F --out $M/control $RECIPE \
