@@ -70,3 +70,21 @@ def test_mixture_always_returns_exactly_total():
     shares = {"a": 0.045, "b": 0.045, "c": 0.045, "chat": 0.865}
     for total in [1, 7, 16, 101]:
         assert len(mixture(per, shares, total, seed=0)) == total
+
+
+def test_chunk_align_groups_new_tokens_with_their_pieces():
+    from wazocore.vx_core import chunk_align
+
+    # bytes: "ndị" (4) + " obodo" (6)  vs  "nd" (2) + "ị" (2) + " ob" (3) + "odo" (3)
+    assert chunk_align([4, 6], [2, 2, 3, 3]) == [(0, 1, 0, 2), (1, 2, 2, 4)]
+    assert chunk_align([2, 2], [2, 2]) == [(0, 1, 0, 1), (1, 2, 1, 2)]
+    assert chunk_align([3, 3], [2, 4]) == [(0, 2, 0, 2)]      # boundaries meet only at the end
+    assert chunk_align([4], [3]) is None
+
+
+def test_chunk_sums_and_looping():
+    from wazocore.vx_core import chunk_sums, looping
+
+    assert chunk_sums([-1.0, -2.0, -0.5], [(0, 2), (2, 3)]) == [-3.0, -0.5]
+    assert looping("ahịaereereereereereereere")
+    assert not looping("Ndị obodo ahụ bụ ndị ọrụ ugbo.")

@@ -128,3 +128,37 @@ def careful_line(line: str, lang: str) -> bool:
 
 def careful_text(text: str, lang: str) -> str:
     return "\n".join(l for l in text.splitlines() if careful_line(l, lang))
+
+
+def chunk_align(a: Sequence[int], b: Sequence[int]) -> list[tuple[int, int, int, int]] | None:
+    """Aligns two tokenisations of the same byte string, given each token's
+    length in bytes. Returns chunks (a_start, a_end, b_start, b_end): the
+    shortest spans that end where both have a token boundary. Each WazoCore
+    token and its original pieces fall in one chunk. None if the two do not
+    cover the same number of bytes."""
+    if sum(a) != sum(b):
+        return None
+    chunks, i, j, ia, jb, pa, pb = [], 0, 0, 0, 0, 0, 0
+    while i < len(a) or j < len(b):
+        if pa <= pb and i < len(a):
+            pa += a[i]; i += 1
+        else:
+            pb += b[j]; j += 1
+        if pa == pb:
+            chunks.append((ia, i, jb, j))
+            ia, jb = i, j
+    return chunks
+
+
+def chunk_sums(values: Sequence[float], spans: Sequence[tuple[int, int]]) -> list[float]:
+    """Log-probability of each chunk: the sum of its tokens' log-probabilities."""
+    return [sum(values[s:e]) for s, e in spans]
+
+
+def looping(text: str, unit: tuple[int, int] = (2, 6), repeats: int = 6) -> bool:
+    """A short unit repeated back to back (e.g. 'ereereere…'): the failure
+    WazoCore showed more often than the original."""
+    import re
+
+    lo, hi = unit
+    return re.search(rf"(.{{{lo},{hi}}})\1{{{repeats - 1},}}", text) is not None
