@@ -25,7 +25,7 @@ import time
 from pathlib import Path
 from typing import Sequence
 
-from wazocore.vx_core import ENGLISH_MARKERS, bits_per_char, byte_decoder, careful_text, char_lengths, chunks, decompose, init_rows, lr_at, mixture
+from wazocore.vx_core import ENGLISH_MARKERS, bits_per_char, byte_decoder, careful_text, char_lengths, chunk_align, chunks, decompose, init_rows, looping, lr_at, mixture
 
 CODES = {"en": "eng_Latn", "yo": "yor_Latn", "ha": "hau_Latn", "ig": "ibo_Latn"}
 
@@ -294,6 +294,149 @@ def stage_train(args) -> int:
 NAMES = {"yo": "Yoruba", "ha": "Hausa", "ig": "Igbo"}
 
 
+def token_bytes(tok) -> list[bytes | None]:
+    """Each id's bytes in a byte-level BPE vocabulary; None for special tokens."""
+    byte_of, special = byte_decoder(), set(tok.all_special_ids) | set(tok.added_tokens_decoder)
+    out = []
+    for i in range(len(tok)):
+        piece = tok.convert_ids_to_tokens(i)
+        out.append(None if i in special or piece is None or any(c not in byte_of for c in piece)
+                   else bytes(byte_of[c] for c in piece))
+    return out
+
+
+def prepare_trainable(model, new_tokens: Path, edge_layers: int, device: str) -> list:
+    """fp32 master weights for the embeddings, head and edge layers (an lr
+    below bf16 resolution would round away), frozen bf16 elsewhere, original
+    vocabulary rows masked. Returns the trainable parameters."""
+    first_new = json.loads(new_tokens.read_text())["first_id"] if new_tokens.exists() else model.config.vocab_size
+    n_layers = model.config.num_hidden_layers
+    layers = [*range(edge_layers), *range(n_layers - edge_layers, n_layers)]
+    for m in [model.get_input_embeddings(), model.get_output_embeddings(), *(model.model.layers[i] for i in layers)]:
+        m.float()
+    model.to(device)
+    return set_trainable(model, first_new, layers)
+
+
+def response_logprobs(model, prompt: Sequence[int], response: Sequence[int], device: str):
+    """Log-probabilities the model gives each response token after the prompt."""
+    import torch
+
+    ids = torch.tensor([list(prompt) + list(response)], device=device)
+    logp = torch.log_softmax(model(input_ids=ids).logits[0, len(prompt) - 1:-1].float(), dim=-1)
+    return logp.gather(1, ids[0, len(prompt):, None])[:, 0]
+
+
+def stage_onpolicy(args) -> int:
+    """On-policy self-distillation across tokenizers (v5). The expanded model
+    writes replies with its new tokens; the frozen original scores the same
+    text under its own tokenisation; the two are compared chunk by chunk
+    (`chunk_align`), and each chunk the original finds less likely than the
+    student is pushed down (reverse KL, REINFORCE form). A KL anchor on
+    old-tokenised replies keeps the rest of the model near the original."""
+    import random
+
+    import torch
+
+    torch.manual_seed(args.seed)
+    rng = random.Random(args.seed)
+    student, stok = load_model(args.model, torch.bfloat16)
+    params = prepare_trainable(student, args.model / "new_tokens.json", args.edge_layers, args.device)
+    teacher, ttok = load_model(args.teacher)
+    teacher = teacher.to(args.device).eval().requires_grad_(False)
+    amp = lambda: torch.autocast(device_type=args.device.split(":")[0], dtype=torch.bfloat16)
+    stok.padding_side = "left"
+    stok.pad_token = stok.pad_token or stok.eos_token
+    s_bytes, t_bytes = token_bytes(stok), token_bytes(ttok)
+    s_eos, t_eot = eos_ids(stok, student), ttok.convert_tokens_to_ids("<|eot_id|>")
+    first_new = json.loads((args.model / "new_tokens.json").read_text())["first_id"]
+    convs = [json.loads(l)["messages"] for l in args.chat.read_text(encoding="utf-8").splitlines()]
+    prompts = [c[0]["content"] for c in convs]
+    rng.shuffle(prompts)
+    anchor = windows([i for c in convs for i in ttok.apply_chat_template(c, tokenize=True, return_dict=False)], args.seq)
+    opt = torch.optim.AdamW(params, lr=args.lr, weight_decay=0.0, betas=(0.9, 0.95))
+    args.out.mkdir(parents=True, exist_ok=True)
+    log = (args.out / "log.jsonl").open("a")
+    print(f"on-policy: {len(prompts)} prompts, {args.steps} steps x {args.rollouts} rollouts", file=sys.stderr)
+    t0 = time.time()
+    for step in range(args.steps):
+        for g in opt.param_groups:
+            g["lr"] = lr_at(step, args.lr, max(1, args.steps // 20), args.steps)
+        batch = [prompts[(step * args.rollouts + k) % len(prompts)] for k in range(args.rollouts)]
+        # 1. rollouts from the current student
+        student.eval(); student.config.use_cache = True; student.gradient_checkpointing_disable()
+        enc = stok.apply_chat_template([[{"role": "user", "content": p}] for p in batch], add_generation_prompt=True,
+                                       return_tensors="pt", return_dict=True, padding=True).to(args.device)
+        with torch.no_grad(), amp():
+            out = student.generate(**enc, do_sample=True, temperature=args.temperature, top_p=1.0,
+                                   max_new_tokens=args.max_new, pad_token_id=stok.pad_token_id)
+        student.train(); student.config.use_cache = False; student.gradient_checkpointing_enable()
+        # 2. score chunk by chunk against the original
+        samples = []
+        for k, p in enumerate(batch):
+            gen = out[k, enc["input_ids"].shape[1]:].tolist()
+            ended = next((n for n, x in enumerate(gen) if x in s_eos), None)
+            content = gen[:ended] if ended is not None else gen
+            if not content or any(s_bytes[x] is None for x in content):
+                continue
+            try:
+                text = b"".join(s_bytes[x] for x in content).decode("utf-8")
+            except UnicodeDecodeError:
+                continue
+            t_resp = ttok.encode(text, add_special_tokens=False)
+            if any(t_bytes[x] is None for x in t_resp):
+                continue
+            chunks_ = chunk_align([len(s_bytes[x]) for x in content], [len(t_bytes[x]) for x in t_resp])
+            if chunks_ is None:
+                continue
+            s_prompt = stok.apply_chat_template([{"role": "user", "content": p}], add_generation_prompt=True, tokenize=True, return_dict=False)
+            t_prompt = ttok.apply_chat_template([{"role": "user", "content": p}], add_generation_prompt=True, tokenize=True, return_dict=False)
+            samples.append((s_prompt, content + ([gen[ended]] if ended is not None else []),
+                            t_prompt, t_resp + ([t_eot] if ended is not None else []), chunks_, ended is not None, text, content))
+        n_chunks = sum(len(x[4]) + x[5] for x in samples)
+        rkl, adv_sum = 0.0, 0.0
+        for s_prompt, s_resp, t_prompt, t_resp, chunks_, ended, _, _ in samples:
+            with torch.no_grad(), amp():
+                lp_t = response_logprobs(teacher, t_prompt, t_resp, args.device)
+            with amp():
+                lp_s = response_logprobs(student, s_prompt, s_resp, args.device)
+            spans_s = [(a0, a1) for a0, a1, _, _ in chunks_] + ([(len(s_resp) - 1, len(s_resp))] if ended else [])
+            spans_t = [(b0, b1) for _, _, b0, b1 in chunks_] + ([(len(t_resp) - 1, len(t_resp))] if ended else [])
+            s_chunk = torch.stack([lp_s[a:b].sum() for a, b in spans_s])
+            t_chunk = torch.stack([lp_t[a:b].sum() for a, b in spans_t]).to(s_chunk.dtype)
+            adv = (t_chunk - s_chunk.detach()).clamp(-args.clip_adv, args.clip_adv)
+            (-(adv * s_chunk).sum() / max(1, n_chunks)).backward()
+            rkl += float((s_chunk.detach() - t_chunk).sum())
+            adv_sum += float(adv.sum())
+        # 3. KL anchor on replies tokenised the original way
+        kl = torch.zeros(())
+        if args.kl_weight > 0:
+            a = torch.tensor([anchor[(step * args.kl_batch + i) % len(anchor)] for i in range(args.kl_batch)], device=args.device)
+            with torch.no_grad(), amp():
+                t_logits = teacher(input_ids=a).logits
+            with amp():
+                kl = anchor_kl(student(input_ids=a).logits, t_logits, teacher.config.vocab_size)
+            (args.kl_weight * kl).backward()
+        torch.nn.utils.clip_grad_norm_(params, args.clip)
+        opt.step()
+        opt.zero_grad(set_to_none=True)
+        texts = [x[6] for x in samples]
+        rec = {"step": step + 1, "rollouts": len(samples), "reverse_kl_per_chunk": rkl / max(1, n_chunks),
+               "stopped": sum(x[5] for x in samples) / max(1, len(samples)), "loops": sum(looping(t) for t in texts),
+               "new_token_share": sum(sum(y >= first_new for y in x[7]) for x in samples) / max(1, sum(len(x[7]) for x in samples)),
+               "kl_anchor": kl.item(), "lr": opt.param_groups[0]["lr"], "seconds": round(time.time() - t0)}
+        log.write(json.dumps(rec) + "\n"); log.flush()
+        if (step + 1) % args.report == 0 or step + 1 == args.steps:
+            print(f"step {rec['step']}/{args.steps} rKL/chunk {rec['reverse_kl_per_chunk']:.3f} stop {rec['stopped']:.2f} "
+                  f"loops {rec['loops']} new {rec['new_token_share']:.2f} kl {rec['kl_anchor']:.3f} {rec['seconds']}s", file=sys.stderr)
+    student.config.use_cache = True
+    student.to(torch.bfloat16).save_pretrained(args.out, safe_serialization=True)
+    stok.save_pretrained(args.out)
+    (args.out / "new_tokens.json").write_text((args.model / "new_tokens.json").read_text())
+    print(f"saved {args.out}", file=sys.stderr)
+    return 0
+
+
 def eos_ids(tok, model) -> set[int]:
     g = model.generation_config.eos_token_id
     return {i for i in [tok.eos_token_id, *(g if isinstance(g, list) else [g])] if i is not None}
@@ -469,6 +612,24 @@ def main(argv: Sequence[str]) -> int:
     t.add_argument("--teacher", type=Path, help="original model for the KL anchor")
     t.add_argument("--kl-weight", type=float, default=0.0)
     t.add_argument("--kl-batch", type=int, default=4, help="anchor windows per micro-batch")
+    o = sub.add_parser("onpolicy", help="v5: on-policy self-distillation across tokenizers")
+    o.add_argument("--model", type=Path, required=True, help="the expanded model to refine (v4)")
+    o.add_argument("--teacher", type=Path, required=True, help="the original N-ATLaS")
+    o.add_argument("--chat", type=Path, required=True, help="conversations: prompts for rollouts, replies for the KL anchor")
+    o.add_argument("--out", type=Path, required=True)
+    o.add_argument("--steps", type=int, default=300)
+    o.add_argument("--rollouts", type=int, default=32)
+    o.add_argument("--max-new", type=int, default=160)
+    o.add_argument("--temperature", type=float, default=1.0)
+    o.add_argument("--lr", type=float, default=1e-5)
+    o.add_argument("--clip", type=float, default=1.0)
+    o.add_argument("--clip-adv", type=float, default=5.0, help="bound on each chunk's log-ratio")
+    o.add_argument("--edge-layers", type=int, default=2)
+    o.add_argument("--kl-weight", type=float, default=1.0)
+    o.add_argument("--kl-batch", type=int, default=2)
+    o.add_argument("--seq", type=int, default=512)
+    o.add_argument("--report", type=int, default=5)
+    o.add_argument("--seed", type=int, default=0)
     d = sub.add_parser("distill")
     d.add_argument("--model", type=Path, required=True)
     d.add_argument("--flores", type=Path, required=True)
@@ -489,7 +650,7 @@ def main(argv: Sequence[str]) -> int:
     c.add_argument("samples", type=Path, nargs="+", help="JSON from the sample stage")
     c.add_argument("--out", type=Path, required=True)
     args = ap.parse_args(argv)
-    stages = {"score": stage_score, "distill": stage_distill, "expand": stage_expand, "bpc": stage_bpc, "train": stage_train, "sample": stage_sample}
+    stages = {"onpolicy": stage_onpolicy, "score": stage_score, "distill": stage_distill, "expand": stage_expand, "bpc": stage_bpc, "train": stage_train, "sample": stage_sample}
     return stages[args.stage](args)
 
 if __name__ == "__main__":
