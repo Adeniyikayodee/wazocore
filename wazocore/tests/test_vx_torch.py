@@ -125,3 +125,15 @@ def test_anchor_kl_is_zero_for_matching_old_logits_and_ignores_new_ones():
     assert anchor_kl(student, teacher, 5).item() < 1e-6
     other = torch.cat([torch.randn(2, 3, 5), torch.zeros(2, 3, 2)], dim=-1)
     assert anchor_kl(other, teacher, 5).item() > 0
+
+
+def test_test_set_reads_ntrex_and_flores(tmp_path):
+    from wazocore.vx_torch import test_set
+
+    (tmp_path / "newstest2019-src.eng.txt").write_text("a\nb\nc\n", encoding="utf-8")
+    (tmp_path / "newstest2019-ref.yor.txt").write_text("A\nB\nC\n", encoding="utf-8")
+    assert test_set("ntrex", tmp_path, "yo", 2) == (["a", "b"], ["A", "B"])
+    (tmp_path / "devtest").mkdir()
+    (tmp_path / "devtest" / "eng_Latn.devtest").write_text("x\n", encoding="utf-8")
+    (tmp_path / "devtest" / "hau_Latn.devtest").write_text("X\n", encoding="utf-8")
+    assert test_set("flores", tmp_path, "ha", 5) == (["x"], ["X"])

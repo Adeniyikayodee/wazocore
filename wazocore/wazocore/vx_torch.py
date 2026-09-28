@@ -348,31 +348,50 @@ def generation_stats(gen: Sequence[int], canonical: int, first_new: int, eos: se
             "canonical_tokens": canonical, "vs_canonical": len(body) / max(1, canonical)}
 
 
+NTREX = {"yo": "yor", "ha": "hau", "ig": "ibo"}
+
+
+def test_set(kind: str, root: Path, lang: str, n: int) -> tuple[list[str], list[str]]:
+    """English sources and `lang` references: FLORES-200 devtest, or NTREX-128
+    (news; never seen while WazoCore was developed)."""
+    if kind == "ntrex":
+        src = (root / "newstest2019-src.eng.txt").read_text(encoding="utf-8").splitlines()
+        ref = (root / f"newstest2019-ref.{NTREX[lang]}.txt").read_text(encoding="utf-8").splitlines()
+    else:
+        src = (root / "devtest" / "eng_Latn.devtest").read_text(encoding="utf-8").splitlines()
+        ref = (root / "devtest" / f"{CODES[lang]}.devtest").read_text(encoding="utf-8").splitlines()
+    return src[:n], ref[:n]
+
+
 def stage_sample(args) -> int:
-    """Greedy chat translations of FLORES devtest English sentences into
-    yo/ha/ig, with `generation_stats` for each."""
+    """Greedy chat translations of English test sentences into yo/ha/ig,
+    in batches, with `generation_stats` for each."""
     import torch
 
     model, tok = load_model(args.model)
     model = model.to(args.device).eval()
+    tok.padding_side = "left"
+    tok.pad_token = tok.pad_token or tok.eos_token
     first_new = 128256
     eos = eos_ids(tok, model)
-    src = (args.flores / "devtest" / "eng_Latn.devtest").read_text(encoding="utf-8").splitlines()[: args.n]
+    kind, root = ("ntrex", args.ntrex) if args.ntrex else ("flores", args.flores)
     rows = []
     for lang, name in NAMES.items():
-        refs = (args.flores / "devtest" / f"{CODES[lang]}.devtest").read_text(encoding="utf-8").splitlines()
-        for k, sentence in enumerate(src):
-            msgs = [{"role": "user", "content": f"Translate the following English text into {name}. Reply with the translation only.\n\n{sentence}"}]
-            ids = tok.apply_chat_template(msgs, add_generation_prompt=True, return_tensors="pt", return_dict=True)["input_ids"].to(args.device)
+        src, refs = test_set(kind, root, lang, args.n)
+        for b in range(0, len(src), args.batch):
+            chunk = src[b:b + args.batch]
+            msgs = [[{"role": "user", "content": f"Translate the following English text into {name}. Reply with the translation only.\n\n{x}"}] for x in chunk]
+            enc = tok.apply_chat_template(msgs, add_generation_prompt=True, return_tensors="pt", return_dict=True, padding=True).to(args.device)
             with torch.no_grad():
-                out = model.generate(ids, max_new_tokens=args.max_tokens, do_sample=False)
-            gen = out[0, ids.shape[1]:].tolist()
-            text = tok.decode(gen, skip_special_tokens=True).strip()
-            stats = generation_stats(gen, len(tok.encode(text, add_special_tokens=False)), first_new, eos)
-            rows.append({"lang": lang, "i": k, "output": text, "reference": refs[k], **stats})
-            print(f"{lang}{k}: stop={stats['stopped']} tok={stats['tokens']} new={stats['new_tokens']} x{stats['vs_canonical']:.2f} | {text[:90]}", file=sys.stderr)
+                out = model.generate(**enc, max_new_tokens=args.max_tokens, do_sample=False, pad_token_id=tok.pad_token_id)
+            for j, g in enumerate(out[:, enc["input_ids"].shape[1]:].tolist()):
+                k = b + j
+                text = tok.decode(g, skip_special_tokens=True).strip()
+                stats = generation_stats(g, len(tok.encode(text, add_special_tokens=False)), first_new, eos)
+                rows.append({"lang": lang, "i": k, "output": text, "reference": refs[k], **stats})
+            print(f"{lang}: {min(b + args.batch, len(src))}/{len(src)}", file=sys.stderr)
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(json.dumps({"model": str(args.model), "rows": rows}, indent=1, ensure_ascii=False) + "\n")
+    args.out.write_text(json.dumps({"model": str(args.model), "test": kind, "rows": rows}, indent=1, ensure_ascii=False) + "\n")
     return 0
 
 
@@ -461,6 +480,8 @@ def main(argv: Sequence[str]) -> int:
     s = sub.add_parser("sample")
     s.add_argument("--model", type=Path, required=True)
     s.add_argument("--flores", type=Path, required=True)
+    s.add_argument("--ntrex", type=Path, help="NTREX-128 folder: test on it instead of FLORES")
+    s.add_argument("--batch", type=int, default=32)
     s.add_argument("--n", type=int, default=5, help="sentences per language")
     s.add_argument("--max-tokens", type=int, default=160)
     s.add_argument("--out", type=Path, required=True)
