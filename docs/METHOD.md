@@ -164,6 +164,38 @@ matching FLORES.
   references follow other conventions and contain some wrong characters (for
   example ϙ for ọ), which affects all models equally.
 
+## v5: on-policy self-distillation (rejected)
+
+v5 refined v4 with on-policy distillation across tokenizers
+(`vx_torch onpolicy`, `scripts/cloud_vx_v5.sh`, evidence in
+`results/vocab/v5-rejected/`). The student wrote replies with its new tokens,
+and the frozen original scored the same text under its own tokenisation. The
+two were aligned chunk by chunk (every chunk is one WazoCore token), with
+reverse KL in REINFORCE form and the KL anchor kept. Two seeds, 300 steps of
+32 rollouts each.
+
+| NTREX (500) | original | v4 | v5 (seed 0 / 1) |
+|---|---|---|---|
+| Igbo chrF++ Δ vs original | — | −1.2 / −0.9 | −0.6 / 0.0 |
+| Hausa chrF++ Δ vs original | — | −0.6 / −0.4 | 0.0 / +0.1 |
+| Hausa ƙɗɓ, Igbo dots (/100 chars) | 0.206, 8.87 | 0.174, 8.47 | 0.211–0.237, 9.08–9.25 |
+| Loops (/1,500) | 1 | 7 | 7 / 6 |
+| Igbo chars per token | 2.12 | 3.44 | 2.26 |
+
+**v5 closes the Igbo gap and restores the special letters only by returning
+to the original tokens.** New tokens fell from 23% to 6–8% of its own
+replies during training. Its token count is within 7% of the original's, so
+the speed-up is gone.
+
+The on-policy objective rewards whatever the original finds likely, and the
+original's likelihood lives on its own short tokens. Reverse KL is
+mode-seeking, so it pulls the student onto that segmentation.
+
+A v6 would have to fix the segmentation: re-tokenise each rollout canonically
+with the new tokenizer, and score that canonical path. The student can then
+only lower its loss by writing better text, not by writing it in older
+pieces. **v4 remains the release model.**
+
 ## Open work
 
 - **Close the rest of the Igbo gap.** It is mostly a vocabulary effect now.

@@ -1,0 +1,2 @@
+7cbebdf17752afcdabb6bb5282a86b368792562e6b0fca533d38c002ca8c6cd8  /workspace/work/WazoCore-8B-v5.Q4_K_M.gguf
+59e73172a26f94baa9a38b2b1f65c074295e3775ec2c79f32b6319f6ec3cc9b1  /workspace/work/v5-s0/model.safetensors
