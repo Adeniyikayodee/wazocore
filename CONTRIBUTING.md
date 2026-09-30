@@ -1,48 +1,88 @@
-# Engineering House Rules
+# Contributing to WazoCore
 
-These guidelines define how we design, build, and maintain our systems. The goal is to maximize predictability, testability, and modularity by treating functional programming not as a syntax, but as a strict discipline of managing state and side effects.
+Thank you for helping make Nigerian languages as fast to serve as English.
+Contributions of every size are welcome: a new language, a better training
+objective, an evaluation, a runtime integration, or a clearer sentence in the
+docs.
 
-## Core Architectural Principles
+## Getting set up
 
-### 1. Write Pure Functions by Default
-Every function should compute its output solely based on its input parameters. It must not read from global state, modify external variables, or perform hidden operations. If we call a function with the same inputs, it must yield the exact same output every single time.
+Requirements: Python 3.11+, [uv](https://docs.astral.sh/uv/) and, for
+benchmarks, [llama.cpp](https://github.com/ggml-org/llama.cpp).
 
-### 2. Enforce Immutability
-Data does not change in place. Once a structure is created, it is strictly read-only. When a state update is necessary, compute and return a new copy of the data structure with the required modifications. This eliminates race conditions and makes the application state completely predictable.
+```sh
+git clone https://github.com/Adeniyikayodee/wazocore.git && cd wazocore
+uv run --project wazocore --group ref pytest wazocore/tests
+```
 
-### 3. Push Side Effects to the Edges
-The core of the application must consist entirely of pure business logic. Any operation that interacts with the outside world (database reads, network requests, file system access, or logging) is a side effect. These side effects must be isolated and pushed to the outermost boundaries of the system. We build a functional, predictable core wrapped by an imperative shell.
+The tests run on a CPU in seconds, using a tiny model in
+`wazocore/tests/fixtures/`. Training and evaluation of the full model need a
+GPU; see [`docs/cloud-vx.md`](docs/cloud-vx.md).
 
-### 4. Treat Errors as Values
-Do not use exceptions for control flow. Exceptions are invisible in function signatures and break standard program execution. Instead, represent failures explicitly in your return types. Use constructs like `Option`, `Maybe`, `Either`, or `Result` types. If a function can fail, the compiler must force the caller to handle that failure.
+## Where things live
 
-### 5. Separate Data from Execution
-Do not bind behavior and data together in heavy objects. Define plain, immutable data structures to represent the state of the system. Define separate modules of pure functions that accept those data structures as inputs and return new data structures as outputs.
+| Path | Role |
+|---|---|
+| `wazocore/wazocore/vx_core.py` | Pure functions: initialisation, data mixing, chunk alignment, filters |
+| `wazocore/wazocore/vocab_expand.py` | Tokenizer expansion |
+| `wazocore/wazocore/vx_torch.py` | Everything that touches a model or a GPU |
+| `wazocore/wazocore/paired_vx.py` | Paired speed benchmark |
+| `scripts/` | GPU pipelines |
+| `docs/METHOD.md` | The method and every reported result |
 
-### 6. Design for Composition
-Small, single-purpose functions are the building blocks of our system. Design functions so their outputs map cleanly to the inputs of other functions. We solve complex problems by chaining together simple, easily testable functions.
+## Adding a language
 
-## Version Control and Commit Standards
+1. Add its codes to `CODES` and `NAMES` in `vx_torch.py` and to the build step
+   in `vocab_expand.py`.
+2. Provide Wikipedia text in `data/wiki/<code>.txt` and its FLORES-200 files.
+3. If the language uses special letters, add a spelling filter rule in
+   `vx_core.careful_line` so badly spelled training text is excluded.
+4. Build the tokenizer, run `scripts/cloud_vx_pod.sh`, and report the results
+   the same way as `docs/METHOD.md`: speed with the paired benchmark, quality
+   with bootstrap intervals, on a test set not used during development.
 
-Commit messages act as the permanent log of our engineering decisions. They must be pragmatic, concise, and focused on intent.
+## Before you open a pull request
 
-### 1. Explain the Why, Not the What
-Do not describe the code changes. The diff already tells us what lines were added or removed. The commit message must explain the business or technical reasoning behind the change.
+- The tests pass, and new logic in `vx_core.py` comes with a test.
+- Claims about speed or quality include the command and the raw results that
+  produced them. A result that did not work is worth documenting too.
+- Commits follow the standards below.
 
-### 2. Keep Commits Atomic
-A single commit must represent one logical change. Do not bundle unrelated refactoring, feature additions, and bug fixes into a single massive commit.
+## Engineering principles
 
-### 3. Strict Rule on Metadata
-Under no circumstances should commit messages contain URLs to AI chat sessions, generated prompt logs, or personal tracking links. Keep the git history strictly focused on the source code and the engineering context.
+The goal is predictable, testable, modular code: functional programming as a
+discipline for managing state and side effects, not as a syntax.
 
-### 4. Commit Message Format
-Adopt a clean, professional standard format for the first line. Keep it under 50 characters.
+1. **Write pure functions by default.** A function computes its output only
+   from its inputs: no global state, no hidden operations. The same inputs
+   always give the same output.
+2. **Enforce immutability.** Data does not change in place. When state must
+   change, compute and return a new copy.
+3. **Push side effects to the edges.** The core is pure logic. File access,
+   network calls, GPU work and logging live in an imperative shell around it
+   (here, `vx_core.py` is the core and `vx_torch.py` the shell).
+4. **Treat errors as values.** Do not use exceptions for control flow. Make
+   failure explicit in the return type so the caller must handle it; in
+   Python, return `None` or a result value for expected failures (for example,
+   `chunk_align` returns `None` when two tokenisations do not match) and reserve
+   exceptions for programming errors.
+5. **Separate data from execution.** Plain, immutable data structures for
+   state; separate modules of pure functions that transform them.
+6. **Design for composition.** Small, single-purpose functions whose outputs
+   feed cleanly into the next.
 
-Format: `[Scope] Action performed and reasoning`
+## Commit standards
 
-Examples of acceptable commit messages:
+Commit messages are the permanent record of engineering decisions.
 
-- `fix(auth): prevent race condition on token refresh`
-- `perf(db): add composite index to speed up user queries`
-- `refactor(api): extract payment validation into pure function`
-- `feat(cart): implement immutable cart state calculation`
+1. **Explain the why, not the what.** The diff shows what changed; the message
+   explains the technical or product reason.
+2. **Keep commits atomic.** One logical change per commit.
+3. **No external metadata.** Never include links to AI chat sessions, prompt
+   logs or personal tracking links.
+4. **Format.** `scope(area): action`, under 50 characters on the first line.
+   Examples from this repository:
+   - `fix(trace): reject merges that split a character`
+   - `feat(trace): add on-policy distillation stage`
+   - `refactor(scripts): share one GGUF export script`
+   - `docs(method): record v5 and why it was rejected`
