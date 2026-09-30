@@ -19,7 +19,7 @@ anywhere: both models run offline on your laptop.
 1. Go to **lmstudio.ai**, download LM Studio for your computer and install it.
 2. Open it once, then close it.
 
-## 2. Download and add the two models (20–40 minutes, mostly waiting)
+## 2. Download and add the two models (20 to 40 minutes, mostly waiting)
 
 1. Download **model-A.gguf** and **model-B.gguf** from the link you were sent.
    Save both in your Downloads folder.

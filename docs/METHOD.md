@@ -84,7 +84,7 @@ each sentence (`results/vocab/m4-cpu-v4-paired.json`).
 | English | 7.43 → 7.14 | 0.96 | 0.98 | 1.28 → 1.31 |
 
 \*19 sentences. One Yoruba request stalled for 223 s because of the laptop
-(0.3 tokens/s against 7–13 for every other request); with it included, the
+(0.3 tokens/s against 7 to 13 for every other request); with it included, the
 Yoruba figure is 0.59×. Raw data: `results/vocab/m4-cpu-v4-paired.json`. Decode tokens/s is unchanged (about 9), so the larger
 vocabulary costs nothing. llama.cpp's tokenisation matches the reference
 tokenizer on 160/160 test sentences. There were 0 failed replies in 80.
@@ -155,8 +155,8 @@ matching FLORES.
 
 - **The results hold.** On both test sets and both seeds, Yoruba is equal or
   slightly better, Hausa is within noise, and Igbo is about 1 chrF++ lower
-  (2–3%).
-- **Seed-to-seed spread is about ±0.3–0.5 chrF++.**
+  (2 to 3%).
+- **Seed-to-seed spread is about ±0.3 to 0.5 chrF++.**
 - **The earlier Yoruba figure was optimistic.** The earlier +1.0 on FLORES
   (unbatched) is +0.1 to +0.6 under these stricter tests, the expected
   selection effect.
@@ -176,14 +176,14 @@ reverse KL in REINFORCE form and the KL anchor kept. Two seeds, 300 steps of
 
 | NTREX (500) | original | v4 | v5 (seed 0 / 1) |
 |---|---|---|---|
-| Igbo chrF++ Δ vs original | — | −1.2 / −0.9 | −0.6 / 0.0 |
-| Hausa chrF++ Δ vs original | — | −0.6 / −0.4 | 0.0 / +0.1 |
-| Hausa ƙɗɓ, Igbo dots (/100 chars) | 0.206, 8.87 | 0.174, 8.47 | 0.211–0.237, 9.08–9.25 |
+| Igbo chrF++ Δ vs original | n/a | −1.2 / −0.9 | −0.6 / 0.0 |
+| Hausa chrF++ Δ vs original | n/a | −0.6 / −0.4 | 0.0 / +0.1 |
+| Hausa ƙɗɓ, Igbo dots (/100 chars) | 0.206, 8.87 | 0.174, 8.47 | 0.211 to 0.237, 9.08 to 9.25 |
 | Loops (/1,500) | 1 | 7 | 7 / 6 |
 | Igbo chars per token | 2.12 | 3.44 | 2.26 |
 
 **v5 closes the Igbo gap and restores the special letters only by returning
-to the original tokens.** New tokens fell from 23% to 6–8% of its own
+to the original tokens.** New tokens fell from 23% to 6 to 8% of its own
 replies during training. Its token count is within 7% of the original's, so
 the speed-up is gone.
 
