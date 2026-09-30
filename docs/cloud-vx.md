@@ -1,80 +1,75 @@
-# V3 on a rented GPU (vocabulary-expansion training)
+# Training on a cloud GPU
 
-Why: local MLX training on the 16 GB laptop swaps (~15 tok/s), so the
-training run (`docs/METHOD.md`) needs one 80 GB GPU for a few hours.
-Script: `wazocore/wazocore/vx_torch.py`.
+Everything except training runs on a laptop. Training, evaluation and GGUF
+export need one 80 GB GPU for about three hours. This runbook uses RunPod; any
+host with SSH, an NVIDIA A100 or H100 80GB, CUDA PyTorch and 150 GB of disk
+works the same way.
 
-## Quick path (v2 vocabulary, one script)
+## Pipelines
 
-1. Deploy the pod (section 1). The key `~/.ssh/runpod_natlas.pub` must be in RunPod Settings **before** deploying.
-2. From the laptop: `scripts/cloud_vx_upload.sh HOST PORT`. This uploads the code, data, the v2 tokenizer, the distilled conversations, and the original model's scores from the 25 Sep run.
-3. On the pod (web terminal): `/workspace/venv/bin/hf auth login` with a read token (the upload script installs `hf` and prints the GPU name), then
-   `tmux new -s vx 'bash /workspace/cloud_vx_pod.sh 2>&1 | tee /workspace/run.log'`.
-4. Expected run: ~1.5 h on an A100 80GB (download 2 min, training ~35 min, eval ~20 min, GGUF ~15 min). Outputs land in `/workspace/work/`: `results/`, `N-ATLaS-vx.Q4_K_M.gguf`, and the trained model (in `/dev/shm/work/vx-trained` if the disk is small).
-5. Copy back the GGUF, `results/` and the trained model, and check `results/sha256.txt` before deleting the pod.
+Each pipeline is one script that runs end to end on the GPU host and writes its
+results under `/workspace/work/`.
 
-The steps below are the manual version the script automates.
+| Script | What it does | Time on an A100 |
+|---|---|---|
+| `cloud_vx_pod.sh` | Builds WazoCore with the release recipe: expansion, self-distillation (reuses cached replies when present), training, BPC, 200-sentence chrF++ gate with bootstrap intervals, GGUF export, and the no-new-tokens control run | about 3 h |
+| `cloud_vx_validate.sh` | Retrains with a second seed and scores the original, the released model and the new run on NTREX-128 (500) and FLORES-200 (200) | about 2 h |
+| `cloud_vx_v5.sh` | The on-policy distillation experiment (section 6 of `METHOD.md`) | about 4 h |
+| `cloud_gguf.sh` | GGUF export, shared by the pipelines | about 5 min |
 
-## 1. Pod
+## Run it
 
-- RunPod, 1× A100 80GB or H100 80GB, template "RunPod PyTorch", volume 150 GB.
-- Add the laptop's `~/.ssh/id_ed25519.pub` under Settings → SSH Public Keys.
-- Use the "SSH over exposed TCP" command (plain ssh; scp/rsync work with it).
+1. **Start a GPU host.** On RunPod: add your public SSH key under Settings →
+   SSH Public Keys *before* deploying, then deploy an A100 80GB with the
+   "RunPod PyTorch" template and a 150 GB disk. Note the "SSH over exposed TCP"
+   host and port.
+2. **Upload code and inputs** from the repository root (about 150 MB):
 
-## 2. Upload (from the repo root on the laptop, ~140 MB)
+   ```sh
+   SSH_KEY=~/.ssh/id_ed25519 scripts/cloud_vx_upload.sh HOST PORT
+   ```
 
-    export POD="root@HOST"; export PORT=PORT
-    rsync -az -e "ssh -p $PORT" --exclude .venv --exclude __pycache__ wazocore $POD:/workspace/
-    rsync -az -e "ssh -p $PORT" data/wiki data/flores200_dataset $POD:/workspace/work/data/
-    rsync -az -e "ssh -p $PORT" data/models/n-atlas-vx/ $POD:/workspace/work/n-atlas-vx-tok/
+   This copies the code, the pipelines, the Wikipedia and FLORES text, NTREX,
+   the expanded tokenizer and any cached distillation data, creates a Python
+   environment on the host, and prints the GPU name as a check.
+3. **Log in to Hugging Face** on the host (N-ATLaS is gated; a read token is
+   enough): `/workspace/venv/bin/hf auth login`.
+4. **Start the pipeline** in `tmux`, so it survives a dropped connection:
 
-## 3. On the pod
+   ```sh
+   tmux new -d -s run 'HF_HOME=/workspace/.cache/huggingface bash /workspace/cloud_vx_pod.sh 2>&1 | tee /workspace/run.log'
+   ```
 
-    cd /workspace/wazocore
-    pip install -q "transformers>=5.0" safetensors
-    hf auth login          # read-only token; N-ATLaS is gated
-    hf download NCAIR1/N-ATLaS --local-dir ../work/n-atlas
-    cd /workspace/wazocore && export W=../work F=../work/data/flores200_dataset
-    python -m wazocore.vx_torch expand --base $W/n-atlas --vx $W/n-atlas-vx-tok --out $W/vx-init
-    python -m wazocore.vx_torch bpc --model $W/n-atlas --flores $F --out $W/bpc-original.json
-    python -m wazocore.vx_torch bpc --model $W/vx-init --flores $F --out $W/bpc-init.json
+   `cloud_vx_validate.sh` and `cloud_vx_v5.sh` also need
+   `HF_MODEL=<user>/<repo>`, the Hugging Face repository holding the trained
+   model to evaluate or refine.
+5. **Copy results back** with `rsync`, and check `sha256.txt` against the
+   copies before stopping the host. The host bills by the hour until it is
+   deleted.
 
-Pilot (catch divergence or out-of-memory in minutes, not hours):
+## Outputs
 
-    python -m wazocore.vx_torch train --model $W/vx-init --data $W/data --flores $F \
-        --out $W/vx-pilot --tokens 400000 --eval-every 25
+- `results/`: every score, sample and training log, as JSON.
+- A Q4_K_M GGUF of the trained model (about 5 GB).
+- The trained model in Hugging Face format (about 16 GB).
 
-Loss must fall and yo/ha/ig BPC must drop below the `bpc-init` values.
-Out of memory: `--batch 8`. Then the full run (~5M tokens) in tmux:
+## Known pitfalls
 
-    tmux new -s vx
-    python -m wazocore.vx_torch train --model $W/vx-init --data $W/data --flores $F --out $W/vx-trained
-    python -m wazocore.vx_torch bpc --model $W/vx-trained --flores $F --out $W/bpc-trained.json
-    python -m wazocore.vx_torch sample --model $W/vx-trained
-
-Gate (V3): trained BPC within +3% of `bpc-original` per language, both
-measured here on the same GPU (the laptop's results/vocab/bpc-original.json
-is from the 4-bit MLX model and is not the comparison point).
-
-## 4. GGUF on the pod, then bring back only ~5 GB
-
-    git clone --depth 1 https://github.com/ggml-org/llama.cpp /workspace/llama.cpp
-    pip install -q -r /workspace/llama.cpp/requirements/requirements-convert_hf_to_gguf.txt
-    cmake -S /workspace/llama.cpp -B /workspace/llama.cpp/build && cmake --build /workspace/llama.cpp/build --target llama-quantize -j
-    python /workspace/llama.cpp/convert_hf_to_gguf.py $W/vx-trained --outtype bf16 --outfile $W/vx.bf16.gguf
-    /workspace/llama.cpp/build/bin/llama-quantize $W/vx.bf16.gguf $W/N-ATLaS-vx.Q4_K_M.gguf Q4_K_M
-
-From the laptop:
-
-    rsync -az -e "ssh -p $PORT" $POD:/workspace/work/{N-ATLaS-vx.Q4_K_M.gguf,bpc-*.json,vx-trained/log.jsonl} data/runs/cloud/
-
-## What actually happened (25 Sep run) and the fixes
-
-- **No volume:** the pod came up without a volume (30 GB container disk only). Model files lived in `/dev/shm` (134 GB, RAM-backed), deleting each one after use. It is lost on restart, so copy results out early.
-- **Hugging Face login:** the web terminal's `hf auth login` stores the token under `/workspace/.cache/huggingface`, so SSH commands need `export HF_HOME=/workspace/.cache/huggingface`.
-- **Separate environment for llama.cpp:** llama.cpp's converter requirements downgrade transformers (to 4.57) and install a CPU-only torch. Give it its own venv (`/workspace/venv-gguf`) and never install it into the training venv.
-- **Tokenizer class:** transformers 5 saves `tokenizer_class: TokenizersBackend`, which the older converter cannot load. Convert from a symlinked copy whose `tokenizer_config.json` says `PreTrainedTokenizerFast`.
-- **Pre-tokenizer hash:** the converter rejects the expanded tokenizer because its pre-tokenizer hash is unknown. After checking that the pre-tokenizer is unchanged, add the reported `chkhsh` → `res = "llama-bpe"` in `conversion/base.py`.
-- **Recipe:** the winning run adds self-distillation (`distill`, then `train --chat`); see `docs/METHOD.md`.
-
-**Stop and delete the pod afterwards**: it bills per hour while it exists.
+- **Small disks.** If the host has less than 80 GB free, the pipeline keeps
+  model files in RAM-backed `/dev/shm`; copy results out before any restart.
+- **Hugging Face login location.** A login made in a web terminal is stored
+  under `/workspace/.cache/huggingface`; set `HF_HOME` to that path for SSH
+  sessions, as in step 4.
+- **llama.cpp's converter** downgrades transformers and installs a CPU-only
+  PyTorch. `cloud_gguf.sh` gives it a separate environment; never install its
+  requirements into the training environment.
+- **Tokenizer class.** transformers 5 saves `tokenizer_class:
+  TokenizersBackend`, which the converter cannot read; `cloud_gguf.sh` converts
+  from a copy that declares `PreTrainedTokenizerFast`.
+- **Pre-tokenizer fingerprint.** The converter identifies tokenizers by a hash
+  of sample output, which the new merges change. `cloud_gguf.sh` maps the new
+  hash to `llama-bpe`, which is correct because the pre-tokenizer itself is
+  unchanged.
+- **Memory.** With the teacher model loaded for the KL anchor, training uses
+  about 78 of 80 GB at micro-batch 8; lower `--batch` and raise `--accum` if a
+  different GPU runs out of memory.
