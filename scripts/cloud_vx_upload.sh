@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 # Copies code and inputs for scripts/cloud_vx_pod.sh to a pod.
-#   scripts/cloud_vx_upload.sh HOST PORT [VX_TOKENIZER_DIR]
+#   [SSH_KEY=~/.ssh/key] scripts/cloud_vx_upload.sh HOST PORT [VX_TOKENIZER_DIR]
 set -euo pipefail
 host=${1:?host}; port=${2:?port}; vx=${3:-data/models/n-atlas-vx2}
 root=$(cd "$(dirname "$0")/.." && pwd); cd "$root"
-e="ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new -i $HOME/.ssh/runpod_natlas -p $port"
+e="ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new -i ${SSH_KEY:-$HOME/.ssh/id_ed25519} -p $port"
 $e root@$host 'mkdir -p /workspace/work/data'
 rsync -az -e "$e" --exclude .venv --exclude __pycache__ --exclude .pytest_cache wazocore root@$host:/workspace/
 rsync -az -e "$e" scripts/cloud_vx_pod.sh scripts/cloud_vx_validate.sh scripts/cloud_vx_v5.sh scripts/cloud_gguf.sh root@$host:/workspace/
