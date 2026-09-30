@@ -9,7 +9,7 @@ tags: [llama-3, vocabulary-expansion, yoruba, hausa, igbo, gguf]
 <!-- The N-ATLaS licence requires renamed derivatives to end with "Powered by Awarri." -->
 # WazoCore Powered by Awarri.
 
-**Nigerian languages at the speed of English.** WazoCore is N-ATLaS with
+**Faster in your own language.** WazoCore is N-ATLaS with
 15,000 new Yoruba, Hausa and Igbo tokens. It writes these languages in 1.4 to
 1.6 times fewer tokens, so replies arrive 1.55 to 1.64 times faster in any
 standard engine, with no change to your code.
