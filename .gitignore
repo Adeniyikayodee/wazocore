@@ -10,3 +10,4 @@ __pycache__/
 /vendor
 !wazocore/tests/fixtures/**
 results/**/*.log
+assets/fonts/
