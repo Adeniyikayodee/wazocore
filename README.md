@@ -1,5 +1,9 @@
 ![WazoCore: faster in your own language](assets/banner.svg)
 
+![The same Yoruba text streamed by N-ATLaS and by WazoCore](assets/demo.gif)
+
+<sub>Replay of real tokenisations of a FLORES-200 Yoruba passage, streamed at the decode speed measured in llama.cpp on an Apple M4 CPU (9 tokens per second), shown at 2× speed. Each shaded block is one token.</sub>
+
 A version of N-ATLaS, Nigeria's open language model, that reads and writes Yoruba, Hausa and Igbo in 1.4 to 1.6 times fewer tokens. It drops into llama.cpp, LM Studio and any OpenAI-compatible stack as a standard GGUF, and generates these languages 1.55 to 1.64 times faster on an ordinary laptop. We trade about one chrF++ point in Igbo for that speed; Yoruba and Hausa quality is unchanged, and so is English.
 
 - **Faster replies**: the same answer arrives in 61 to 65% of the time, because each token now carries more of a word. Decode speed in tokens per second is identical, so the gain holds on any hardware.
