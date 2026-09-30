@@ -1,8 +1,8 @@
 ![WazoCore: faster in your own language](assets/banner.svg)
 
-![The same Yoruba text streamed by N-ATLaS and by WazoCore](assets/demo.gif)
+![The same passage streamed by N-ATLaS and by WazoCore in Yoruba, Hausa and Igbo](assets/demo.gif)
 
-<sub>Replay of real tokenisations of a FLORES-200 Yoruba passage, streamed at the decode speed measured in llama.cpp on an Apple M4 CPU (9 tokens per second), shown at 2× speed. Text colour alternates at each token boundary.</sub>
+<sub>The same FLORES-200 passage in Yoruba, Hausa and Igbo. Replay of real tokenisations, streamed at the decode speed measured in llama.cpp on an Apple M4 CPU (9 tokens per second), shown at 2× speed. Text colour alternates at each token boundary.</sub>
 
 A version of N-ATLaS, Nigeria's open language model, that reads and writes Yoruba, Hausa and Igbo in 1.4 to 1.6 times fewer tokens. It drops into llama.cpp, LM Studio and any OpenAI-compatible stack as a standard GGUF, and generates these languages 1.55 to 1.64 times faster on an ordinary laptop. We trade about one chrF++ point in Igbo for that speed; Yoruba and Hausa quality is unchanged, and so is English.
 
@@ -11,7 +11,7 @@ A version of N-ATLaS, Nigeria's open language model, that reads and writes Yorub
 - **More in context**: N-ATLaS's 8,092-token window holds 8.8 pages of Yoruba instead of 5.6.
 - **Drop-in**: same file format, same chat template, same API. All 128,256 original tokens keep their ids, so English and everything N-ATLaS already knows stay intact.
 
-![WazoCore vs N-ATLaS: speed-up, token reduction and quality](assets/results.svg)
+![WazoCore against N-ATLaS: speed-up, token reduction and quality](assets/results.gif)
 
 WazoCore continues N-ATLaS's byte-level BPE with 15,000 merges learned jointly on Yoruba, Hausa and Igbo, rejecting any merge that would split a UTF-8 character. New input embeddings start as the mean of their original pieces and output embeddings as the byte-length-weighted mean. Training updates only the new rows and the outer four of 32 transformer layers, on N-ATLaS's own translations re-tokenised into the new vocabulary, with a KL anchor to the frozen original on the old segmentation and a gradient mask that leaves every original row exact. It takes about 40 minutes on one A100.
 
