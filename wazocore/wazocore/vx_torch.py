@@ -25,7 +25,7 @@ import time
 from pathlib import Path
 from typing import Sequence
 
-from wazocore.vx_core import ENGLISH_MARKERS, bits_per_char, byte_decoder, careful_text, char_lengths, chunk_align, chunks, decompose, init_rows, looping, lr_at, mixture
+from wazocore.vx_core import ENGLISH_MARKERS, bits_per_char, byte_decoder, careful_text, char_lengths, chunk_align, chunks, decompose, init_rows, looping, lr_at, mixture, nfc_rows
 
 CODES = {"en": "eng_Latn", "yo": "yor_Latn", "ha": "hau_Latn", "ig": "ibo_Latn"}
 
@@ -558,11 +558,11 @@ def stage_score(args) -> int:
     chrf = lambda hyp, ref: sacrebleu.corpus_chrf(list(hyp), [list(ref)], word_order=2).score
     report = {}
     for path in args.samples:
-        report[path.stem] = score_rows(json.loads(path.read_text(encoding="utf-8"))["rows"], chrf)
+        report[path.stem] = score_rows(nfc_rows(json.loads(path.read_text(encoding="utf-8"))["rows"]), chrf)
         for lang, r in report[path.stem].items():
             print(f"{path.stem} {lang}: chrF++ {r['chrf++']:.2f} stop {r['stopped']}/{r['n']} chars/token {r['chars'] / max(1, r['tokens']):.2f} invalid {r['invalid_utf8']}", file=sys.stderr)
     if len(args.samples) == 2:  # paired comparison: second vs first
-        base, new = (json.loads(p.read_text(encoding="utf-8"))["rows"] for p in args.samples)
+        base, new = (nfc_rows(json.loads(p.read_text(encoding="utf-8"))["rows"]) for p in args.samples)
         report["paired"] = {}
         for lang in NAMES:
             a = sorted((r for r in base if r["lang"] == lang), key=lambda r: r["i"])

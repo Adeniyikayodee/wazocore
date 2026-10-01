@@ -155,6 +155,16 @@ def chunk_sums(values: Sequence[float], spans: Sequence[tuple[int, int]]) -> lis
     return [sum(values[s:e]) for s, e in spans]
 
 
+def nfc_rows(rows: Sequence[dict]) -> list[dict]:
+    """Rows with `output` and `reference` in Unicode NFC. NTREX-128 Yoruba
+    references are stored decomposed (letter + combining accent) while the
+    models write composed characters; scored raw, chrF++ counts the two as
+    different letters and halves every model's score."""
+    import unicodedata
+
+    return [{**r, "output": unicodedata.normalize("NFC", r["output"]), "reference": unicodedata.normalize("NFC", r["reference"])} for r in rows]
+
+
 def looping(text: str, unit: tuple[int, int] = (2, 6), repeats: int = 6) -> bool:
     """A short unit repeated back to back (e.g. 'ereereere…'): the failure
     WazoCore showed more often than the original."""

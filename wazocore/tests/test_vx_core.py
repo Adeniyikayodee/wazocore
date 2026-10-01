@@ -88,3 +88,10 @@ def test_chunk_sums_and_looping():
     assert chunk_sums([-1.0, -2.0, -0.5], [(0, 2), (2, 3)]) == [-3.0, -0.5]
     assert looping("ahịaereereereereereereere")
     assert not looping("Ndị obodo ahụ bụ ndị ọrụ ugbo.")
+
+
+def test_nfc_rows_compose_decomposed_accents():
+    from wazocore.vx_core import nfc_rows
+
+    rows = nfc_rows([{"lang": "yo", "output": "pé", "reference": "é"}])
+    assert rows == [{"lang": "yo", "output": "pé", "reference": "é"}]
