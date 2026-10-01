@@ -1,0 +1,86 @@
+{
+ "ntrex-gguf-n-atlas": {
+  "yo": {
+   "n": 250,
+   "chrf++": 28.5736265788375,
+   "stopped": 241,
+   "tokens": 18155,
+   "chars": 29739,
+   "new_tokens": 0,
+   "invalid_utf8": 0
+  },
+  "ha": {
+   "n": 250,
+   "chrf++": 46.64278662122296,
+   "stopped": 250,
+   "tokens": 12219,
+   "chars": 32177,
+   "new_tokens": 0,
+   "invalid_utf8": 0
+  },
+  "ig": {
+   "n": 250,
+   "chrf++": 42.78540081402614,
+   "stopped": 245,
+   "tokens": 14620,
+   "chars": 29774,
+   "new_tokens": 0,
+   "invalid_utf8": 0
+  }
+ },
+ "ntrex-gguf-wazocore": {
+  "yo": {
+   "n": 250,
+   "chrf++": 29.120617091412832,
+   "stopped": 246,
+   "tokens": 12283,
+   "chars": 30263,
+   "new_tokens": 0,
+   "invalid_utf8": 0
+  },
+  "ha": {
+   "n": 250,
+   "chrf++": 45.464585929000755,
+   "stopped": 249,
+   "tokens": 8605,
+   "chars": 31975,
+   "new_tokens": 0,
+   "invalid_utf8": 0
+  },
+  "ig": {
+   "n": 250,
+   "chrf++": 39.88769868543297,
+   "stopped": 242,
+   "tokens": 9725,
+   "chars": 31688,
+   "new_tokens": 0,
+   "invalid_utf8": 0
+  }
+ },
+ "paired": {
+  "yo": {
+   "delta": 0.5469905125753307,
+   "ci95": [
+    -0.6876040870552984,
+    1.7805164296990696
+   ],
+   "p_worse": 0.183
+  },
+  "ha": {
+   "delta": -1.1782006922222052,
+   "ci95": [
+    -2.028126535523903,
+    -0.3142681566180414
+   ],
+   "p_worse": 0.992
+  },
+  "ig": {
+   "delta": -2.897702128593167,
+   "ci95": [
+    -4.253292677958896,
+    -1.6342341541830692
+   ],
+   "p_worse": 1.0
+  }
+ }
+}

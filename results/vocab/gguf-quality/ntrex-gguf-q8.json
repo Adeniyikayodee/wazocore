@@ -1,0 +1,2407 @@
+{
+ "model": "data/models/gguf-vx4/WazoCore-8B-v4.Q8_0.gguf",
+ "test": "ntrex",
+ "rows": [
+  {
+   "lang": "ig",
+   "i": 0,
+   "output": "Ndị AM Welsh na-echegbu onwe ha banyere \"ịdị ka muppets\"",
+   "reference": "Welsh AM na enwe mgbakasị ahụ maka ‘ị dị ka ihe egwuregwu’",
+   "stopped": true,
+   "tokens": 20,
+   "gen_ms": 1498.827,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 1,
+   "output": "Enwere nchegbu n'etiti ụfọdụ AMs n'ihe gbasara atụmatụ mgbanwe aha ha ka ọ bụrụ MWPs (Onye otu Welsh Parliament).",
+   "reference": "Enwere nchekasị ahụ n’ime ụfọdụ AMs maka ntụle na ekwesịrị ịgbanwe aha ha ka ọ bụrụ MWPs (Member of the Welsh Parliament).",
+   "stopped": true,
+   "tokens": 29,
+   "gen_ms": 2214.351,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 2,
+   "output": "Ọ malitere n'ihi atụmatụ ịgbanwe aha ọgbakọ ahụ ka ọ bụrụ Ụlọ Nzukọ Welsh.",
+   "reference": "Ọ malitere n’ihi atụmatụ nke ịgbanwe aha nke ndị otu obodo ahụ ka ọ bụrụ Nzụkọ Omeiwu Welsh.",
+   "stopped": true,
+   "tokens": 17,
+   "gen_ms": 1256.461,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 3,
+   "output": "Ndị AMs n'ofe usoro ndọrọ ndọrọ ọchịchị na-echegbu onwe ha na ọ nwere ike ịkpata ịkpọasị.",
+   "reference": "AMs n’ofe ụdị ndọrọndọrọ ọchịchị dị iche iche na enwe nchekasị ahụ na ọ nwere ike ibute ihe mkparị.",
+   "stopped": true,
+   "tokens": 29,
+   "gen_ms": 2199.473,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 4,
+   "output": "Otu onye Labour AM kwuru na otu ya nwere nchegbu \"na ọ na-ada ụda na Twp na Pwp.\"",
+   "reference": "Otu AM nke Labour kwuru na ndị otu ya na echekasị na “ọ na ada ka Twp na Pwp.”",
+   "stopped": true,
+   "tokens": 28,
+   "gen_ms": 2116.609,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 5,
+   "output": "Maka ndị na-agụ n'èzí Wales: N'asụsụ Welsh, twp pụtara onye na-adịghị mma n'uche ma pwp pụtara ihe na-adịghị mma.",
+   "reference": "Maka ndị ọgụ akwụkwọ nọ na mpụga Wales: Na Welsh twp pụtara iberibe, pwp pụtara nsị.",
+   "stopped": true,
+   "tokens": 32,
+   "gen_ms": 2417.262,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 6,
+   "output": "Otu AM na-achachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachachacha",
+   "reference": "AM Yi Uwe Ajị Anụ kwuru na otu ahụ dị ka dum “na ewe iwe”, na ọ nwere ihe ndị ọzọ atụnyere.",
+   "stopped": false,
+   "tokens": 160,
+   "gen_ms": 12383.737,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 7,
+   "output": "Onye Conservative Welsh kwuru na otu ya \"na-emeghe uche\" banyere mgbanwe aha, ma kwuo na ọ bụ obere okwu okwu site na MWP ruo Muppet.",
+   "reference": "Otu onye Kọnzavetiv Welsh kwuru na otu ya “meghere obi emeghe” gbasara mgbanwe aha ahụ, mana kwupụta na ọ bụ mkpumkpu nwụfe okwu site na MWP gaa na Ihe Egwuregwu.",
+   "stopped": true,
+   "tokens": 35,
+   "gen_ms": 2641.65,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 8,
+   "output": "N'okwu a, mkpụrụedemede Welsh w na-ekwu dị ka okwu Yorkshire Bekee nke mkpụrụedemede u.",
+   "reference": "Na nghọta a ana akpọpụta mkpụrụedemede w nke Welsh otu ụzọ ka esi akpọpụta mkpụrụedemede u nke Bekee nke Yorkshire.",
+   "stopped": true,
+   "tokens": 21,
+   "gen_ms": 1552.262,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 9,
+   "output": "Ụlọ ọrụ nke na-ede iwu ugbu a iji webata mgbanwe aha, kwuru: \"mkpebi ikpeazụ maka ihe ọ bụla na-akọwa ihe ndị otu Assembly bụ, n'ezie, ihe ga-adabere na ndị otu n'onwe ha.\"",
+   "reference": "Kọmishọn nke Mgbakọ Mba ahụ, nke na edepụta iwu iji bubata mgbanwe aha ahụ, kwuru: “Mkpebi ikpeazụ na ihe nkọwa ọ bụla nke a na akpọ Ndị Otu nke Mgbakọ Mba ga-abụ okwu maka ndị otu n’onwe ha.”",
+   "stopped": true,
+   "tokens": 50,
+   "gen_ms": 3823.841,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 10,
+   "output": "Ụlọ ọrụ Wales Act 2017 nyere ndị Welsh assembly ikike ịgbanwe aha ya.",
+   "reference": "Gọọmentị nke Atụmatụ Wales 2017 nyere mgbakọ mba Welsh ikike iji gbanwee aha ya.",
+   "stopped": true,
+   "tokens": 17,
+   "gen_ms": 1243.146,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 11,
+   "output": "N'ọnwa Jun, Kọmishọn bipụtara nsonaazụ nyocha ọha na eze banyere atụmatụ ndị ahụ nke chọtara nkwado sara mbara maka ịkpọ ọgbakọ ahụ Welsh Parliament.",
+   "reference": "Na Juun, Kọmịshọn ahụ bipụtara nsonaazụ nke ndụmọdụ ọhaneze na ebumnuche ndị ahụ nke chọpụtara nkwado gbasara agbasa maka ịkpọ mgbakọ mba ahụ Nzụkọ Ọmeiwu Welsh.",
+   "stopped": true,
+   "tokens": 35,
+   "gen_ms": 2641.841,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 12,
+   "output": "N'ihe gbasara aha AMs, kọmishọna ahụ chọrọ ndị otu Welsh Parliament ma ọ bụ WMPs, mana nhọrọ MWP nwetara nkwado kacha ukwuu n'oge nyocha ọha.",
+   "reference": "N’okwu nke aha nke ndị AM, Kọmịshọn ahụ dabedoro na Ndị Otu Nzụkọ Ọmeiwu Welsh ma ọ bụ WMP, mana nhọrọ MWP nwetara nkwado kachasị n’aka ndụmọdụ nke ọhaneze.",
+   "stopped": true,
+   "tokens": 40,
+   "gen_ms": 3043.37,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 13,
+   "output": "Ndị AMs na-ekwu na ha na-atụ aro nhọrọ ndị ọzọ, mana ọgbaghara iji nweta nkwenye nwere ike ịbụ ihe na-akụda mmụọ maka Onye isi oche, Elin Jones, onye a na-atụ anya na ọ ga-ebipụta ọrụ iwu na mgbanwe n'ime izu ole na ole.",
+   "reference": "Ndị AM na atụnye nhọrọ ndị ọzọ n’ezie, mana ọgụ iji ruo nkwekọrịta nwere ike ịbụ ihe isi mgbu maka Onye Ọrụ Nọ N’isi, Elin Jones, onye nke atụrụ anya na ọ ga-enyefe iwu edere edere maka mgbanwe ndị ahụ n’ime izu ndị na abịa.",
+   "stopped": true,
+   "tokens": 67,
+   "gen_ms": 5131.378,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 14,
+   "output": "Iwu gbasara mgbanwe ahụ ga-agụnyekwa mgbanwe ndị ọzọ na otú ụlọ omebe iwu si arụ ọrụ, gụnyere iwu gbasara ịhapụ ndị otu na nhazi usoro kọmiti.",
+   "reference": "Iwu maka mmezi ndị ahụ ga-agụnye mgbanwe ndị ọzọ n’ụzọ nke mgbakọ mba ahụ si arụ ọrụ, gụnyere iwu maka nchutu nke ndị AM yana nka nke sistemụ otu ahụ.",
+   "stopped": true,
+   "tokens": 39,
+   "gen_ms": 2955.226,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 15,
+   "output": "Ndị AM ga-enweta votu ikpeazụ na ajụjụ nke ihe ha kwesịrị ịkpọ mgbe ha na-eme iwu.",
+   "reference": "Ndị AM ga-enwete ntuli aka ikpeazụ gbasara ajụjụ nke ihe ekwesịrị ịkpọ ha mgbe ha arụtụrụ aka gbasara iwu ahụ.",
+   "stopped": true,
+   "tokens": 23,
+   "gen_ms": 1710.25,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 16,
+   "output": "Ndị Macedonia na-aga n'ihu n'ọchịchị n'ọchịchị banyere ịgbanwe aha obodo ahụ",
+   "reference": "Ndị Macedonia ga-aga ntuli aka maka nhọpụta nke ịgbanwe aha obodo ha",
+   "stopped": true,
+   "tokens": 22,
+   "gen_ms": 1634.192,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 17,
+   "output": "Ndị na-eme ntuli aka ga-eme ntuli aka na Sọnde ma ọ bụrụ na ha gabanwe aha obodo ha ka ọ bụrụ \"Republic of North Macedonia.\"",
+   "reference": "Ndị ntuli aka ga-atuli aka na Sọnde ma a ga-agbanwe aha obodo ha ka ọ bụrụ “Repọbliki nke North Macedonia.”",
+   "stopped": true,
+   "tokens": 33,
+   "gen_ms": 2487.636,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 18,
+   "output": "Vootu ndị mmadụ na-achọ ịgbapụ n'esemokwu afọ iri na abụọ na obodo dị n'akụkụ ya, Gris, nke nwere ógbè nke a na-akpọ Macedonia.",
+   "reference": "Atọlitere ntuli aka nke igwe mmadụ iji kpezie esemokwu ogologo oge dị n’etiti ndị agbataobi bụ Greece, nke nwere mpaghara nke ya akpọrọ Macedonia.",
+   "stopped": true,
+   "tokens": 42,
+   "gen_ms": 3186.696,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 19,
+   "output": "Ọdịnihu Athens na-ekwu na aha onye agbata obi ya na-eme ka ọ bụrụ ihe na-ekwu na ọ na-achọ ala ya ma na-emegide mbọ ya ịbanye na EU na NATO mgbe niile.",
+   "reference": "Oteela Athens kwubere na aha nke ndị agbataobi ya nọ n’ugwu na egosipụta nzọrọ na mpaghara ya, ha agaala n’ihu na egbochi arịrịọ nsonye ya maka EU na NATO.",
+   "stopped": true,
+   "tokens": 49,
+   "gen_ms": 3742.453,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 20,
+   "output": "Onye isi ala Macedonia Gjorge Ivanov, onye na-emegide ntuli aka ahụ gbasara mgbanwe aha, kwuru na ya ga-ewepụta ntuli aka ahụ.",
+   "reference": "Onye Isi Ala Gjorge Ivanov nke Macedonia, onye iro nke ntuli aka na mgbanwe aha ahụ, ekwuola na ọ ga-eleghara ntuli aka ahụ anya.",
+   "stopped": true,
+   "tokens": 36,
+   "gen_ms": 2727.782,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 21,
+   "output": "Ọbụna ndị na-akwado ntuli aka ahụ, gụnyere onye isi ala Zoran Zaev, na-arụ ụka na mgbanwe aha bụ naanị ọnụ ahịa a ga-akwụ iji banye na EU na NATO.",
+   "reference": "Kaosiladị, ndị nkwado nke nhọpụta ahụ, gụnyere Praịm Minista Zoran Zaev, na arụrụ aka na mgbanwe aha ahụ bụ naanị ụgwọ a ga-akwụ iji sonye na EU na NATO.",
+   "stopped": true,
+   "tokens": 40,
+   "gen_ms": 3045.332,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 22,
+   "output": "Mkpọchi nke St. Martin's na-ada ụda ka ụlọ ụka dị na Harlem na-alụ ọgụ",
+   "reference": "Mgbịrịmgba nke St. Martin Dara Jụụ ka Ndị Ụlọ Ụka dị na Harlem Na Agba Mba",
+   "stopped": true,
+   "tokens": 23,
+   "gen_ms": 1714.855,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 23,
+   "output": "N'akụkọ ihe mere eme, ndị okenye m gwara na e nwere ụlọ mmanya na ụlọ ụka n'akụkụ ọ bụla.",
+   "reference": "“N’akụkọ ochie, ndị okenye m gwara okwu kwuru na enwere ụlọ mmanya na ụlọ ụka n’akụkụ niile,” Maazị Adams kwuru.",
+   "stopped": true,
+   "tokens": 26,
+   "gen_ms": 1950.377,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 24,
+   "output": "\"Taa, enweghị ihe ọ bụla.\"",
+   "reference": "“Taa, enweghị nke ọ bụla.”",
+   "stopped": true,
+   "tokens": 9,
+   "gen_ms": 625.071,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 25,
+   "output": "Ọ kwuru na ịla n'iyi nke ụlọ mmanya bụ ihe a na-ahụ anya.",
+   "reference": "O kwuru na aghọtara ọpụpụ nke ụlọ mmanya ndị ahụ.",
+   "stopped": true,
+   "tokens": 19,
+   "gen_ms": 1404.045,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 26,
+   "output": "Ndị mmadụ na-akparịta ụka n'ụzọ dị iche ugbu a, o kwuru.",
+   "reference": "“Ndị mmadụ na emerịkọta n’ụzọ dị iche iche” ugbu a, o kwuru.",
+   "stopped": true,
+   "tokens": 21,
+   "gen_ms": 1563.944,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 27,
+   "output": "\"Ọkà na-adịghịzi ebe obibi obodo ebe ndị mmadụ na-aga mgbe niile.\"",
+   "reference": "“Ụlọ mmanya abụghịzị ime ụlọ nke gburugburu ebe ndị mmadụ na-aga kwa oge.”",
+   "stopped": true,
+   "tokens": 18,
+   "gen_ms": 1330.402,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 28,
+   "output": "N'ihe gbasara ụlọ ụka, ọ na-echegbu onwe ya na ego sitere na ire ihe onwunwe agaghị adịru ogologo oge ka ndị isi na-eche, \"ma n'oge na-adịghị anya ha ga-alaghachi ebe ha malitere.\"",
+   "reference": "Maka ndị ụlọ ụka, ọ na echekasị na ego enwetere na ịre akụ agaghị anọte aka otu ndị isi si chee, “ma n’oge adịghị anya ma ọ bụ emechaa ha ga-alaghachite ebe ha bidoro.”",
+   "stopped": true,
+   "tokens": 48,
+   "gen_ms": 3683.065,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 29,
+   "output": "Ụka, o kwuru, nwere ike dochie ya na ụlọ ụlọ obibi nwere ụlọ obibi nwere ndị mmadụ ndị naaghị enyere ebe nsọ ndị fọdụrụ n'ógbè ahụ aka.",
+   "reference": "Ndị ụlọ ụka, o tinyere, na enwere ike iji nnukwu ụlọ obibi nwere dochie ha, nke eji ụdị ndị mmadụ na agaghị enyere aka n’ebe nsọ nke gburugburu ahụ fọdụrụ.",
+   "stopped": true,
+   "tokens": 42,
+   "gen_ms": 3213.154,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 30,
+   "output": "\"N'ezie, ọtụtụ ndị mmadụ na-azụ ụlọ n'ụlọ n'ụlọ ndị a ga-abụ ndị ọcha,\" ka o kwuru, \"na ha ga-eme ka ụlọ ụka ndị a mechie n'ozuzu ya n'ihi na ọ gaghị adị mma ka ọtụtụ n'ime ndị a na-aga n'ụlọ ndị a bụrụ ndị otu ụka ndị a.\"",
+   "reference": "“Nnukwu imirikiti ndị mmadụ na azụta nkewa ụlọ n’ụlọ ndị a ga-abụ ndị ọcha, “o kwuru, “ya mere ha ga-eme ka ụbọchị nke ndị ụlọ ụka a ga-emechi kpamkpam bịa ngwangwa n’ihi ọ ga-esi ike imirikiti ndị mmadụ na akwabata n’ime ụlọ ndị a bụrụ ndị otu nke ụlọ ụka ndị a.”",
+   "stopped": true,
+   "tokens": 67,
+   "gen_ms": 5199.806,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 31,
+   "output": "Ndị ụka abụọ ahụ wuru ya site n'aka ndị otu ọcha tupu Harlem ghọrọ obodo ndị ojii - Ụlọ Nzukọ Obodo na 1870, St. Martin's otu iri afọ ka e mesịrị.",
+   "reference": "Ụlọ ụka abụọ ahụ bụ ndị mgbakọ ndị ọcha rụrụ ha tupu Harlem abụrụ obodo ndị isi ojii - Ogbe Obodo Ukwuu na 1870, St. Martin bụ afọ iri ka emechara.",
+   "stopped": true,
+   "tokens": 40,
+   "gen_ms": 3078.519,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 32,
+   "output": "Ndị otu Methodist ọcha mbụ hapụrụ n'afọ 1930.",
+   "reference": "Ọgbakọ ndị Methodist nke izizi pụrụ na 1930.",
+   "stopped": true,
+   "tokens": 15,
+   "gen_ms": 1104.858,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 33,
+   "output": "Otu ndị na-eme ememe ojii nke na-eme ememe n'akụkụ ahụ weghara ụlọ ahụ.",
+   "reference": "Ọgbakọ ndị isii ojii nọ na efe ofufe n’akụkụ wegara aha n’ụlọ ahụ.",
+   "stopped": true,
+   "tokens": 19,
+   "gen_ms": 1415.377,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 34,
+   "output": "N’ụzọ dị iche, Martin nwere ụlọ ụka ndị ojii n'okpuru Rev. Jọn Howard Jọnson, bụ́ onye duru ndị ahịa nọ n'okporo ụzọ 125, bụ́ okporo ụzọ dị mkpa maka ịzụ ahịa n’Harlem, bụ́ ndị na-emegide ịzụ ma ọ bụ ịkwalite ndị ojii.",
+   "reference": "Ndị ọgbakọ isi ojii weghara St. Martin n’okpuru Rev. John Howard Johnson, onye duru mgbochi nke ndị mgbere ahịa dị na Okporo Ụzọ 125, isi okporo ụzọ maka ịzụ ahịa dị na Harlem, ndị gbochiri ịwere ma ọ bụ ịkwado ndị isi ojii n’ahịa.",
+   "stopped": true,
+   "tokens": 79,
+   "gen_ms": 6322.416,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 35,
+   "output": "Mgbọ na 1939 mebiri ụlọ ahụ nke ọma, ma ka ndị parish Johnson na-eme atụmatụ imezigharị, ha nyere iwu ka a na-eme carillon.",
+   "reference": "Ọkụ gbara na 1939 mebiri ụlọ ahụ nnukwu, mana ka ndị ụka nke Fada Johnson haziri ịrụgharị ụlọ ahụ, ha rụrụ igwe mgbịrịmgba ahụ.",
+   "stopped": true,
+   "tokens": 40,
+   "gen_ms": 3114.104,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 36,
+   "output": "Onye ụkọchukwu Dafidi Jọnson, nwa nke Onyeukwu Jọnson na onye na-anọchi ya n’Ụka St.",
+   "reference": "Rev. David Johnson, nwa Fada Johnson yana onye nọchiri na St. Martin, ji obi aṅụrị kpọọ igwe mgbịrịmgba ahụ “mgbịrịmgba nke ndị ogbenye.”",
+   "stopped": true,
+   "tokens": 31,
+   "gen_ms": 2375.009,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 37,
+   "output": "Onye ọkachamara ahụ bụ́ onye na-egwu ụgbọ elu n'ọnwa Julaị kpọrụ ya ihe ọzọ: \"ihe nketa omenala\" na \"ngwa akụkọ ihe mere eme na-adịghị dochie anya.\"",
+   "reference": "Ọkachamara onye kụrụ igwe mgbịrịmgba ahụ na Julaị kpọrọ ya ihe ọzọ: “Akụ omenala” yana “akụrụngwa akụkọ ihe mere eme enweghị ike idochi.”",
+   "stopped": true,
+   "tokens": 39,
+   "gen_ms": 3125.605,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 38,
+   "output": "Onye ọkachamara, Tiffany Ng nke Mahadum Michigan, kwuru na ọ bụ ụgbọ ala mbụ n'ụwa nke ndị na-egwu egwu na ndị ojii na-egwu, Dionisio A. Lind, onye kwagara n'ụgbọ ala buru ibu n'ụlọ ụka Riverside afọ iri na asatọ gara aga.",
+   "reference": "Ọkachamara ahụ, Tiffany Ng nke Mahadum nke Michigan, kwukwara na ọ bụ igwe mgbịrịmgba izizi dị n’ụwa nke onye egwu isi ojii ga-akpọ, Dionisio A. Lind, onye nke gara n’igwe mgbịrịmgba ka ibu dị na Ụlọ Ụka Riverside afọ 18 gara aga.",
+   "stopped": true,
+   "tokens": 63,
+   "gen_ms": 5405.219,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 39,
+   "output": "Ọgaranya Merriweather kwuru na St. Martin anaghị dochie ya.",
+   "reference": "Maazị Merriweather kwuru na St. Martin anọchighi ya.",
+   "stopped": true,
+   "tokens": 16,
+   "gen_ms": 1187.761,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 40,
+   "output": "Ihe a na-eme na St. Martin n'ime ọnwa ole na ole gara aga bụ akụkọ mgbagwoju anya nke ndị na-ese ụlọ na ndị na-ewu ụlọ, ụfọdụ ndị ndị isi ụka mere ka ha bịa, ndị ọzọ bụ ndị diocese Episcopal.",
+   "reference": "Ihe akpọrọ na St. Martin n’ofe ọnwa ole ma ole gara aga bụ akụkọ nke ndị ọsịse na ndị nrụpụta gbagwojuru anya, ụfọdụ nke ndị ndu nke ụlọ ụka ahụ webatara, ndị ọzọ bụ nke ngalaba ụka dị n’okpuru ọchịchị ndị Bishọpụ.",
+   "stopped": true,
+   "tokens": 50,
+   "gen_ms": 4328.137,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 41,
+   "output": "Ụlọ ụka - ụlọ ọrụ ọchịchị nke parish, nke e ji ndị isi na-abụghị ndị ụkọchukwu mee, dere diocese ahụ n'ọnwa Julaị na nchegbu na diocese ahụ \"ga-achọ ịgafe ụgwọ\" na ụlọ ụka, n'agbanyeghị na ụlọ ụka ahụ enweghị ihe ọ bụla na itinye aka na ịhọpụta ndị na-ese ụlọ na ndị na-ewu ụlọ diocese zigara.",
+   "reference": "Ụlọ ọzụzụ - otu nchịkwa nke ụlọ ụka ahụ, nke ndị ndu juputara - degara ngalaba ụka ahụ na Julaị maka echiche na ngalaba ụka ahụ “ga-achọ ịnyefe ụgwọ ndị ahụ” n’aka ụlọ ozuzu ahụ, ọbụlagodi na ụlọ ozuzu ahụ etinyeghị aka na iwere ndi ọsịse na ndị nrụpụta na ngalaba ụka ahụ ezitere.",
+   "stopped": true,
+   "tokens": 81,
+   "gen_ms": 7246.1,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 42,
+   "output": "Ụfọdụ ndị na-aga chọọchị na-akatọ enweghị nghọtahie nke diocese.",
+   "reference": "Ụfọdụ ndị ụka kpesara ụkọ nke mkpughe na ngalaba ụka ahụ.",
+   "stopped": true,
+   "tokens": 23,
+   "gen_ms": 1750.185,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 43,
+   "output": "Nje nke na-akụ 13 afọ na California",
+   "reference": "Shark merụrụ nwa afọ 13 ahụ na mmanye lọbsta dị na California",
+   "stopped": true,
+   "tokens": 13,
+   "gen_ms": 960.893,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 44,
+   "output": "N'ụbọchị Satọde, otu shark wakporo ma merụọ nwa nwoke dị afọ iri na atọ ahụ mgbe ọ na-egwupụta lobster na California n'ụbọchị mbụ nke oge ịkụ azụ̀, ndị ọrụ kwuru.",
+   "reference": "Shark makpuru ma merụọ nwa nwoke afọ 13 ahụ na Satọde ka ọ na amanye na mmiri maka lọbsta na California n’ụbọchị mmepe nke oge lọbsta, ndị ikike kwuru.",
+   "stopped": true,
+   "tokens": 59,
+   "gen_ms": 5241.435,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 45,
+   "output": "Mwakpo ahụ mere n'oge dị nso na elekere 7 nke ụtụtụ n'akụkụ osimiri Beacon dị na Encinitas.",
+   "reference": "Mmakpu ahụ mere tupu 7 ụtụtụ n’akụkụ Osimiri nke Beacon na Encinitas.",
+   "stopped": true,
+   "tokens": 25,
+   "gen_ms": 1915.012,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 46,
+   "output": "Chad Hammel gwara KSWB-TV na San Diego na ya na ndị enyi ya na-agba mmiri ihe dị ka nkeji iri na ise n’ ụtụtụ Satọde mgbe ọ nụrụ nwa ahụ na-akwa ákwá maka enyemaka ma mesịa bịa ya na otu ndị ọzọ iji nyere aka wepụ ya n’ime mmiri.",
+   "reference": "Chad Hammel gwara KSWB-TV na San Diego na ya na ndị enyi nọ na amanye na mmiri ihe dị ka ọkara aka elekere n’ụtụtụ Satọde mgbe ọ nụrụ ka nwa nwoke ahụ na eti mkpu enyemaka, mgbe ahụ ya na ụfọdụ kworo ụgbọ gafee iji nyere aka dọpụta ya n’ime mmiri.",
+   "stopped": true,
+   "tokens": 70,
+   "gen_ms": 6203.278,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 47,
+   "output": "Hammel kwuru na mbụ na ọ chere na ọ bụ naanị obi ụtọ nke ijide lobster, ma mgbe ahụ ọ \"mara na ọ na-eti mkpu, 'Ejidela m!",
+   "reference": "Hammel kwuru n’izizi na ọ chere na ọ bụ ihe ọhụụ nke ijide lọbsta, mana mgbe ahụ ọ “chọpụtara na ọ na eti, “atara m!",
+   "stopped": true,
+   "tokens": 44,
+   "gen_ms": 3753.158,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 48,
+   "output": "Mụrụ mụrụ!",
+   "reference": "Atara m!'",
+   "stopped": true,
+   "tokens": 8,
+   "gen_ms": 565.589,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 49,
+   "output": "Mkpịsị aka ya niile gbawara n'ụzọ dị egwu,\" Hammel kwuru na ọ hụrụ mgbe ọ rutere nwa ahụ.",
+   "reference": "Adọpuru ọkpụkpụ ụkwụ ya niile, “ Hammel kwuru na ọ chọpụtara ozugbo o rutere nwa nwoke ahụ.",
+   "stopped": true,
+   "tokens": 32,
+   "gen_ms": 2554.697,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 50,
+   "output": "\"Apụrụ m n'ụzọ niile ka ha pụọ n'ime mmiri: 'Enwere shark n'ime mmiri!'\" Hammel gbakwara.",
+   "reference": "“Etiri m mkpu ka mmadụ niile pụta na mmiri ahụ: ‘Enwere shark n’ime mmiri ahụ!”” Hammel tinyere.",
+   "stopped": true,
+   "tokens": 33,
+   "gen_ms": 2617.179,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 51,
+   "output": "Nwa ahụ ebuliri ya n'ụlọ ọgwụ ụmụaka Rady dị na San Diego ebe a na-edobe ya n'ọnọdụ dị ize ndụ.",
+   "reference": "Eji ụgbọ elu buru nwa nwoke ahụ gaa Ụlọ Ọgwụ Ụmụaka Rady dị na San Diego ebe edebanyere ya n’ọnọdụ ihe egwu.",
+   "stopped": true,
+   "tokens": 30,
+   "gen_ms": 2327.562,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 52,
+   "output": "Ndị ụdị shark na-ahụ maka mwakpo ahụ amabeghị.",
+   "reference": "Amaghị ụdị nke shark mere mmakpu ahụ.",
+   "stopped": true,
+   "tokens": 13,
+   "gen_ms": 962.116,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 53,
+   "output": "Onye isi ndị ọrụ ụgbọ mmiri, Larry Giles kwuru na nnọkọ mgbasa ozi na e hụrụ shark n'ógbè ahụ izu ole na ole gara aga, ma chọpụta na ọ bụghị ụdị shark dị ize ndụ.",
+   "reference": "Lifeguard Capt. Larry Giles kwuru na nchịkọta akụkọ na ahụrụ shark na mpaghara ahụ n’izu ole ma ole gara aga, mana ekpebiri na ọ bụghị ụdị shark jọrọ njọ.",
+   "stopped": true,
+   "tokens": 49,
+   "gen_ms": 4158.368,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 54,
+   "output": "Gilesaraara mụbara mmerụ ahụ nke onye ahụ ahụ n'ime akụkụ elu nke ahụ.",
+   "reference": "Giles tinyere na onye ahụ ihe mere nwere mmerụ ahụ buru ibu n’akụkụ elu ahụ ya.",
+   "stopped": true,
+   "tokens": 23,
+   "gen_ms": 1751.502,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 55,
+   "output": "Ndị ọrụ mechiri ụzọ ịbata n'akụkụ osimiri site na Ponto Beach na Casablanca ruo Swami's na Encinitas maka awa 48 maka nyocha na ebumnuche nchekwa.",
+   "reference": "Ndị ikike mechiri osimiri ahụ bido na Akụkụ Osimiri Ponto dị na Casablad ruo Swami dị na Ecinitas n’ime aka elekere 48 maka ebumnuche nnyocha na nchedo.",
+   "stopped": true,
+   "tokens": 39,
+   "gen_ms": 3791.887,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 56,
+   "output": "Giles kwuru na e nwere ihe karịrị ụdị shark 135 n'ógbè ahụ, mana ọtụtụ n'ime ha anaghị ewerekarị dị ka ihe ize ndụ.",
+   "reference": "Giles kwukwara na enwere karịa ụdị shark 135 dị na mpaghara ahụ, mana anaghị ahụta imirikiti ka ndị jọrọ njọ.",
+   "stopped": true,
+   "tokens": 33,
+   "gen_ms": 3114.094,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 57,
+   "output": "Sainsbury's na-eme atụmatụ ịbanye n'ahịa ịma mma UK",
+   "reference": "Atụmatụ nke Sainbury ịbanye n’ahịa ihe ịchọ mma nke UK",
+   "stopped": true,
+   "tokens": 15,
+   "gen_ms": 1228.528,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 58,
+   "output": "Sainsbury's na-agba ọsọ megide Boots, Superdrug na Debenhams na ngalaba ụlọ ahịa nke nwere ebe ịma mma nke ndị ọrụ na-enyere aka.",
+   "reference": "Sainbury na eche Boots, Superdrug na Debenhams aka mgba site na iji warawara ụzọ ịchọ mma nwere nka-ụlọ ahịa eji ndị enyemaka ọkachamara kpojuo.",
+   "stopped": true,
+   "tokens": 35,
+   "gen_ms": 3350.026,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 59,
+   "output": "Dị ka akụkụ nke mbọ dị ukwuu n'ime ahịa ịma mma UK £2.8bn, nke na-aga n'ihu na-eto eto ebe ahịa ejiji na iheụlọ na-ada azụ, a ga-eme nyocha n'ime nnukwu ebe a na-ere ihe ịma mma n'ụlọ ahịa iri na otu n'ofe obodo ahụ, ma were n'ime ụlọ ahịa ndị ọzọ n'afọ na-abịa ma ọ bụrụ na ọ na-aga nke ọma.",
+   "reference": "Dị akụkụ nke ọkpụrụkpụ mbanye n’ime ahịa ihe ịchọ mma £2.8n nke UK, nke na aga n’ihu etolite ebe ahịa uwe na ngwa ụlọ na alaghachi, a ga-anwale warawara ụzọ ịchọ mma n’ime ụlọ ahịa 11 na gburugburu obodo ahụ ma buga ya n’ụlọ ahịa ndị ọzọ n’afọ na esote ma ọ bụrụ na ọ gaa nke ọma.",
+   "stopped": true,
+   "tokens": 90,
+   "gen_ms": 8899.818,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 60,
+   "output": "Itinye ego n'ịma mma na-abịa n'oge a ka ụlọ ahịa na-achọ ụzọ isi jiri oghere shelf ndị e ji akọwa ihe nkiri, microwave, na ihe ịchọ mma.",
+   "reference": "Nkwanye ego n’ihe ịchọ mma na abịa ka ụlọ ahịa na achụ ụzọ iji mejuo oghere nke edobeburu maka Igwe onyonyoo, mikrowevụ na ngwa ụlọ.",
+   "stopped": true,
+   "tokens": 42,
+   "gen_ms": 3953.335,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 61,
+   "output": "Sainsbury kwuru na ọ ga-ebuli ihe na-eme ka ọ dị mma n'ụzọ abụọ ruo ihe dị ka ngwaahịa 3,000, gụnyere akara dị ka Revlon, Essie, Tweezerman na Dr. PawPaw maka oge mbụ.",
+   "reference": "Sainsbury kwuru na ọ ga-abasa nha nke ngwaahịa ihe ịchọ mma ya ruo ngwaahịa 3,000, gụnyere ụlọ ọrụ dị ka Revlon, Essie, Tweezerman na Dr. PawPaw nke izizi.",
+   "stopped": true,
+   "tokens": 55,
+   "gen_ms": 5280.356,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 62,
+   "output": "Mkpụrụ ọnụ dị ugbu a site na L'Oreal, Maybelline naurt's Bees ga-enwekwu oghere na mpaghara ndị a maara aha dị ka ndị a na-ahụ n'ụlọ ahịa dị ka Boots.",
+   "reference": "Oke ndị dị adị malite na L'Oreal, Maybelline na Burt’s Bees ga-enwetakwa oghere na mpaghara nwere akara yitere ndị ahụ ahụrụ n’ụlọ ahịa dị ka Boots.",
+   "stopped": true,
+   "tokens": 45,
+   "gen_ms": 4218.2,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 63,
+   "output": "Ụlọ ahịa ahụ na-emegharịkwa ụdị makeup Boutique ya ka ọtụtụ n'ime ngwaahịa ahụ wee bụrụ ndị na-eri nri vegan - ihe a na-achọịị nke ndị na-azụ ahịa na-eto eto na-achọ.",
+   "reference": "Ụlọ ahịa ndị ahụ na amalitegharị ahịa ihe ịchọ mma Ụlọ Ahịa ya ka imirikiti ngwaahịa ahụ bụrụ nke na emejọghị ụmụ anụmanụ - ihe ndị ahịa na etolite na achọ nnukwu ugbu a.",
+   "stopped": true,
+   "tokens": 45,
+   "gen_ms": 4217.6,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 64,
+   "output": "N'ịgbakwụnye, onye na-ere ihe na-esi ísì ụtọ, The Fragrance Shop, ga-anwale ụlọ ahịa na ụlọ ahịa Sainsbury abụọ, nke mbụ nke mepere na Croydon, London ndịda, n'izu gara aga, ebe nke abụọ ga-emeghe na Selly Oak, Birmingham, n'oge a.",
+   "reference": "Na mgbakwunye, ndị mgbere isi ụtọ Fragrance Shop ga-anwale ikikere n’ụlọ ahịa Sainsbury abụọ, nke izizi emepere na Croydon, ndịda London, izu gara aga ebe nke abụọ ga-emepe na Selly Oak, Birmingham, emechaa n’afọ a.",
+   "stopped": true,
+   "tokens": 76,
+   "gen_ms": 7337.899,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 65,
+   "output": "Ịzụ ahịa n'ịntanetị na mgbanwe n'ịzụta obere nri kwa ụbọchị n'ụlọ ahịa dị n'ógbè na-eme ka ndị ahịa nwee ike ịga.",
+   "reference": "Ịzụ ahịa n’ịntanetị na mbugharị gaa na ịzụ obere nri kwa ụbọchị na ntakịrị ụlọ ahịa dị na mpaghara pụtara na ndị nnukwu ụlọ ahịa na enwekwu ọrụ ịrụ iji mee ka ndị mmadụ bịa.",
+   "stopped": true,
+   "tokens": 34,
+   "gen_ms": 3034.711,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 66,
+   "output": "Mike Coupe, onye isi oche nke Sainsbury, kwuru na ụlọ ahịa ndị a ga-adị ka ụlọ ahịa dị ka ụlọ ahịa na-agbalịsi ike ịlụso ndị na-ere ahịa dị ọnụ ala, Aldi na Lidl, na ọrụ ndị ọzọ na ihe na-abụghị nri.",
+   "reference": "Mike Coupe, onye isi oche nke Sainsbury, ekwuola na obere ụlọ ahịa ga-aga n’ihu n adịkwa ka nnukwu ụlọ ahịa nke ụlọ ahịa ebe ngalaba nnukwu ụlọ ahịa na anwa ịchụghachi ndị mwepu ego Aldi na Lidl site na ijikwu ọrụ na ihe ndị abụghị nri.",
+   "stopped": true,
+   "tokens": 62,
+   "gen_ms": 5899.992,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 67,
+   "output": "Sainsbury's etinyela ụlọ ahịa Argos n'ime ụlọ ahịa narị na iri na abụọ ma webatakwara ọtụtụ ụlọ ahịa Habitat kemgbe ọ zụrụ ụlọ ọrụ abụọ ahụ afọ abụọ gara aga, nke o kwuru na ọ gbasarala ahịa nri ma mee ka ịzụ ahịa dịkwuo ọnụ.",
+   "reference": "Sainsbury na etinye obere ụlọ ahịa Argos n’ọtụtụ ọdụ ahịa, o bubatakwara ọnụọgụ Habitats pụtara ihie kemgbe ọ zụtara ụlọ ọrụ abụọ ndị ahụ afọ abụọ gara aga, nke o kwuru bawanyere ahịa nri ma mee ka nzụrụ ahụ mụtakwuo uru.",
+   "stopped": true,
+   "tokens": 65,
+   "gen_ms": 6049.585,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 68,
+   "output": "Mgbalị ụlọ ahịa ahụ mere n'oge gara aga iji mezie ngalaba ịma mma na ụlọ ọgwụ dara.",
+   "reference": "Ọnwụnwa nnukwu ụlọ ahịa gara aga iji bidogharịa ọdụ ịchọ na ịre ọgwụ agaghị nke ọma.",
+   "stopped": true,
+   "tokens": 24,
+   "gen_ms": 1827.586,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 69,
+   "output": "N'afọ 2000, Sainsbury mere nyocha maka njikọ aka na Boots, mana njikọ ahụ kwụsịrị mgbe esemokwu dara n'ihe gbasara otú e si ekewa ego sitere na ụlọ ahịa ọgwụ nke Boots n'ime ụlọ ahịa Sainsbury.",
+   "reference": "Sainsbury nwalere ahịa njikọta n’etiti Boots na mbido 2000, mana njikọta ahụ jedebere ka enwesịrị esemokwu gbasara otu a ga-esi kee uru si na ọdụ ahịa ndị na ere ọgwụ n’ime nnukwu ụlọ ndị ahịa ya.",
+   "stopped": true,
+   "tokens": 52,
+   "gen_ms": 4188.525,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 70,
+   "output": "N'ime atụmatụ ọhụrụ ahụ, Sainsbury rere azụmahịa ụlọ ọgwụ ya nke ụlọ ahịa 281 nye Celesio, onye nwere Lloyds Pharmacy, maka nde £125, afọ atọ gara aga.",
+   "reference": "Ụkpụrụ ọhụrụ na abịa ka Sainsbury resịrị ahịa ịre ọgwụ dị ọnụọgụ ụlọ ahịa 281 n’aka Celesio, onye nwe ụlọ ọrụ Lloyds Pharmacy, ihe erere ya bụ £125m, afọ atọ gara aga.",
+   "stopped": true,
+   "tokens": 45,
+   "gen_ms": 3539.641,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 71,
+   "output": "Ọ kwuru na Lloyds ga-ekere òkè n'ime atụmatụ ahụ, site n'ịgbakwụnye ọtụtụ ụdị ihe eji eme ihe na-ehicha anụ ahụ dị elu gụnyere La Roche-Posay na Vichy n'ime ụlọ ahịa anọ.",
+   "reference": "O kwuru na Lloyds ga-arụ ọrụ n’atụmatụ ahụ, site na itinye oke nke ụlọ ahịa nlekọta anụahụ ama ama dọtịrị adọtị dị ka La Roche-Posay na Vichy n’ụlọ ahịa anọ.",
+   "stopped": true,
+   "tokens": 58,
+   "gen_ms": 4845.656,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 72,
+   "output": "Paul Mills-Hicks, onye isi azụmahịa nke Sainsbury, kwuru: \"Anyị agbanweela ụdị na mmetụta nke ebe ahụ na-eme ka ebe ahụ dị mma maka ndị ahịa anyị.\"",
+   "reference": "Paul Mills-Hicks, onye ndu ọrịre ahịa nke Sainsbury, kwuru: “Anyị agbanweela nhụta na mmetụta nke warawara ụzọ ihe ịchọ mma anyị iji bulite gburugburu maka ndị ahịa anyị.",
+   "stopped": true,
+   "tokens": 38,
+   "gen_ms": 2974.97,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 73,
+   "output": "Anyị etinyekwa ego n'aka ndị ọrụ ndị a zụrụ n'ụzọ pụrụ iche, ndị ga-anọnyere gị iji nye ndị ndụmọdụ.",
+   "reference": "Anyị etinyekwala ego na ndị ọrụ azụrụ iche ndị ga-anọ ozugbo iji nye ndụmọdụ.",
+   "stopped": true,
+   "tokens": 37,
+   "gen_ms": 2935.618,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 74,
+   "output": "N'ime ụdị ihe anyị na-ere, e mere ka ọ bụrụ ihe na-eme ka ọ dị mma n'ihe ọ bụla, ebe ebe mara mma na ebe dị mfe ịnweta na-eme ka anyị bụrụ ebe mara mma nke na-eme ka ọ bụrụ ihe na-eme ka ọ dị mma n'ihe ọ bụla.",
+   "reference": "Ezubere oke nke akara anyị iji dabaa na mkpa niile, gburugburu mara mma na ọnọdụ dị mma pụtara na anyị na akwalite ebe ịchọ mma nke na ama aka n’etiti ụzọ ochie eji azụ ahịa.",
+   "stopped": true,
+   "tokens": 61,
+   "gen_ms": 5515.477,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 75,
+   "output": "Pita Jones 'na-enwe iwe iwe' mgbe Holly Willoughby wepụrụ na £11 nde nkwekọta",
+   "reference": "‘Iwe’ ji Peter Jones ka Holly Willoughby sepụrụ aka na nkwekọrịta £11million",
+   "stopped": true,
+   "tokens": 27,
+   "gen_ms": 2221.35,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 76,
+   "output": "Onye na-eme ihe nkiri Dragons Den bụ Peter Jones hapụrụ 'iwe ike' mgbe onye na-eme ihe nkiri TV Holly Willoughby wepụrụ na £11million na-eme ihe na ụlọ ọrụ lifestyle ya iji lekọta nkwekọrịta ọhụrụ ya na Marks and Spencer na ITV.",
+   "reference": "Onye nke Dragons Den ama ama bụ Peter Jones juputara ‘n’iwe’ ka onye mgbasa ozi TV Holly Willoughby sepụrụ aka na nkwekọrịta £11million dị n’etiti azụmahịa obibi ndụ ya iji gbado anya na nkwekọrịta ọhụrụ ya dị n’etiti Marks and Spencer yana ITV",
+   "stopped": true,
+   "tokens": 60,
+   "gen_ms": 5426.685,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 77,
+   "output": "Ọ dịghị oge maka uwe ha na ihe ịchọ mma nke ha, Truly.",
+   "reference": "Willoughby enweghị oge maka ahịa uwe ụlọ na akụrụngwa ha bụ Truly.",
+   "stopped": true,
+   "tokens": 16,
+   "gen_ms": 1228.744,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 78,
+   "output": "Ndị mmadụ ahụ na-eme ihe ha na-eme ka ọ dị ka ihe Gwyneth Paltrow's Goop.",
+   "reference": "Atụnyela azụmahịa ha abụọ n’ahịa Goop nke Gwyneth Paltrow.",
+   "stopped": true,
+   "tokens": 25,
+   "gen_ms": 1970.048,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 79,
+   "output": "Onye na-egosi ihe omume a na-eme n' ụtụtụ, 37,ara Instagram ka o kwupụta na ọ na-apụ.",
+   "reference": "Onye mgbasa ozi This Morning, 37, gara na Instagram iji kwupute na ọ na apụ.",
+   "stopped": true,
+   "tokens": 29,
+   "gen_ms": 2221.26,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 80,
+   "output": "Holly Willoughby esila n'ime onye na-eme ihe nkiri Dragons' Den bụ́ Peter Jones n'ụzọ na-adịghị mma site n'ịwụpụ n'ime azụmahịa ndị na-eme ndụ ha bara uru n'oge ikpeazụ - iji lekọta nkwekọrịta ndị ọzọ bara ụba ya na Marks & Spencer na ITV.",
+   "reference": "Holly Willoughby ahapụla onye nke eji Dragons” Den mara bụ Peter Jones n’iwe site na ịmapụ n’azụmahịa obibi ndụ ha na aga nke ọma n’oge ikpeazụ - iji gbado anya na nkwekọrịta ọhụrụ nke ya mara oke ọma dị n’etiti Marks & Spencer na ITV.",
+   "stopped": true,
+   "tokens": 66,
+   "gen_ms": 5357.698,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 81,
+   "output": "N'ime ihe dị ka ụbọchị Tuzdee n'ụlọ ọrụ nke alaeze ukwu ya na Marlow, Buckinghamshire, onye isi na-eme ihe nkiri mara na ọ na-enwe nsogbu mgbe ọ gwara ya na nkwekọta ọhụrụ ya, nke ruru ihe ruru nde £1.5, pụtara na ọ nweghị oge zuru ezu iji nye ihe ha na-eme n'ime ụlọ na ihe ịchọ mma nke ha, Truly.",
+   "reference": "Ndị akụkọ kwuru na Jones were ‘iwe’ mgbe nwata nwanyị nke TV ahụrụ n’anya nke ukwuu kwetere n’oge nzụkọ iwe emere na Tuesday n’isi ụlọ ọrụ nke ụlọ azụmahịa ya dị na Marlow, Buckinghamshire, na nkwekọrịta ọhụrụ ya - ruru £1.5 million - pụtara na ọ nweghịzị oge zuru oke iji tinye uche na ahịa uwe ụlọ na akụrụngwa ha bụ Truly.",
+   "stopped": true,
+   "tokens": 83,
+   "gen_ms": 6804.792,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 82,
+   "output": "N'ụzọ dị iche, a na-atụ aro na azụmahịa ahụ ga-eme ka ihe onwunwe Willoughby dị okpukpu abụọ, nke a na-atụ anya na ọ ga-eru nde £11.",
+   "reference": "Atụnyere azụmahịa ahụ ka ahịa Goop nke Gwyneth Paltrow, eburu amụma na ọ ga-ebuwanye akụ nke Willoughby ekpebiri na £11 million ugboro abụọ.",
+   "stopped": true,
+   "tokens": 46,
+   "gen_ms": 3644.933,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 83,
+   "output": "Dị ka Willoughby, 37,araaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraaraara",
+   "reference": "Ka Willoughby, 37, gara na Instagram iji kwupute na ọ na apụ Truly, Jones pụrụ na Britain iji gaa n’otu ụlọ ezumike ya.",
+   "stopped": false,
+   "tokens": 160,
+   "gen_ms": 13300.36,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 84,
+   "output": "Otu isi iyi kwuru: \"N'ezie, ọ bụ nke kacha mkpa n'ime ihe Holly na-ebu n'obi.\"",
+   "reference": "Otu isi akụkọ kwuru: “Truly n’ezie kachasị na mkpa nke Holly.",
+   "stopped": true,
+   "tokens": 24,
+   "gen_ms": 1836.058,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 85,
+   "output": "Ọ ga-abụ ọrụ ogologo oge nke ga-eme ka ọ dị ndụ n'ime afọ ole na ole na-abịa.",
+   "reference": "Ọ kwesịrị ịbụ ọdịnihu ya n’oteaka nke ga-elekọta ya n’afọ iri ndị na esote n’ọdịnihu.",
+   "stopped": true,
+   "tokens": 24,
+   "gen_ms": 1864.995,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 86,
+   "output": "Nzụlite ya ịla n'iyi hapụrụ onye ọ bụla metụtara ya n'ụjọ.",
+   "reference": "Mkpebi ya iji pụọ hapụrụ mmadụ niile tinyere aka n’ọgbaghara.",
+   "stopped": true,
+   "tokens": 25,
+   "gen_ms": 1989.439,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 87,
+   "output": "Ọ dịghị onye nwere ike ikwere ihe na-eme na Tuzdee, ọ dị nso na ịmalite.",
+   "reference": "Ọnweghị onye nwere ike ịkwenye ihe na eme na Tusde, ọ bịara nso nke ukwu na mmalite.",
+   "stopped": true,
+   "tokens": 24,
+   "gen_ms": 1928.391,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 88,
+   "output": "Enwere ụlọ nchekwa juru na ihe nọ n'ụlọ ọrụ Marlow HQ nke dị njikere ka ere ya.",
+   "reference": "Enwere ụlọ nkwakọba ahịa nke ngwaahịa juputara dị na Isi Ụlọ Ọrụ Marlow nke dị njikere maka ọrịre.”",
+   "stopped": true,
+   "tokens": 25,
+   "gen_ms": 1939.52,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 89,
+   "output": "Ndị ọkachamara kwenyere na ọpụpụ nke onye na-egosi ihe ngosi nke ụtụtụ a, onye bụ otu n'ime ndị ama ama na Britain, nwere ike ime ka ụlọ ọrụ ahụ tufuo nde pound n'ihi nnukwu ego e tinyere n'ime ngwaahịa dị iche iche dị ka cushions na candles, uwe na ihe ịchọ mma, na ihe ndị nwere ike ime ka mwepụta nke ihe ahụ dịkwuo ogologo oge.",
+   "reference": "Ndị ọkachamara kwenyere na ọpụpụ nke onye mgbasa ozi This Morning, onye nke so na ndị ama ama na Britain na amịta ego, nwere ike iri ụlọ ahịa ahụ nde ego n’ihi nnukwu nkwanye ego na ngwaahịa sitere na oche yana kandụl ruo n’akwa na uwe ụlọ, yana ohere maka ogbugbu oge ọzọ na mmalite ya.",
+   "stopped": true,
+   "tokens": 85,
+   "gen_ms": 6981.813,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 90,
+   "output": "Ọ pụkwaraịpụta njedebe nke enyi ogologo oge.",
+   "reference": "Ọ nwere ike ịbụ njedebe nke ogologo ọyị ahụ.",
+   "stopped": true,
+   "tokens": 14,
+   "gen_ms": 1036.002,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 91,
+   "output": "Nne nke atọ, Willoughby na di ya Dan Baldwin, nwere mmekọrịta chiri anya na Jones na nwunye ya Tara Capp afọ iri.",
+   "reference": "Nne nke ụmụ atọ Willoughby na dị ya Dan Baldwin bụ enyi Jones na nwunye ya Tara Capp ihe dị ka afọ iri.",
+   "stopped": true,
+   "tokens": 33,
+   "gen_ms": 2545.805,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 92,
+   "output": "N'afọ 2016, Willoughby hiwere Truly na Capp, Jones, 52, sonyeere dị ka onye isi oche na Maachị.",
+   "reference": "Willoughby na Capp bidoro Truly na 2016, Jones, 52, sonyere dị ka onye isi na Machị.",
+   "stopped": true,
+   "tokens": 30,
+   "gen_ms": 2300.745,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 93,
+   "output": "Ndị di na nwunye na ezumike ọnụ, Jones nwekwara pasent 40 na ụlọ ọrụ mmepụta ihe onyonyo Baldwin.",
+   "reference": "Di na nwunye ndị ahụ na agakọta ego ezumike ọnụ, Jones nwere oke n’akụ pasentị 40 n’ụlọ ọrụ mgbasa ozi TV nke Baldwin.",
+   "stopped": true,
+   "tokens": 24,
+   "gen_ms": 1825.521,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 94,
+   "output": "Ọ ga-abụ onye nnọchi anya ihe a na-ere maka M&S ma dochie Ant McPartlin dị ka onye na-eme ihe nkiri na ITV's I'm A Celebrity.",
+   "reference": "Willoughby ga-abụrụ onye nnọchite ụlọ ọrụ nke M&S, ọ ga-anọchi Ant McPartlin dị ka onye nlekọta nke I’m A Celebrity nke ITV.",
+   "stopped": true,
+   "tokens": 37,
+   "gen_ms": 2906.537,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 95,
+   "output": "Otu isi iyi dị nso na Jones kwuru n'abalị gara aga, \"Anyị agaghị ekwu okwu banyere ihe gbasara azụmahịa ya.\"",
+   "reference": "Otu onye nọketere Jones nso kwuru abalị ụnyahụ “Anyị enwenwughi ike ikwu okwu gbasara azụmahịa ya.”",
+   "stopped": true,
+   "tokens": 26,
+   "gen_ms": 1983.38,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 96,
+   "output": "wuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwuwu",
+   "reference": "Okwu siri ike ‘mgbe ahụ anyị hụ onwe anyị n’anya’",
+   "stopped": false,
+   "tokens": 160,
+   "gen_ms": 13332.745,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 97,
+   "output": "Ọ na-akwa emo banyere nkatọ ọ ga-enweta site n'aka mgbasa ozi maka ime okwu ụfọdụ ndị ga-ewere dị ka \"enweghị onye isi ala\" na maka ịdị mma nke ọ na-ekwu banyere onye isi ala North Korea.",
+   "reference": "Ọ mara njakịrị maka okwu asị ọ ga-enweta n’aka ndị mgbasa ozi maka ikwu okwu ụfọdụ a ga-ahụta ka nke na adịghị “n’usoro onye isi ala” yana maka ịnwe ezi okwukwe maka onye isi ala nke North Korean.",
+   "stopped": true,
+   "tokens": 49,
+   "gen_ms": 3975.161,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 98,
+   "output": "Gịnị mere onye isi ala Trump ji hapụ ihe dị ukwuu?",
+   "reference": "Gịnị kpatara Onye Isi Ala Trump ji gbaghara nke ukwuu?",
+   "stopped": true,
+   "tokens": 17,
+   "gen_ms": 1274.999,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 99,
+   "output": "Trump kwuru n'olu ya dị ka onye na-eme akụkọ \"akụkọ\".",
+   "reference": "Trump kwuru n’olu “onye nta akụkọ” ịkpa amụ ya.",
+   "stopped": true,
+   "tokens": 18,
+   "gen_ms": 1353.724,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 100,
+   "output": "\"Ekwughị m ihe ọ bụla.\"",
+   "reference": "“Enweghi ihe ọ bụla m hapụrụ.”",
+   "stopped": true,
+   "tokens": 10,
+   "gen_ms": 719.065,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 101,
+   "output": "Ọ kọwara na Kim nwere mmasị n'oge nke abụọ ka ha na mbụ zutere na Singapore na June, nke Trumpara kọwa dị ka nnukwu ihe na-eme ka a na-eme ka North Korea ghara iji nukes.",
+   "reference": "O kwukwara na Kim nwere mmasị na nzụkọ nke abụọ ka ha zutechara izizi na Singapore na Juun nke Trump toro ka nnukwu nzọụkwụ na iwepusi nnukwu ngwa agha nuklịa nke North Korea.",
+   "stopped": true,
+   "tokens": 47,
+   "gen_ms": 3823.125,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 102,
+   "output": "Ma, mkparịta ụka maka ịkụda nuklia agbawawo.",
+   "reference": "Mana mkparịta ụka iwepu ngwa agha nuklịa akwụsịtụla.",
+   "stopped": true,
+   "tokens": 21,
+   "gen_ms": 1589.243,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 103,
+   "output": "Karịa ọnwa atọ ka nzukọ June gasịrị na Singapore, onye nnọchi anya North Korea bụ Ri Yong Ho gwara ndị isi ụwa na ọgbakọ Mba Ndị Dị n'Otu na Satọde na North Korea anaghị ahụ \"nzaghachi ziri ezi\" site n'aka U.S. na mbọ ịkagbu ngwa agha North Korea.",
+   "reference": "Karịa ọnwa atọ ka enwechara nzụkọ Juun na Singapore, onye nnọchite anya nke North Korea dị elu Ri Yong gwara ndị isi ụwa na U.N. Mgbakọ Ezumezu na Satọde na North anaghị ahụ “nzaghachi kwekọrọ” n’aka U.S. maka arụmọrụ gboo na iwepu ngwa agha nke North Korea.",
+   "stopped": true,
+   "tokens": 70,
+   "gen_ms": 5782.3,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 104,
+   "output": "N'ezie, o kwuru, U.S. na-aga n'ihu na-eweda ihe iwu na-eme ka nrụgide dị.",
+   "reference": "Kama, o kwukwara, ndị U.S. na aga n’ihu etinye ntaramahụhụ emere iji na akwanye ọkụ.",
+   "stopped": true,
+   "tokens": 27,
+   "gen_ms": 2061.485,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 105,
+   "output": "Trump nwere echiche dị mma n'okwu ya.",
+   "reference": "Trump soro echiche ezi okwukwe n’okwu nchịkọta ya.",
+   "stopped": true,
+   "tokens": 10,
+   "gen_ms": 720.092,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 106,
+   "output": "Anyị na-eme nke ọma na North Korea,\" o kwuru.",
+   "reference": "“Anyị na eme nnukwu ihe na North Korea,” o kwuru.",
+   "stopped": true,
+   "tokens": 13,
+   "gen_ms": 955.998,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 107,
+   "output": "Anyị na-aga agha na North Korea.",
+   "reference": "“Anyị na North Korea chọburu ịlụ ọgụ.",
+   "stopped": true,
+   "tokens": 9,
+   "gen_ms": 638.196,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 108,
+   "output": "Puku nde mmadụ ga anwụla.",
+   "reference": "Ọnụọgụ nde nke ndị mmadụ nwere ike ịnwụ.",
+   "stopped": true,
+   "tokens": 9,
+   "gen_ms": 638.034,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 109,
+   "output": "Ugbu a, anyị nwere mmekọrịta a na-adịghị ahụkebe.\"",
+   "reference": "Ugbu a anyị nwere nnukwu ezi ọyị”",
+   "stopped": true,
+   "tokens": 15,
+   "gen_ms": 1111.381,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 110,
+   "output": "O kwuru na mbọ ọ na-agba iji meziwanye mmekọrịta ya na Kim emewo ka ihe dị mma pụta - ịkwụsị ule rọket, inye aka ịtụgharị ndịọrụ nọ n'ụlọ mkpọrọ, na inweta ihe ndị agha America nwụrụ anwụ n'ụlọ.",
+   "reference": "O kwuru na mbọ ya iji melite mmerịkọta n’etiti Kim ewetele nsonaazụ ndị mara mma - ịkwụsị nnwale rọketị, ịnyere aka hapụ ndị eji eji yana iweghachite ụlọ ihe ndị fọdụrụ na ndị agha America nwụrụ anwụ.",
+   "stopped": true,
+   "tokens": 62,
+   "gen_ms": 5111.272,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 111,
+   "output": "Ọ na-asọpụrụ ụzọ ya na-ekwu maka mmekọrịta ya na Kim.",
+   "reference": "Ọzọkwa ọ gbachitere usoro ya dị iche n’ikwu maka mmerịkọta yana Kim.",
+   "stopped": true,
+   "tokens": 18,
+   "gen_ms": 1349.77,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 112,
+   "output": "\"Ọ dị mfe ị bụrụ onye isi ala, mana kama inwe mmadụ 10,000 n'èzí na-agbalị ịbata n'ime ogige a juru eju, anyị ga-enwe ihe dị ka mmadụ 200 na-anọdụ ala n'ebe ahụ,\" Trump kwuru, na-egosi n'ìgwè ndị nọ n'ihu ya.",
+   "reference": "“Ọ dị mfe ukwuu ịme ka onye isi ala, mana kama ịme ka ọnụọgụ ndị mmadụ dị 10,000 nọ n’ilo na anwa ịbata n’ime ebe a juru eju, anyị nwere ihe dị ka ọnụọgụ mmadụ 200 kwụ ebe a, “Trump kwuru, na atụ igwe mmadụ nọ ya n’ihu aka.",
+   "stopped": true,
+   "tokens": 71,
+   "gen_ms": 5875.537,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 113,
+   "output": "Ọkụ mmiri na ala na-akụda ala, na-akụda ala, na-akụda ala, na-akụda ala, na-akụda ala, na-akụda ala, na-akụda ala, na-akụda ala, na-akụda ala, na-akụda ala, na-akụda ala, na-akụda ala, na-akụda ala, na-akụda ala, na-akụda ala, na-akụda ala, na-akụda ala, na-akụda ala, na-akụda ala, na-akụda ala, na-akụda ala, na-akụda ala, na-akụda ala, na-akụda ala, na-akụda ala, na-akụda ala",
+   "reference": "Tsunami na Ala Ọmajijiji nke Indonesia Na Emebi Agwa-etiti, Na Egbu Ọtụtụ",
+   "stopped": false,
+   "tokens": 160,
+   "gen_ms": 13419.882,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 114,
+   "output": "Mgbe ihe mgbawa Lombok gasịrị, dịka ọmụmaatụ, a gwara òtù ndị mba ọzọ na ha adịghị mkpa.",
+   "reference": "Ka ala ọmajijiji Lombok mechara, dịka ọmụmaatụ, agwara ndị nzụkọ mba ofesi na abụghị nke gọọmentị na achọghị ha.",
+   "stopped": true,
+   "tokens": 27,
+   "gen_ms": 2061.291,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 115,
+   "output": "Ọbụna n'agbanyeghị na ihe karịrị pasentị iri nke ndị bi na Lombok ka a chụpụrụ, a kwụsịrị ịkpọpụta ihe mberede mba, ihe dị mkpa iji mee ka enyemaka mba ụwa pụta.",
+   "reference": "Ọbụlagodi na achụpụla karịa pasentị 10 nke ọnụọgụgụ nke Lombok n’ụlọ ha, akpọpụtaghị ọdachi mba ọ bụla, ihe izizi maka ịchọ enyemaka ndị mba ofesi.",
+   "stopped": true,
+   "tokens": 50,
+   "gen_ms": 4077.486,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 116,
+   "output": "\"N'ọtụtụ ọnọdụ, n'ụzọ dị mwute, ha egosila nke ọma na ha anaghị arịọ enyemaka mba ụwa, ya mere ọ na-esiri ike.\"",
+   "reference": "“N’imirikiti okwu, na mwute, ha kwuputere ya ka o doo anya na ha achọghị enyemaka mba ofesi, yabụ ọ bụ ihe aka mgba, “Nw. Sumbung kwuru.",
+   "stopped": true,
+   "tokens": 39,
+   "gen_ms": 3063.282,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 117,
+   "output": "N'oge a na-eme ihe iji chebe ụmụaka, ha na-eme atụmatụ ịga Palu, mana ha ka na-enwe obi abụọ ma ndị ọrụ mba ofesi nwere ike ịrụ ọrụ n'ala.",
+   "reference": "Ebe Save the Children na edekọba otu iji gaa Palu, o doghi ya anya ma ndị ọrụ mba ofesi enwere ike ịrụ ọrụ n’ala ahụ.",
+   "stopped": true,
+   "tokens": 42,
+   "gen_ms": 3326.815,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 118,
+   "output": "Ọkụ Sutopo, onye na-ekwu okwu maka ọrụ mgbasa ozi nke mba ahụ, kwuru na ndị ọrụ gọọmentị Indonesia na-enyocha ọnọdụ dị na Palu iji hụ ma ọ ga-ekwe ka ndị mba ọzọ tinye aka na mbọ enyemaka.",
+   "reference": "Maazị Sutopo, onye okwu okwu ụlọ ọrụ ọdachi mba, kwuru ndị ọrụ Indonesia na enyocha ọnọdụ dị na Palu iji hụ ma a ga-ahapụ ndị ụlọ ọrụ mba ofesi ịnyere aka na mbọ enyemaka ahụ.",
+   "stopped": true,
+   "tokens": 53,
+   "gen_ms": 4340.33,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 119,
+   "output": "N'ịtụle ịma jijiji nke Indonesia na-enwe mgbe niile, obodo ahụ ka na-enweghịazi ihe dị mkpa iji kwado ihe ike nke okike.",
+   "reference": "Ejide n’aka ala ọmajijiji nke Indonesia na enwe oge niile, obodo ahụ adịghị nkwadobe ma ncha maka iwe nke ekereụwa.",
+   "stopped": true,
+   "tokens": 32,
+   "gen_ms": 2464.742,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 120,
+   "output": "N'ime ụlọ mgbaba tsunami e wuru na Aceh, ha adịghị mfe ịhụ n'akụkụ osimiri ndị ọzọ.",
+   "reference": "Ka arụrụ ụlọ nche tsunami na Aceh, ọ bụghị ihe a na ahụ ebe niile n’akụkụ mmiri ndị ọzọ.",
+   "stopped": true,
+   "tokens": 24,
+   "gen_ms": 1823.915,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 121,
+   "output": "Mkpụrụ na-enweghị ihe na-ebute ọkụ na Palu, n'agbanyeghị na ọ na-ebute ihe mgbochi, nwere ike itinye aka na ọnwụ.",
+   "reference": "Ihe mgbama nke tsunami na adịghị na Palu, ọbụlagodi na etiri amụma nke ịdọ aka na ntị, nwere ike iso bute ọnwụ ndị mmadụ.",
+   "stopped": true,
+   "tokens": 31,
+   "gen_ms": 2394.7,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 122,
+   "output": "N'oge kacha mma, njem n'etiti agwaetiti Indonesia dị iche iche na-esiri ike.",
+   "reference": "N’oge kachasị mma, ịga njem n’etiti imirikiti agwaetiti nke Indonesia bụ ihe mgba.",
+   "stopped": true,
+   "tokens": 19,
+   "gen_ms": 1432.353,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 123,
+   "output": "Ihe mberede na-eme ka ihe owuwu sie ike.",
+   "reference": "Ọdachi mba na eme ka nhazi gbagwojukwuo anya.",
+   "stopped": true,
+   "tokens": 13,
+   "gen_ms": 956.421,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 124,
+   "output": "Ụgbọ ọgwụ nọ n'ụsọ oké osimiri Lombok iji gwọọ ndị ahụrụgbu n'ọkụ ala ọma jijiji na-aga Palu, mana ọ ga-ewe oge atọ ma ọ bụ karịa ka ọ ruo ebe ihe mberede ọhụrụ a mere.",
+   "reference": "Ụgbọ mmiri ụlọ ọgwụ edowere na Lombok iji lekọta ndị ala ọmajijiji metụtara na aga ugbu a na Palu, mana ọ ga-ewe opekata mpe ụbọchị atọ iji ruo ọnọdụ nke ọdachi ọhụrụ ahụ.",
+   "stopped": true,
+   "tokens": 58,
+   "gen_ms": 4779.266,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 125,
+   "output": "Onye isi ala Joko Widodo mere ka imeziwanye ihe owuwu Indonesia nke dara ada bụ isi ihe dị n'ọchịchọ ya, o wee tinye nnukwu ego n'okporo ụzọ na okporo ụzọ ụgbọ oloko.",
+   "reference": "Onye isi ala Joko Widodo mere imelite akụrụngwa nke Indonesia mebisiri emebi isiokwu nke mgbasa ozi nhọpụta ya, mana o tufusiela ego n’okporo ụzọ na ụzọ ụgbọ oloko.",
+   "stopped": true,
+   "tokens": 44,
+   "gen_ms": 3627.853,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 126,
+   "output": "Ma ọ bụ na ego ezughị ezu emetụala ọchịchị Maazị Joko ka ọ na-eche ntuli aka ọzọ n'afọ na-abịa.",
+   "reference": "Mana enweghị ego na egbu ọchịchị nke Maazị Joko ka ọ na eche nhọpụtagharị n’afọ na esote.",
+   "stopped": true,
+   "tokens": 32,
+   "gen_ms": 2458.012,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 127,
+   "output": "Ọkammụta Joko na-eche nrụgide ihu site n'ọgba aghara ndị na-aga n'ihu n'etiti ndị otu na Indonesia, ebe ndị otu Muslim na-achị na mba ahụ na-anabata ụdị okpukpe ahụ nke na-eme ka ọ dịkwuo nchebe.",
+   "reference": "Maazị Joko na echekwa nrụgide n’aka esemokwu ngalaba dị kemgbe na Indonesia, ebe ndị otu nke ọnụọgụgụ Muslim ka ukwuu nabatara ụdị nchekwa nke okwukwe.",
+   "stopped": true,
+   "tokens": 57,
+   "gen_ms": 4680.293,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 128,
+   "output": "Karịa mmadụ 1,000 nwụrụ, ma ọtụtụ puku ndị mmadụ chụpụrụ n'ụlọ ha ka ndị otu Ndị Kraịst na ndị Alakụba na-alụ ọgụ n'okporo ụzọ, na-eji mma, ọnyà, na ihe ndị ọzọ na-adịghị mma.",
+   "reference": "Egburu karịa ọnụọgụ ndị mmadụ 1,000 ma chụpụ iri puku kwụrụ iri puku ndị mmadụ n’ụlọ ha dị ka ndị omempụ Ndị Otu Kraịst na Alakụba na alụ ọgụ n’okporo ụzọ, na eji mma, ụta na ube, yana ngwa-ọgụ ndị ọzọ jọrọ njọ.",
+   "stopped": true,
+   "tokens": 53,
+   "gen_ms": 4369.504,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 129,
+   "output": "Lee: Liverpool's Daniel Sturridge dips deep equalizer vs. Chelsea",
+   "reference": "Lelee: Nsaghachi Daniel Sturridge nke Liverpool n’ime ngwụcha oge vs Chelsea",
+   "stopped": true,
+   "tokens": 16,
+   "gen_ms": 1205.683,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 130,
+   "output": "Daniel Sturridge zọpụrụ Liverpool n'efunahụ Premier League megide Chelsea na nkeji iri asatọ na itoolu na Satọde na Stamford Bridge na London.",
+   "reference": "Daniel Sturridge zọrọ Liverpool n’aka nfụlahụ Premier League n’aka Chelsea site na ịnye goolu na nkeji nke 89 na Satode nke mere na Stamford Bridge dị na London.",
+   "stopped": true,
+   "tokens": 37,
+   "gen_ms": 2941.884,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 131,
+   "output": "N'oge na-adịghị anya, Shaqiri nyere Sturridge bọl ahụ mgbe ọ dị ihe dị ka mita iri na abụọ site n'ọnụ ọkpọ Chelsea ka otu ya na-eso 1-0.",
+   "reference": "Sturridge nwetara pass n’aka Xherdan Shaqiri ka ọ nọ ebe yaadị 30 na mpụga nke goolu Chelsea ka ndị otu ya na achụ 1-0.",
+   "stopped": true,
+   "tokens": 47,
+   "gen_ms": 3795.645,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 132,
+   "output": "O ji bọọl ahụ n'aka ekpe ya tupu ọ kpọọ ihe n'akụkụ post dị anya.",
+   "reference": "O tinyere bọọlụ ahụ n’akaekpe ya tupu ọ gbaa shọt n’isi elu postu ahụ.",
+   "stopped": true,
+   "tokens": 23,
+   "gen_ms": 1747.441,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 133,
+   "output": "Mgbakwunye ahụ gbara elu n'elu igbe ahụ ka ọ na-aga n'akụkụ aka nri elu nke net.",
+   "reference": "Ọnwụnwa ahụ gara n’elu bọksị ahụ ka ọ na eselụ aga n’akụkụ elu akanri nke net ahụ.",
+   "stopped": true,
+   "tokens": 23,
+   "gen_ms": 1750.967,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 134,
+   "output": "Bọọlụ ahụ mechara daa n'elu Kepa Arrizabalaga na-agba ọsọ ma daa n'ime net.",
+   "reference": "Bọọlụ ahụ mechara gafee Kepa Arrizabalaga na agbatị aka wee dakpuo n’ime net ahụ.",
+   "stopped": true,
+   "tokens": 30,
+   "gen_ms": 2311.218,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 135,
+   "output": "\"Ọ dị nnọọ na-agbalịsi ike ịbanye n'ọnọdụ ahụ, iji nweta bọọlụ ma ndị egwuregwu dị ka Shaq na-egwu ya n'ihu mgbe niile ka o kwere mee, ya mere, agbalịrụ m ịmepụta oge maka onwe m mgbe ọ bụla.\"",
+   "reference": "“Ọ bụ ịnwa ịbanye n’ọnọdụ ahụ, ijide bọọlụ ma ndi egwu dị ka Shaq na agba ya aga ihu oge niile ole enwenwuru ike, yabụ m onwe m nwara iwepụta onwe m ole m nwenwuru ike, “Sturridge gwara LiverpoolFC.com.",
+   "stopped": true,
+   "tokens": 59,
+   "gen_ms": 4859.844,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 136,
+   "output": "\"Ahụrụ m Kante na-eru nso ma were otu mmetụta ma echeghị m banyere ya nke ukwuu ma were naanị ihe mgbapụta.\"",
+   "reference": "“Ahụrụ m Kante ka ọ na abịa, metụ ya otu ugboro, echeghị m maka ya ọtụtụ, gbaa ya ozugbo.”",
+   "stopped": true,
+   "tokens": 37,
+   "gen_ms": 2873.716,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 137,
+   "output": "Chelsea duru 1-0 n'etiti oge, mgbe ha nwetara ihe mgbaru ọsọ n'ime nkeji iri abụọ na ise site n'aka onye egwuregwu Belgium Eden Hazard.",
+   "reference": "Chelsea nọ n’ihu 1-0 ka agara ezumike ka enyechara goolu na nkeji 25 site n’aka Eden Hazard nwa Belgium ama ama.",
+   "stopped": true,
+   "tokens": 36,
+   "gen_ms": 2827.274,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 138,
+   "output": "Onye na-agba bọọlụ na-acha anụnụ anụnụ gbara bọọlụ azụ na Mateo Kovacic n'ọkụ ahụ, tupu ọ gbanwee n'akụkụ etiti wee gbaba n'ime ọkara Liverpool.",
+   "reference": "Onye ihu nke Blues ahụ nyere Mateo Kovacic pass azụ ụkwụ n’egwuregwu ahụ, tupu ọ gbapụ ọsọ n’akụkụ ọkara ama egwuregwu wee gbabanye n’ọkara nke Liverpool.",
+   "stopped": true,
+   "tokens": 44,
+   "gen_ms": 3512.019,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 139,
+   "output": "Kovacic mere ka ọ dị ngwa ngwa nye onye ọzọ nọ n'ọhịa.",
+   "reference": "Kovacic mere wete mara ibe dị ọsọ n’ọkara ama egwuregwu.",
+   "stopped": true,
+   "tokens": 19,
+   "gen_ms": 1432.623,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 140,
+   "output": "Mgbe ahụ, o wepụrụ bọọlụ mara mma, na-eduga Hazard n'ime igbe.",
+   "reference": "Ọ gbara ọmarịcha bọọlụ, nke dubara Hazard n’ime bọksị ahụ.",
+   "stopped": true,
+   "tokens": 22,
+   "gen_ms": 1668.848,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 141,
+   "output": "Hazard gbara ọsọ ọsọ n'elu nchebe ma tinye ya n'ime net post dị anya na mba aka ekpe ya, na-akụ Liverpool's Alisson Becker.",
+   "reference": "Hazard gbafere dịfensị ahụ wee tinye goolu ahụ n’isi net site na iji shọt eji ụkwụ akaekpe gbaa wee gafere Alisson Becker nke Liverpool.",
+   "stopped": true,
+   "tokens": 37,
+   "gen_ms": 2895.061,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 142,
+   "output": "Liverpool na-agba Napoli n'oge otu n'ime asọmpi Champions League na elekere atọ nke ụbọchị Wenezde na Stadio San Paolo na Naples, Ịtali.",
+   "reference": "Liverpool na Napoli ga-aga ọgụ n’ọkwa izizi nke Champions League na elekere 3 nke ehihie na Wenesde na Stadio San Paolo dị na Naples, Italy.",
+   "stopped": true,
+   "tokens": 36,
+   "gen_ms": 2792.508,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 143,
+   "output": "Chelsea na-eche Videoton ihu na UEFA Europa League na elekere atọ nke ụbọchị Tọzdee na London.",
+   "reference": "Chelsea na eche Videoton na UEFA Europa League na elekere 3 nke ehihie na Tọsde na London.",
+   "stopped": true,
+   "tokens": 25,
+   "gen_ms": 1909.275,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 144,
+   "output": "Ọnwụ ndị si na mgbawa mmiri na Indonesia biliri ruo 832",
+   "reference": "Ndị nwụrụ anwụ na tsunami Indonesia eruola 832",
+   "stopped": true,
+   "tokens": 16,
+   "gen_ms": 1204.807,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 145,
+   "output": "Mkpụrụ ọnụ ọgụgụ ndị nwụrụ n'ọkụ ala na tsunami nke Indonesia eruola 832, ụlọ ọrụ mgbasa ozi nke mba ahụ kwuru n'isi ụbọchị Sọnde.",
+   "reference": "Ọnụọgụgụ ndị nwụrụ anwụ na ala ọmajijiji na tsunami nke Indonesia eruola 832, ụlọ ọrụ ọdachi nke obodo ahụ kwuru na isi ụtụtụ nke Sonde.",
+   "stopped": true,
+   "tokens": 34,
+   "gen_ms": 2635.905,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 146,
+   "output": "Ọtụtụ mmadụ ka a na-akọ na ha ji n'aka n'ime ihe ndị dara n'ala n'ihi mgbawa nke 7.5 nke mere na Fraịde ma mee ka ebili mmiri dị elu ruo 20 ụkwụ, dịka onye na-ekwu okwu maka ụlọ ọrụ ahụ bụ Sutopo Purwo Nugroho kwuru n'oge ọgbakọ ndị nta akụkọ.",
+   "reference": "Ekpesara na ejidere imirikiti ndị mmadụ n’okpuru ụlọ ndị dara ada nke ala ọmajijiji 7.5 butere nke mere na Friday wee kpalite nnukwu ikuku ruru ụkwụ 20, onye okwu okwu ụlọ ọrụ ahụ Sutopo Purwo Nugroho gwara nzụkọ ndị nchụ nta akụkọ.",
+   "stopped": true,
+   "tokens": 76,
+   "gen_ms": 6303.022,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 147,
+   "output": "Obodo Palu, nke nwere ihe karịrị mmadụ 380,000, juru n'ime ihe ndị dara n'ala.",
+   "reference": "Obodo nke Palu, nke nwere karịa ndị mmadụ 380,000, kpojuru n’ibe ahịhịa si na ụlọ ndị dara ada.",
+   "stopped": true,
+   "tokens": 24,
+   "gen_ms": 1824.308,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 148,
+   "output": "Ndị uwe ojii jidere nwoke dị afọ iri atọ na abụọ n'ihi ebubo igbu mmadụ mgbe e gburu nwanyị.",
+   "reference": "Ndị uwe ojii jidere otu nwoke, 32, na nnyocha nke igbu mmadụ ka eji mma magbuo otu nwanyị",
+   "stopped": true,
+   "tokens": 24,
+   "gen_ms": 1827.9,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 149,
+   "output": "Mwute a na-enyocha mgbe a chọtara ahụ nwanyị n'Birkenhead, Merseyside n'ụtụtụ a.",
+   "reference": "Ebidola nnyocha igbu mmadụ ka ahụchara ahụ otu nwanyị na Birkenhard, Merseyside n’ụtụtụ a.",
+   "stopped": true,
+   "tokens": 32,
+   "gen_ms": 2467.212,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 150,
+   "output": "N'afọ iri anọ na anọ, a chọtara ya n'elekere 7:55 nke ụtụtụ na mmerụ mma n'ime Grayson Mews n'okporo John Street, ebe a nwụrụ otu nwoke dị afọ iri atọ na abụọ n'ihi igbu mmadụ.",
+   "reference": "Ahụrụ mmadụ afọ 44 ahụ na 7:55 ụtụtụ nwere ọnya mma na Grayson Mews na Okporo Ụzọ John, ejidere otu nwoke dị afọ 32 na nnyocha nke igbu mmadụ.",
+   "stopped": true,
+   "tokens": 58,
+   "gen_ms": 4764.018,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 151,
+   "output": "Ndị uwe ojii agwala ndị bi n'ógbè ahụ ka ha bịa n'ihu ma ha ahụ ma ha nụ ihe ọ bụla.",
+   "reference": "Ndị uwe ojii na arịọ ndị mmadụ nọ na mpaghara ahụ onye hụrụ ma ọ bụ nụ ihe ọ bụla ka ọ bịa ihu.",
+   "stopped": true,
+   "tokens": 29,
+   "gen_ms": 2222.2,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 152,
+   "output": "Onye nchọpụta Inspector Brian O'Hagan kwuru: 'Nnyocha ahụ nọ na mbido mana m ga-ekwupụta onye ọ bụla nọ n'akụkụ John Street na Birkenhead bụ onye hụrụ ma ọ bụ nụ ihe ọ bụla na-adịghị mma ka ọ kpọtụrụ anya anyị.",
+   "reference": "Onye Uwe Ojii Ịnspektọ Brian O'Hagan kwuru: ‘Nnyocha ahụ nọ na mbido ya mana m ga-arịọ mmadụ ọ bụla nọ n’ogige nke Okporo Ụzọ John dị na Birkenhead onye hụrụ ma ọ bụ nụ ihe ọ bụla a na enyo enyo ka ọ kpọtụrụ anyị.",
+   "stopped": true,
+   "tokens": 69,
+   "gen_ms": 5786.068,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 153,
+   "output": "M ga-ewerekwa ndị mmadụ niile, karịsịa ndị ọkwọ ụgbọ ala, n'ime ha, ndị nwere ike inwe ihe ọ bụla na igwefoto ụgbọ ala ha, ka ha kpọtụrụ anya anyị n’ihi na ha nwere ike inwe ozi dị mkpa maka nyocha anyị.",
+   "reference": "M ga-achọ ịrịọ mmadụ ọ bụla, karịchara ndị ọkwọ ụgbọ taksị, onye nwere ike ijide ihe ọ bụla na nseta dashkam ka ọ kpọtụrụ anyị n’ihi ha nwere ike ịnwe ozi dị mkpa maka nnyocha anyị.’",
+   "stopped": true,
+   "tokens": 59,
+   "gen_ms": 4975.965,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 154,
+   "output": "Onye na-ekwu okwu ndị uwe ojii ekwela na nwanyị ahụ nwụrụ anwụ bụ onye obodo Birkenhead ma a chọtara ya n'ime ụlọ.",
+   "reference": "Onye okwu okwu ndị uwe ojii ekwenyela na nwanyị ahụ ahụrụ ahụ bụ onye mpaghara na Birkenhead, ahụrụ ya n’ime otu akụ.",
+   "stopped": true,
+   "tokens": 29,
+   "gen_ms": 2265.178,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 155,
+   "output": "N'ehihie a, ndị enyi ndị kwenyere na ha maara nwanyị ahụ bịarutere ebe ihe ahụ mere iji jụọ ajụjụ banyere ebe e chọtara ya n'ụtụtụ a.",
+   "reference": "N’ehihie a ndị enyi kwere na ha ma nwanyị ahụ abịala n’ogige ahụ iji jụọ ajụjụ maka ebe ahụrụ ya n’ụtụtụ a.",
+   "stopped": true,
+   "tokens": 43,
+   "gen_ms": 3506.66,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 156,
+   "output": "Nnyocha na-aga n'ihu ka ndị uwe ojii kwuru na ha na-aga n'ihu ịgwa onye ahụ metụtara.",
+   "reference": "A na eme nnyocha ugbu a dị ka ndị uwe ojii si kwuo ha na akwadobe ịgwa osote nke onye ihe ahụ mere.",
+   "stopped": true,
+   "tokens": 26,
+   "gen_ms": 2083.274,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 157,
+   "output": "Onye na-anya ụgbọ ala nabi n'Grayson Mews enwetala mbọ ịlaghachi n'ụlọ ya, mana ndị uwe ojii na-ekwu na onye ọ bụla anaghị ekwe ka ọ banye ma ọ bụ pụọ n'ụlọ ahụ.",
+   "reference": "Onye ọkwọ ụgbọ taksị bi na Grayson Mew nwara ịbanyechi na be ya mana ndị uwe ojii gwara ya na ọ nweghị onye na abanye ma ọ bụ apụ n’ụlọ ahụ.",
+   "stopped": true,
+   "tokens": 53,
+   "gen_ms": 4429.758,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 158,
+   "output": "Ọ dị ya ka ọ na-ekwu okwu mgbe ọ chọpụtara ihe mere.",
+   "reference": "Okwu ekweghị ya mgbe ọ chọpụtara ihe mere.",
+   "stopped": true,
+   "tokens": 15,
+   "gen_ms": 1112.071,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 159,
+   "output": "Ndị bi na ya ugbu a na-agwa ha na ọ ga-ewe awa ole na ole tupu ha alaghachi n'ime.",
+   "reference": "A na agwa ndị bi ebe ahụ ugbu a, na ọ ga-ewe ogologo oge tupu ahapụ ha ịbanyechi ọzọ.",
+   "stopped": true,
+   "tokens": 25,
+   "gen_ms": 1908.16,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 160,
+   "output": "Onye uwe ojii na-ekwu na otu nwoke na mpaghara dum na-eme ka ọ bụrụ ebe mpụ.",
+   "reference": "Anụrụ ka otu onye uwe ojii na agwa otu nwoke na a na ahụta mpaghara ahụ niile ka ogige omekome.",
+   "stopped": true,
+   "tokens": 21,
+   "gen_ms": 1589.928,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 161,
+   "output": "Nwanyị pụtara n'ebe ahụ na anya mmiri.",
+   "reference": "Otu nwanyị anya mmiri juru bịara n’ogige ahụ.",
+   "stopped": true,
+   "tokens": 13,
+   "gen_ms": 966.482,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 162,
+   "output": "Ọ na-emegharị ugboro ugboro 'ọ dị oke njọ'.",
+   "reference": "Ọ nọ na ekwugharị “ọ jọrọ njọ’.",
+   "stopped": true,
+   "tokens": 17,
+   "gen_ms": 1279.082,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 163,
+   "output": "N'elekere abụọ nke ụbọchị, ụgbọ ala ndị uwe ojii abụọ nọ n'ime ogige ahụ, e nwere ụgbọ ala ọzọ n'èzí.",
+   "reference": "Na elekere 2 nke ehihie ụgbọ ala ndị uwe ojii abụọ nọ n’ime eriri ahụ ụgbọ ala ọzọ nọkwa na mpụga.",
+   "stopped": true,
+   "tokens": 29,
+   "gen_ms": 2236.461,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 164,
+   "output": "Ọtụtụ ndị ọrụ nọ n'ime ogige ahụ na-ekiri ụlọ elu ahụ.",
+   "reference": "Ụfọdụ ndị uwe ojii kwụ n’ime eriri ahụ na elele ụlọ ndị ahụ.",
+   "stopped": true,
+   "tokens": 18,
+   "gen_ms": 1404.381,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 165,
+   "output": "Onye ọ bụla nwere ozi, a na-arịọ ka o zipu DM na @MerPolCC, kpọọ 101, ma ọ bụ kpọtụrụ Crimestoppers n'amaghị aha na 0800 555 111, na-ekwu log 247 nke 30 Septemba.",
+   "reference": "A na arịọ mmadụ ọ bụla nwere ozi ka ọ dete ozi na @MerPolCC, kpọọ 101 ma ọ bụ kpọtụrụ Crimestoppers na ejighi aha ya na 0800 555 111 na ekwu ndekọ 247 nke Septemba 30.",
+   "stopped": true,
+   "tokens": 62,
+   "gen_ms": 5238.931,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 166,
+   "output": "Ihe oyiyi nke Ụlọ Nzukọ nke Cromwell na-aghọ ihe na-adịghị mma nke esemokwu \"idegharị akụkọ ihe mere eme\"",
+   "reference": "Akpụrụakpụ Cromwell nke nzụkọ omeiwu abụgo ihe ncheta kachasị ọhụrụ dabanyere n’esemokwu ‘ịdegharị akụkọ ochie’.",
+   "stopped": true,
+   "tokens": 27,
+   "gen_ms": 2069.346,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 167,
+   "output": "Mgbakwunye ya ga-abụ ikpe ziri ezi maka mbibi nke Taliban mere nke ọtụtụ ihe nketa omenala na okpukpe nke England, nke ndị na-eso ụzọ Puritan ya na-adịghị mma mere.",
+   "reference": "Nchụpụ ya ga-abụ ntaramahụhụ maka mmebi ya yitere Taliban emere n’ọtụtụ akpụrụakpụ omenala na okpukperechi nke England, nke ndị nsuso Puritan na enye nsogbu mere.",
+   "stopped": true,
+   "tokens": 38,
+   "gen_ms": 3079.072,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 168,
+   "output": "Ma ndị otu Cromwell Society kọwara atụmatụ Maazị Crick dị ka \"folly\" na \"ịnwale ịmegharị akụkọ ihe mere eme.\"",
+   "reference": "Mana Otu Cromwell kọwara ntụnye nke Maazị Crick ka ‘ihe njakịrị” yana “ịnwa ịdegharị akụkọ ochie.”",
+   "stopped": true,
+   "tokens": 34,
+   "gen_ms": 2727.459,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 169,
+   "output": "John Goldsmith, onye isi oche nke Cromwell Society, kwuru: \"Ọ bụ ihe a na-atụ anya na n'okwu a na-eme ugbu a banyere iwepụ ihe oyiyi, ihe oyiyi Oliver Cromwell n'èzí ụlọ ọrụ Westminster ga-abụ ihe a na-target.\"",
+   "reference": "John Goldsmith, onye isi oche nke Otu Cromwell, kwuru: “Ọ bụ ihe agaghị ezenwu na nrịrụta ụka ugbu a maka mwepu nke akpụrụakpụ na akpụrụakpụ nke Oliver Cromwell dị na mpụga nke Obieze nke Westminster ga-abụ ihe mgbado anya.",
+   "stopped": true,
+   "tokens": 57,
+   "gen_ms": 4862.837,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 170,
+   "output": "Ihe oyiyi nke agha obodo Bekee bụ nke Cromwell adịghị.",
+   "reference": "Mmebi akara okpukperechi nke emere n’oge ọgụ ndị England abụghị Cromwell nyere iwu ya ma ọ bụ mee ya n’aka ya.",
+   "stopped": true,
+   "tokens": 13,
+   "gen_ms": 958.861,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 171,
+   "output": "Ma eleghị anya, Cromwell na-ezighị ezi ga-atụfu maka omume nke onye nna nna ya Thomas n'ime narị afọ gara aga.",
+   "reference": "Ikekwe a ga-egbu Cromwell na ezighi ezi maka mmereme nke nna ochie ya Thomas mere na narị afọ gara aga.",
+   "stopped": true,
+   "tokens": 31,
+   "gen_ms": 2448.873,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 172,
+   "output": "Onye isi William Hamo Thorneycroft nke ukwuu nke Cromwell bụ ihe akaebe nke echiche narị afọ nke 19 na akụkụ nke akụkọ ihe mere eme nke onye ọtụtụ na-eche na ka dị mkpa ịsọpụrụ.",
+   "reference": "Ọmarịcha ngosipụta nke Sir William Hamo Thorneycroft maka Cromwell pụtara ihie n’echiche narị afọ 19 yana akụkụ nke ndekọ akụkọ nke mmadụ ọtụtụ ndị mmadụ kwenyere na ekwesịrị ị na ebuli elu.",
+   "stopped": true,
+   "tokens": 50,
+   "gen_ms": 4439.135,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 173,
+   "output": "Ọkà iwu Goldsmith gwara Telegraph nke ụbọchị Sọnde: \"Cromwell bụ onye a na-ewere dị ka onyechekwa nke ọgbakọ ahụ megide nrụgide si n'èzí, n'okwu ya, ọ bụ n'ezie eze.",
+   "reference": "Maazị Goldsmith gwara The Sunday Telegraph: “Ọtụtụ na ebuli Cromwell, ikekwe karịa na ngwụcha narị afọ 19 karịa oge a, dị ka onye nchedo nke nzụkọ omeiwu maka nkwanye si na mpụga, n’okwu ya ndị ọchịchị.",
+   "stopped": true,
+   "tokens": 48,
+   "gen_ms": 4112.938,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 174,
+   "output": "Ọ bụrụ na nke ahụ bụ ihe ngosi ziri ezi nke ọma bụ ihe a na-atụle nkwurịta okwu akụkọ ihe mere eme na-aga n'ihu.",
+   "reference": "Ma nke ahụ abụ ngosipụta ziri ezi n’uju bụkwazị isiokwu nke nrịrụta ụka akụkọ ochie na aga n’ihu ugbu a.",
+   "stopped": true,
+   "tokens": 35,
+   "gen_ms": 2807.591,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 175,
+   "output": "Ihe dị mkpa bụ na esemokwu nke etiti narị afọ nke 17 emeela ka mmepe nke mba anyị na-aga n'ihu, na Cromwell bụ onye a na-ahụ anya nke na-anọchi anya otu akụkụ nke nkewa ahụ.",
+   "reference": "Ihe doro anya bụ na ọgụ nke etiti narị afọ 17 doziri ntolite nke obodo anyị, Cromwell bụ mmadụ ama ama onye nke na egosi otu akụkụ nke nkewa ahụ.",
+   "stopped": true,
+   "tokens": 49,
+   "gen_ms": 4232.718,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 176,
+   "output": "Ihe ọ rụrụ dị ka Onyecheche bụkwa ihe a ga-eme ememe na ncheta.\"",
+   "reference": "Ntozu ya ka Onye Nchedo Kachasị bụ ihe tozuru ibuli elu ma na echeta.”",
+   "stopped": true,
+   "tokens": 21,
+   "gen_ms": 1595.475,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 177,
+   "output": "Nwa Ezi Nwa Na-egbu Onye Ọrụ China",
+   "reference": "Ezi Na Egbu Mmadụ Dọgburu Onye Ọrụ Ubi China",
+   "stopped": true,
+   "tokens": 14,
+   "gen_ms": 1070.832,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 178,
+   "output": "Onye ọrụ ugbo ka e gburu mgbe e ji ehi wakpo ya n'ahịa na ndịda ọdịda anyanwụ China, dị ka akụkọ mpaghara si kwuo.",
+   "reference": "Ezi makpuru otu onye ọrụ ubi ma gbuo ya n’ahịa dị na akụkụ ọdịda anyanwụ na ndịda nke China, site na mkpesa mgbasa ozi nke mpaghara.",
+   "stopped": true,
+   "tokens": 31,
+   "gen_ms": 2464.138,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 179,
+   "output": "Onye ahụ, onye a maara naanị site n'aha ya bụ \"Yuan,\" bụ onye a hụrụ nwụrụ anwụ na mgbaji ọbara, nke gbara ọbara n'akụkụ ebe a na-ere nri nọ n'obodo Liupanshui nọ n'ógbè Guizhou, dị ka South China Morning Post kwuru na Sunday.",
+   "reference": "Nwoke ahụ, eji naanị aha nna ya kọwaa “Yaun,” ka ahụrụ ya ebe ọ nwụrụ anwụ, adọrịrị akwara ya, ọbara kpuchiri ya n’akụkụ ụlọ ezi dị n’ahịa ahụ dị na Liupanshui na mpaghara Guizhou, South China Morning Post kpesara na Sọnde.",
+   "stopped": true,
+   "tokens": 70,
+   "gen_ms": 6153.247,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 180,
+   "output": "Onye na-azụ anụ ezi na-akwadebe itinye ọgwụ n'ime anụ ezi n'ụlọ ọrụ na May 30, 2005 na Xining nke Qinghai Province, China.",
+   "reference": "Onye ọrụ ubi na azụ ezi kwadoro ịgbanye ọgwụ mgbochi n’ime ezi ndị dị n’ụlọ ezi n’ụbọchi Meh 30, 2005 na Xining nke Mpaghara Qinghai, China.",
+   "stopped": true,
+   "tokens": 40,
+   "gen_ms": 3345.566,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 181,
+   "output": "O kwuru na ya na onyeọụrụ ya si na mpaghara Yunnan dị n'akụkụ ya, si n’ụzọ na-ezighị ezi bịarute n’ahịa iji ree ezi iri na ise.",
+   "reference": "Ekwuru na ya na nwa nwanne ya mere njem bidoro na mpaghara Yunnan nọketere nso na Wenesde iji ree ezi 15 n’ahịa ahụ.",
+   "stopped": true,
+   "tokens": 47,
+   "gen_ms": 4035.699,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 182,
+   "output": "N’ụtụtụ e mesịrị, onye òtù ezinụlọ ya chọtara ya nwụrụ anwụ, o wee chọta ọnụ ụzọ nke na-eduga n’ogige ndị na-akụ anụ dị n'akụkụ ya mepere emepe.",
+   "reference": "N’ụtụtụ na esote, nwa nwanne ya hụrụ ya ebe ọ nwụrụ anwụ, ma chọpụta otu ụzọ banyere n’otu ụlọ ezi ka ọ mepere emepe.",
+   "stopped": true,
+   "tokens": 50,
+   "gen_ms": 4348.659,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 183,
+   "output": "Ọ kwuru na n'ime ụlọ ahụ bụ nnukwu ehi nwoke nwere ọbara n'ọnụ ya.",
+   "reference": "O kwuru n’ime ụlọ ezi ahụ bụ nnukwu oke ezi ọbara dị n’ọnụ ya.",
+   "stopped": true,
+   "tokens": 18,
+   "gen_ms": 1354.971,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 184,
+   "output": "Nnyocha ikpe ziri ezi kwadoro na e ji nku 550 pound mee ihe, ka akụkọ ahụ si kwuo.",
+   "reference": "Nnyocha fọrensik kwenyere na ezi ibu 550 ahụ dagburu onye ọrụ ubi ahụ, site na akụkọ ahụ.",
+   "stopped": true,
+   "tokens": 25,
+   "gen_ms": 1944.041,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 185,
+   "output": "\"ụkwụ nke onye òtù ezinụlọ m bụ ọbara na mgbaji.\"",
+   "reference": "“Ọbara na ọnya juru ụkwụ nwa nwanne m,” nwa nwanne ahụ kwuru, nke eji aha nna ya wee na arụtụ aka “Wu,” kwuru, dị ka Guiyan Evening News siri kwuo.",
+   "stopped": true,
+   "tokens": 20,
+   "gen_ms": 1520.663,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 186,
+   "output": "Nleba anya nchekwa gosiri Yuan ka ọ na-abanye n'ahịa n'elekere anọ iri anọ n'ụbọchị Tọzdee iji na-eri anụ ya.",
+   "reference": "Nseta igwefoto nche gosiri ka Yuan na abanye n’ahịa ahụ 4:40 ụtụtụ Tọsde iji nye ezi ndị ahụ nri.",
+   "stopped": true,
+   "tokens": 34,
+   "gen_ms": 2810.653,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 187,
+   "output": "A chọtara ahụ ya ihe dị ka otu awa ka e mesịrị.",
+   "reference": "Ahụrụ ahụ ya n’otu aka elekere ka emechara.",
+   "stopped": true,
+   "tokens": 14,
+   "gen_ms": 1053.287,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 188,
+   "output": "Anụmanụ ahụ bụ́ onye gburu nwoke ahụ abụghị nke Yuan ma ọ bụ nke onye òtù ezinụlọ ya.",
+   "reference": "Anụmanụ gburu nwoke ahụ abụghị nke Yaun ma ọ bụ nwa nwanne ya.",
+   "stopped": true,
+   "tokens": 26,
+   "gen_ms": 2023.877,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 189,
+   "output": "Onye njikwa ahịa gwara Evening News na e ji anụ ahụchi ahụchi n'ụlọ iji gbochie ya ị wakpo onye ọzọ, ebe ndị uwe ojii na-anakọta ihe akaebe n'ebe ihe ahụ mere.",
+   "reference": "Otu onye nchịkwa ahịa gwara Evening News na akpọchiri ezi ahụ iji gbochie ya na ịmakpu mmadụ ọzọ, ebe ndị uwe ojii na ekpokọta ihe aka n’ogige ahụ.",
+   "stopped": true,
+   "tokens": 43,
+   "gen_ms": 3683.635,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 190,
+   "output": "Ndị ezinụlọ Yuan na ndị ọchịchị ahịa na-ekwu na ha na-eme mkpebi maka ụgwọ maka ọnwụ ya.",
+   "reference": "Ezinụlọ nke Yuan na ndị ikikere ahịa na akparịta ego nkasị obi maka ọnwụ ya.",
+   "stopped": true,
+   "tokens": 21,
+   "gen_ms": 1595.393,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 191,
+   "output": "N'agbanyeghị na ọ dị obere, e nwere ihe ndị na-eme ka pigs na-akụ mmadụ.",
+   "reference": "Agbanyeghị na ọ bụ ihe na anaghị emekarị, ebe ezi ịmakpu mmadụ bụ ihe edekọburu na mbụ.",
+   "stopped": true,
+   "tokens": 21,
+   "gen_ms": 1611.225,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 192,
+   "output": "N'afọ 2016, e nwere ehi wakporo nwanyị na di ya n'ugbo ha n' Massachusetts, nke hapụrụ nwoke ahụ nwere mmerụ dị mkpa.",
+   "reference": "Na 2016, otu ezi makpuru otu nwanyị na dị ya n’ubi ha na Massachusetts, hapụ nwoke ahụ na nnukwu mmerụ ahụ.",
+   "stopped": true,
+   "tokens": 35,
+   "gen_ms": 2997.208,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 193,
+   "output": "N'afọ iri gara aga, e ji ehi 650 pound kpọchie onye ọrụ ugbo Welsh n'igwe traktọ ya ruo mgbe nwunye ya tụrụ egwu anụmanụ ahụ.",
+   "reference": "Afọ iri gara aga, ezi na ada 650 n’ibu kpadoro otu onye ọrụ ubi Welsh na traktọ ya ruo mgbe nwunye ya chụpụrụ anụmanụ ahụ.",
+   "stopped": true,
+   "tokens": 39,
+   "gen_ms": 3362.841,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 194,
+   "output": "Mgbe onye ọrụ ugbo Oregon riri site n'aka anụmanụ ya na 2012, onye ọrụ ugbo Manitoba kwuru na CBC News na anụmanụ na-adịghị eme ihe ike mgbe niile manauto ọkụ ọbara nwere ike ime ka ọ bụrụ \"ihe na-akpalite.\"",
+   "reference": "Ka ezi nke onye ọrụ ubi Oregon richara ya na 2012, otu onye ọrụ ubi Mantioba gwara CNC News na ezi na emekabe ihe ike mana ụtọ ọbara nwere ike ịbụ “ihe mkpalite.”",
+   "stopped": true,
+   "tokens": 52,
+   "gen_ms": 4566.279,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 195,
+   "output": "Ha na-eme naanị ihe na-adịghị mma.",
+   "reference": "“Naanị egwu ka ha na egu.",
+   "stopped": true,
+   "tokens": 10,
+   "gen_ms": 727.531,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 196,
+   "output": "Ha bụ ndị na-ebuli ihe, na-enwe mmasị ịmụ ihe ... ha anaghị ebu gị ọgụ.",
+   "reference": "Ha bụ ụmụ ntakịrị, ha nwere nnukwu nchụchọ ... ha apụghị ịmerụ gị ahụ.",
+   "stopped": true,
+   "tokens": 24,
+   "gen_ms": 1845.24,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 197,
+   "output": "Ị ga-akwụ ha ụgwọ nke ọma, ọ dị mma.",
+   "reference": "Ị kwesịrị ịnye ya nsọpụrụ ziri ezi, “o kwuru.",
+   "stopped": true,
+   "tokens": 13,
+   "gen_ms": 964.214,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 198,
+   "output": "Mgbụsị akwụkwọ nke Hurricane Rosa ga-ebute mmiri ozuzo dị ukwuu n'ofe ndịda ọdịda anyanwụ US",
+   "reference": "Ihe fọdụrụ na Oke Ifufe Rosa ga-ebute nnukwu mmiri ozizo gbasara agbasa n’akụkụ ọdịda anywa na ndịda nke US",
+   "stopped": true,
+   "tokens": 22,
+   "gen_ms": 1683.347,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 199,
+   "output": "Dị ka amụma, oké ifufe Rosa na-ebelata ka ọ na-aga n'elu mmiri oyi nke ugwu ọwụwa anyanwụ Mexico.",
+   "reference": "Dị ka amụma ihuigwe, Oke Ifufe Rosa na ada ka ọ agafe n’elu mmiri juru oyi nke akụkụ osimiri n’ebe ugwu nke Mexico.",
+   "stopped": true,
+   "tokens": 28,
+   "gen_ms": 2241.696,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 200,
+   "output": "Ọbụna, Rosa ga-ebute mmiri ozuzo na-ebibi ihe n'ofe ugwu Mexico na ndịda ọdịda anyanwụ U.S. n'ime ụbọchị ole na ole na-abịa.",
+   "reference": "Kaosiladị, Rosa ga-ebute mmiri ozizo ga-ebute ide mmiri n’ofe ebe ugwu nke Mexico yana akụkụ ọdịda anyanwụ na ndịda nke U.S. n’ụbọchị ndị na abia.",
+   "stopped": true,
+   "tokens": 33,
+   "gen_ms": 2859.633,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 201,
+   "output": "Rosa nwere ikuku nke 85 mph, nke bụ Hurricane 1, na 5 a.m. oge ọwụwa anyanwụ na Sọnde, ma dị na 385 kilomita ndịda ọdịda anyanwụ nke Punta Eugenia, Mexico.",
+   "reference": "Rosa nwere ikuku 85 mph, Oke Ifufe nke Otu 1, ebe 5 ụtụtụ. Oge ọwụwa anyanwụ Sọnde, ọ dị na maịlụ 385 nke ọdịda anyanwụ na ndịda nke Punta Eugenia, Mexico.",
+   "stopped": true,
+   "tokens": 46,
+   "gen_ms": 4023.989,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 202,
+   "output": "Rosa na-atụ anya na ọ ga-aga n'ebe ugwu na Sọnde.",
+   "reference": "Atụrụ anya na Rosa ga-aga n’ebe ugwu na Sọnde.",
+   "stopped": true,
+   "tokens": 17,
+   "gen_ms": 1280.239,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 203,
+   "output": "N'otu oge ahụ, ọdọ mmiri na-amalite ịmepụta onwe ya n'elu Oké Osimiri Pasifik ma na-aga n'ebe ọdịda anyanwụ n'akụkụ ọdịda anyanwụ nke U.S. Ka Rosa na-eru n'akụkụ Baja California n'ụbọchị Mọnde dị ka oké ifufe, ọ ga-amalite ịkwanye mmiri mmiri okpomọ miri emi n'ebe ndịda ọdịda anyanwụ U.S.",
+   "reference": "Ugbu a, nnukwu oghere ebidola ịchịkọta n’ofe Oke Osimiri Pacific ma gaa ọwụwa anyanwụ na-aga Akụkụ Osimiri Ọdịda Anyanwụ nke U.S. Ka Rosa na erute ala mmiri Baja California na Mọnde ka oke ikuku mmiri, ọ ga-ebido ịkwa oke mmiri miri emi gaa n’ebe ugwu n’ime nke ọdịda anyanwụ na ndịda nke U.S.",
+   "stopped": true,
+   "tokens": 81,
+   "gen_ms": 7362.674,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 204,
+   "output": "Rosa ga-ebute mmiri ozuzo ruru sentimita iri na 10 n'akụkụ ụfọdụ nke Mexico n'ụbọchị Mọnde.",
+   "reference": "Rosa ga-ebulite mmiri ozizo toruru 10 inchis n’akụkụ nke Mexico na Mọnde.",
+   "stopped": true,
+   "tokens": 24,
+   "gen_ms": 1843.959,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 205,
+   "output": "Mgbe ahụ, mmiri mmiri okpomọkụ na-emekọrịta ihe na ụzọ na-abịaru nso ga-emepụta mmiri ozuzo dị arọ n'ofe Southwest n'ime ụbọchị ndị na-abịa.",
+   "reference": "Mgbe ahụ, oke mmiri na agwakọta n’ime nnukwu oghere na abịa ga-emepụta nnukwu mmiri ozizo gbasara agbasa n’ebe Ọdịda anyanwụ na ndịda n’ofe ụbọchị ndị na abịa.",
+   "stopped": true,
+   "tokens": 37,
+   "gen_ms": 3176.725,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 206,
+   "output": "N'ime mpaghara ahụ, mmiri ozuzo nke sentimita 1 ruo 4 nwere ike ibute mmiri ozuzo na-efe efe, mmiri na-asọpụta, na ihe egwu nke ala na-ada n'ala n'ime ọhịa.",
+   "reference": "Na mpaghara, mmiri ozizo ruru 1 ruo 4 inchis ga-ebute ide mmiri jọrọ njọ, ọsụsọ ahịhịa yana ala ọzịze nwere ike ịdị n’ọzara.",
+   "stopped": true,
+   "tokens": 46,
+   "gen_ms": 4678.826,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 207,
+   "output": "Mmiri miri nke miri dị omimi ga-eme ka ọnụego mmiri ozuzo rute sentimita 2 ruo 3 kwa awa n'ebe ụfọdụ, karịsịa n'akụkụ ụfọdụ nke Nevada na Arizona.",
+   "reference": "Oke mmiri miri emi ga-ebute oke mmiri ozizo irute inchi 2 ruo 3 kwa aka elekere na nkebi, karịchara n’akụkụ nke ndịda Nevada na Arizona.",
+   "stopped": true,
+   "tokens": 41,
+   "gen_ms": 3812.502,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 208,
+   "output": "N'ime 2 ruo 4 sentimitaị mmiri ozuzo nwere ike ime n'akụkụ ụfọdụ nke ndịda ọdịda anyanwụ, karịsịa n'elu ọtụtụ akụkụ nke Arizona.",
+   "reference": "Dị ka a na atụ anya inchis 2 ruo 4 nke mmiri ozizo n’ụfọdụ akụkụ nke Ọdịda anyanwụ na ndịda, karịchaa n’ofe nke Arizona.",
+   "stopped": true,
+   "tokens": 32,
+   "gen_ms": 2955.369,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 209,
+   "output": "Mgbawa n'ime mmiri nwere ike ime na ọnọdụ na-aga n'ihu na-akawanye njọ n'ihi ụdị mmiri ozuzo na-adịghị mma nke oké ifufe.",
+   "reference": "Enwere ike ịnwe ide mmiri nwere ọnọdụ na emebi ngwangwa n’ihi ụdịdị nke oke mmiri ozizo fesara efesa.",
+   "stopped": true,
+   "tokens": 33,
+   "gen_ms": 2816.711,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 210,
+   "output": "Ọ ga-abụ ihe na-adịghị mma nke ukwuu ịapụ n'ime ọhịa n'ụkwụ, na ihe egwu nke mmiri ozuzo okpomọkụ.",
+   "reference": "Ọ ga-abụ nnukwu ndụmọdụ jọrọ njọ iji ụkwụ gara banye n’ọzara ebe enwere ihe egwu nke oke mmiri ozizo.",
+   "stopped": true,
+   "tokens": 29,
+   "gen_ms": 2453.888,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 211,
+   "output": "Oke mmiri ozuzo nwere ike ime ka ọdọ mmiri ghọọ osimiri na-akụda mmiri, oké ifufe ga-ebute ikuku na-akụda mmiri na uzuzu.",
+   "reference": "Nnukwu mmiri ozizo nwere ike ịme ka kanyọns bụrụ osimiri ji iwe yana egbe eluigwe na amụma ga-ebute oke ifufe na aja na efesasị efe.",
+   "stopped": true,
+   "tokens": 38,
+   "gen_ms": 3524.474,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 212,
+   "output": "Mgbaba nke mgbawa ga-ebute mmiri ozuzo dị arọ n'akụkụ ụfọdụ n'akụkụ osimiri Southern California.",
+   "reference": "Nnukwu oghere ahụ na abịarute ga-ebute ụfọdụ nnukwu mmiri ozizo n’ebe akụkụ osimiri Ndịda California.",
+   "stopped": true,
+   "tokens": 21,
+   "gen_ms": 1746.131,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 213,
+   "output": "Mkpụrụ mmiri nke karịrịrị ọkara inch nwere ike ime, nke nwere ike ibute obere mmiri na okporo ụzọ na-adịghị mma.",
+   "reference": "Mgbakọ mmiri ozizo nke gafere ọkara inchi nwere ike ịdị, nke nwere ike ibute obere ọsụsọ ahịhịa yana okporo ụzọ na amị amị.",
+   "stopped": true,
+   "tokens": 29,
+   "gen_ms": 2678.763,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 214,
+   "output": "Nke a ga-abụ mmiri mbụ nke oge mmiri ozuzo na mpaghara a.",
+   "reference": "Nke a ga-abụ mmiri ozizi izizi nke mpaghara ahụ nke oge udu mmiri ha.",
+   "stopped": true,
+   "tokens": 15,
+   "gen_ms": 1307.004,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 215,
+   "output": "Mgbụsị akwụkwọ mmiri ozuzo na-ekpo ọkụ ga-amalite ịbịaru Arizona n'oge ụbọchị Sọnde na mmalite ụbọchị Mọnde, tupu mmiri ozuzo ahụ na-ekpuchi nnukwu mpaghara n'oge ụbọchị Mọnde na Tuzdee.",
+   "reference": "Ụfọdụ nyọsa oke mmiri ozizo fesara efesa ga-ebido irute Arizona na mgbede Sọnde yana n’isi ụtụtụ Mọnde, tupu mmiri ozizo ahụ agbasasịa na mgbede Mọnde na Tusde.",
+   "stopped": true,
+   "tokens": 50,
+   "gen_ms": 4863.209,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 216,
+   "output": "Mmiri dị arọ ga-agbasa n'ime Four Corners na Tuzdee ma nwee ike ịdịru ruo Wednesde.",
+   "reference": "Nnukwu mmiri ozizo ga-agbasa na Akụkụ Anọ na Tusde ma nọgide ruo Wenesde.",
+   "stopped": true,
+   "tokens": 30,
+   "gen_ms": 3856.137,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 217,
+   "output": "Ọktoba nwere ike ịhụ mgbanwe okpomọkụ dị egwu n'ofe U.S. ka Arctic na-ekpo ọkụ, mana tropics na-anọgide na-ekpo ọkụ.",
+   "reference": "Ọktọba nwere ike ịhụ ụfọdụ mgbanwe temprechọ dị ike n’ofe U.S. ka Arctic na ejuwanye oyi, mana ebe okpomọkụ ga-enwe okpomọkụ.",
+   "stopped": true,
+   "tokens": 33,
+   "gen_ms": 3864.294,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 218,
+   "output": "N'oge ụfọdụ, nke a na-ebute mgbanwe dị egwu na okpomọkụ n'ime obere anya.",
+   "reference": "Oge ụfọdụ nke a na ebute nnukwu mgbanwe na temprechọ n’ofe obere oge.",
+   "stopped": true,
+   "tokens": 19,
+   "gen_ms": 2255.866,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 219,
+   "output": "Enwere nnukwu ihe atụ nkedịiche okpomọkụ na-akụda n'etiti etiti U.S. na Sọnde.",
+   "reference": "Enwere nnukwu ịmaatụ nke ndịiche temprechọ dị egwu gafere n’etiti U.S. na Satọde.",
+   "stopped": true,
+   "tokens": 24,
+   "gen_ms": 2706.098,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 220,
+   "output": "Enwere ihe dị ka ọdịiche okpomọkụ 20 degrees n'etiti Kansas City, Missouri, na Omaha, Nebraska, na n'etiti St. Louis na Des Moines, Iowa.",
+   "reference": "Enwere ihe rutere ndịiche temprechọ digrii-20 n’etiti Kansas City, Missouri, na Omaha, Nebraska, yana n’etiti St. Louis na Des Moined, Iowa.",
+   "stopped": true,
+   "tokens": 37,
+   "gen_ms": 4233.373,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 221,
+   "output": "N'ime ụbọchị ole na ole na-abịa, okpomọkụ nke okpomọkụ ga-agbalị iwulite ma gbasaa ọzọ.",
+   "reference": "N’ụbọchị ole ma ole na abịa, ekpomọkụ ọkọchị ga-anọgide ga-anwa ịkpụkọ ma dọtịa ọzọ.",
+   "stopped": true,
+   "tokens": 24,
+   "gen_ms": 3010.471,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 222,
+   "output": "Ọtụtụ n'ime etiti na ọwụwa anyanwụ U.S. na-atụ anya na ha ga-enwe mmalite okpomọkụ nke Ọktoba na 80s nke ukwuu site na Southern Plains ruo akụkụ nke Northeast.",
+   "reference": "Atụrụ anya na imirikiti n’ebe etiti na ọwụwa anyanwụ U.S. ga-ahụ mbido Ọktọba nwere ekpomọkụ gbasara 80s bido na Ala Ndịda ruo n’akụkụ nke Ọwụwa anyanwụ na ugwu.",
+   "stopped": true,
+   "tokens": 37,
+   "gen_ms": 4426.825,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 223,
+   "output": "Obodo New York nwere ike iru 80 degrees na Tuzdee, nke ga-abụ ihe dị ka 10 degrees n'elu nkezi.",
+   "reference": "New York City nwere ike iru digrii 80 na Tusde, nke ga-abụ ihe dị ka digrii 10 karịa nkezi.",
+   "stopped": true,
+   "tokens": 30,
+   "gen_ms": 3511.334,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 224,
+   "output": "Ntụle ihu igwe ogologo oge anyị na-egosi oke ohere maka okpomọkụ dị elu maka ọwụwa anyanwụ U.S. site na ọkara mbụ nke Ọktoba.",
+   "reference": "Amụma ihuigwe ogologo oge anyị na egosi nnukwu ohere maka nkezi temprechọ ndị dị n’elu maka akụkụ ọwụwa anyanwụ nke U.S. gafere ọkara izizi nke Ọktoba.",
+   "stopped": true,
+   "tokens": 32,
+   "gen_ms": 3724.827,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 225,
+   "output": "Karịa nde iri abụọ na nde mmadụ na-ekiri ikpe Brett Kavanaugh",
+   "reference": "Ihe karịrị ọnụọgụ ndị mmadụ nde 20 lelere ọnụnụ Brett Kavanaugh",
+   "stopped": true,
+   "tokens": 15,
+   "gen_ms": 1427.396,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 226,
+   "output": "Karịa nde iri abụọ na otu ndị mmadụ lere anya n'oge na-adịghị anya ikpe Brett Kavanaugh, onye a họpụtara maka Ụlọikpe Kasị Elu, na Christine Blasey Ford, bụ́ nwanyị na-akatọ ya maka mwakpo mmekọahụ nke o boro ebubo mere n'afọ iri asatọ.",
+   "reference": "Ihe karịrị ọnụọgụ ndị mmadụ nde 20 lelere nkwupụta akaebe nke Tọsde sitere n’aka Brett Kavanaugh onye ahọpụtara maka Ụlọ Ikpe Kachasị yana nwanyị boro ya ebubo nke mwakpo n’ike mere na 1980, Christine Blasey Ford, na netwọk igwe onyonyoo isi.",
+   "stopped": true,
+   "tokens": 60,
+   "gen_ms": 7209.385,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 227,
+   "output": "N'otu oge ahụ, ọgbụgba ndị ndọrọ ndọrọ ọchịchị na-aga n'ihu, ebe ndị na-ekesa ozi na-akụzi ihe nkiri mgbe niile maka mgbanwe ikpeazụ nke Fraịde: nkwekọrịta nke onye ozi Arizona bụ Jeff Flake mere ka ndị FBI mee nyocha nke otu izu n'ihe a na-ekwu.",
+   "reference": "Ugbu a, nkwụsịdo ike ndọrọndọrọ ahụ gara n’ihu, ndị mgbasa ozi nọ na akwụsịbido mmemme ndị kwesịrị ịme maka ntụgharị nkeji ikpeazụ nke Fraịde ahụ: nkwekọrịta nke Onye Ọmeiwu Jeff Flake nke Arizona zubere maka FBI iji mee nnyocha otu-izu maka ebubo ndị ahụ.",
+   "stopped": true,
+   "tokens": 65,
+   "gen_ms": 7752.985,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 228,
+   "output": "Ford gwara Kọmitii Iwu Senate na ọ na-enwe 100 pasentị nke obi ike na Kavanaugh metụrụ ya n'ụzọ na-ezighị ezi ma na-agbalị iwepụ uwe ya n'oge oriri na ọṅụṅụ ụlọ akwụkwọ sekọndrị.",
+   "reference": "Ford gwara Ọgbakọ Ndị Ikpe Nzụkọ Ọmeiwu na o doro ya anya pasentị 100 na Kavanaugh ji anya mmanya pịa ya aka ma nwaa iyipu ya akwa n’emume ụlọ akwụkwọ sekọndịrị.",
+   "stopped": true,
+   "tokens": 63,
+   "gen_ms": 7412.279,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 229,
+   "output": "Kavanaugh, n'okwu na-ekwesịghị ekwesị, kwuru na o nwere pasent 100 nkeị na ọ bụghị ihe mere.",
+   "reference": "Kavanaugh, na nkwupụta nwere oke mmetụta, kwuru na o doro ya anya pasentị 100 na ọ meghị.",
+   "stopped": true,
+   "tokens": 32,
+   "gen_ms": 3563.165,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 230,
+   "output": "Ọ ga-abụ na ihe karịrị nde iri abụọ na anọ ndị Nielsen kwuru na Fraịde hụrụ ya.",
+   "reference": "Enwere ohere na ihe karịrị ọnụọgụ nde ndị mmadụ 20.4 nke Nielsen kwuru na Friday lelere ya.",
+   "stopped": true,
+   "tokens": 26,
+   "gen_ms": 2813.146,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 231,
+   "output": "Ụlọ ọrụ ahụ na-atụle ndị na-ekiri n'etiti CBS, ABC, NBC, CNN, Fox News Channel na MSNBC.",
+   "reference": "Ụlọ ọrụ ahụ na-agụ nkezi nlele na CBS, ABC, NBC, CNN, Fox News Channel na MSNBC.",
+   "stopped": true,
+   "tokens": 27,
+   "gen_ms": 2881.065,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 232,
+   "output": "Ọ dịghị ọnụ ọgụgụ ndị a na-enye ozugbo maka netwọk ndị ọzọ gbara ya, gụnyere PBS, C-SPAN na Fox Business Network.",
+   "reference": "Ọnụọgụgụ adịghị ozugbo maka netwọk ndị ọzọ gosiri ya, gụnyere PBS, C-SPAN na Fox Business Network.",
+   "stopped": true,
+   "tokens": 31,
+   "gen_ms": 3354.973,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 233,
+   "output": "Ọ na-enwekarị nsogbu ịtụle ndị na-ekiri ihe n'ụlọ ọrụ.",
+   "reference": "Ma Nielsen na enwekarị nsogbu ịha ndị mmadụ lelere n’ụlọ ọrụ ha.",
+   "stopped": true,
+   "tokens": 19,
+   "gen_ms": 1839.625,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 234,
+   "output": "Iji mee ka ọ dị mfe, nke ahụ bụ nnukwu ndị na-ege ntị dị ka egwuregwu bọọlụ nke egwuregwu ikpeazụ ma ọ bụ ihe nrite Academy.",
+   "reference": "Iji mee ka ịghọta nke ahụ, nke ahụ bụ nha ndị nlele yitere ndị nọ n’ama egwuregwu futbọọlụ onye mmeri ma ọ bụ Academy Awards.",
+   "stopped": true,
+   "tokens": 30,
+   "gen_ms": 3202.283,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 235,
+   "output": "Ụlọ ọrụ Fox News Channel, nke ndị na-eme ihe nkiri ya na-akwado nkwupụta Kavanaugh, duuru netwọk niile na ndị na-ekiri 5.69 nde n'oge niile nke ikpe ahụ, Nielsen kwuru.",
+   "reference": "Fox News Channel, ndị nchịkọta ya nwere uche nke ya kwadosiri nhọpụta Kavanaugh ike, gafere netwọk niile site na ịnwe nkezi nke ọnụọgụ ndị nlele nde 5.69 n’oge ọnụnụ ụbọchị-niile ahụ, Nielsen kwuru.",
+   "stopped": true,
+   "tokens": 50,
+   "gen_ms": 5511.491,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 236,
+   "output": "ABC bụ nke abụọ na ndị na-ekiri nde 3.26.",
+   "reference": "ABC gbara onye nke abụọ site na ịnwe ndị nlele ọnụọgụ nde 3.26.",
+   "stopped": true,
+   "tokens": 16,
+   "gen_ms": 1503.652,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 237,
+   "output": "CBS nwere nde 3.1, NBC nwere 2.94 nde, MSNBC nwere 2.89 nde na CNN nwere 2.52 nde, Nielsen kwuru.",
+   "reference": "CBS nwere ọnụọgụ nde 3.1, NBC nwere ọnụọgụ nde 2.94, MSNBC nwere ọnụọgụ nde 2.89 yana CNN nwere ọnụọgụ nde 2.52, Nielsen kwuru.",
+   "stopped": true,
+   "tokens": 36,
+   "gen_ms": 3941.563,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 238,
+   "output": "Mmasị ka dị elu mgbe aụrụ ya.",
+   "reference": "Mmasị rịrị elu ka ọnụnụ ahụ gwụchara.",
+   "stopped": true,
+   "tokens": 13,
+   "gen_ms": 1210.991,
+   "new_tokens": 0
+  },
+  {
+   "lang": "ig",
+   "i": 239,
+   "output": "N'ime ihe nkiri nke Fraịde, Flake bụ onye isi ihe.",
+   "reference": "Flake bụ onye agbadoro anya n’okwu nke Fraịde.",
+   "stopped": true,
+   "tokens": 16,
+   "gen_ms": 1533.396,
+   "new_tokens": 0
+  }
+ ],
+ "note": "WazoCore v4 converted to Q8_0 (all tensors 8-bit), llama.cpp; Igbo NTREX"
+}
