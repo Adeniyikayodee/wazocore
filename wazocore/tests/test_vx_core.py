@@ -95,3 +95,10 @@ def test_nfc_rows_compose_decomposed_accents():
 
     rows = nfc_rows([{"lang": "yo", "output": "pé", "reference": "é"}])
     assert rows == [{"lang": "yo", "output": "pé", "reference": "é"}]
+
+
+def test_sign_test_is_exact_and_two_sided():
+    from wazocore.vx_core import sign_test
+
+    assert sign_test(0, 0) == 1.0 and sign_test(3, 3) == 1.0
+    assert sign_test(1, 7) == sign_test(7, 1) == pytest.approx(18 / 256)

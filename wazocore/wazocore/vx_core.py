@@ -165,6 +165,16 @@ def nfc_rows(rows: Sequence[dict]) -> list[dict]:
     return [{**r, "output": unicodedata.normalize("NFC", r["output"]), "reference": unicodedata.normalize("NFC", r["reference"])} for r in rows]
 
 
+def sign_test(only_a: int, only_b: int) -> float:
+    """Two-sided exact p-value that paired disagreements (`only_a` items
+    where just A shows the event, `only_b` where just B does) are balanced:
+    McNemar's exact test."""
+    n = only_a + only_b
+    if n == 0:
+        return 1.0
+    return min(1.0, 2 * sum(math.comb(n, k) for k in range(min(only_a, only_b) + 1)) / 2 ** n)
+
+
 def looping(text: str, unit: tuple[int, int] = (2, 6), repeats: int = 6) -> bool:
     """A short unit repeated back to back (e.g. 'ereereere…'): the failure
     WazoCore showed more often than the original."""

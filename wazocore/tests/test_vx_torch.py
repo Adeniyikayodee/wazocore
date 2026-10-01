@@ -108,6 +108,17 @@ def test_paired_bootstrap_sees_a_consistent_improvement():
     assert r["delta"] == 50.0 and r["ci95"][0] > 0 and r["p_worse"] == 0.0
 
 
+def test_pooled_bootstrap_averages_runs_and_bounds_the_loss():
+    from wazocore.vx_torch import pooled_bootstrap
+
+    score = lambda s: float(s.sum(0)[0] / s.sum(0)[1] * 100)  # hits / sentences
+    base = np.array([[1.0, 1.0]] * 40)
+    same, worse = base.copy(), np.array([[1.0, 1.0]] * 20 + [[0.0, 1.0]] * 20)
+    r = pooled_bootstrap(base, [same, worse], [(0, 30), (30, 40)], score, margin=1.0, rounds=300)
+    assert r["delta"] == -25.0 and r["ci95"][1] < 0 and not r["non_inferior"] and r["n"] == 40 and r["runs"] == 2
+    assert pooled_bootstrap(base, [same], [(0, 40)], score, margin=1.0, rounds=300)["non_inferior"]
+
+
 def test_wiki_sentences_can_drop_english():
     from wazocore.vx_torch import wiki_sentences
 

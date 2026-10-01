@@ -25,7 +25,7 @@ import time
 from pathlib import Path
 from typing import Sequence
 
-from wazocore.vx_core import ENGLISH_MARKERS, bits_per_char, byte_decoder, careful_text, char_lengths, chunk_align, chunks, decompose, init_rows, looping, lr_at, mixture, nfc_rows
+from wazocore.vx_core import ENGLISH_MARKERS, bits_per_char, byte_decoder, careful_text, char_lengths, chunk_align, chunks, decompose, init_rows, looping, lr_at, mixture, nfc_rows, sign_test
 
 CODES = {"en": "eng_Latn", "yo": "yor_Latn", "ha": "hau_Latn", "ig": "ibo_Latn"}
 
@@ -112,6 +112,25 @@ def paired_bootstrap(a: Sequence[str], b: Sequence[str], refs: Sequence[str], ch
     diffs.sort()
     return {"delta": chrf(b, refs) - chrf(a, refs), "ci95": [diffs[int(0.025 * rounds)], diffs[int(0.975 * rounds) - 1]],
             "p_worse": sum(d < 0 for d in diffs) / rounds}
+
+
+def pooled_bootstrap(base, runs: Sequence, strata: Sequence[tuple[int, int]], score, margin: float, rounds: int = 5000, seed: int = 0) -> dict:
+    """Score difference from `base`, averaged over training `runs`, on
+    several test sets pooled. `base` and each run are [sentences, k] arrays
+    of per-sentence statistics that `score` reduces after summing over
+    sentences; sentences are resampled within each test set (`strata`,
+    (start, end) rows). `lower95` is the one-sided 95% bound: the model is
+    non-inferior at `margin` only if it lies above -margin. A single test
+    set can fail to detect a loss that the pooled sentences show."""
+    import numpy as np
+
+    rng = np.random.default_rng(seed)
+    delta = lambda idx: sum(score(r[idx]) - score(base[idx]) for r in runs) / len(runs)
+    diffs = np.sort([delta(np.concatenate([lo + rng.integers(0, hi - lo, hi - lo) for lo, hi in strata])) for _ in range(rounds)])
+    lower = float(diffs[int(0.05 * rounds)])
+    return {"n": len(base), "runs": len(runs), "delta": float(delta(np.arange(len(base)))),
+            "ci95": [float(diffs[int(0.025 * rounds)]), float(diffs[int(0.975 * rounds) - 1])],
+            "lower95": lower, "margin": margin, "non_inferior": lower > -margin, "p_not_worse": float((diffs >= 0).mean())}
 
 
 def translation_prompts(src: Sequence[str], tgt_name: str) -> list[str]:
@@ -576,6 +595,40 @@ def stage_score(args) -> int:
     return 0
 
 
+def stage_pooled(args) -> int:
+    """All test sets and training runs in one estimate per language: chrF++
+    difference from the original with a non-inferiority bound, loops
+    (paired), and how many more tokens each run wrote than its tokenizer
+    would for the same text."""
+    import numpy as np
+    from sacrebleu.metrics import CHRF
+
+    metric = CHRF(word_order=2)
+    score = lambda s: metric._compute_score_from_stats(list(s.sum(0))).score
+    load = lambda paths, lang: [sorted((r for r in nfc_rows(json.loads(p.read_text(encoding="utf-8"))["rows"]) if r["lang"] == lang), key=lambda r: r["i"]) for p in paths]
+    stats = lambda sets: np.concatenate([np.array(metric._extract_corpus_statistics([r["output"] for r in rs], [[r["reference"] for r in rs]]), dtype=np.float64) for rs in sets])
+    report = {}
+    for lang in NAMES:
+        base, runs = load(args.base, lang), [load(run, lang) for run in args.run]
+        if any([r["i"] for r in a] != [r["i"] for r in b] for run in runs for a, b in zip(base, run)):
+            raise ValueError(f"{lang}: runs and base do not cover the same sentences")
+        ends = np.cumsum([len(rs) for rs in base])
+        r = pooled_bootstrap(stats(base), [stats(run) for run in runs], list(zip([0, *ends[:-1]], ends)), score, args.margin, args.rounds)
+        flat = lambda sets: [x for rs in sets for x in rs]
+        loops = []
+        for run in runs:
+            pairs = [(looping(a["output"]), looping(b["output"])) for a, b in zip(flat(base), flat(run))]
+            only_new, only_base = sum(b and not a for a, b in pairs), sum(a and not b for a, b in pairs)
+            loops.append({"base": sum(a for a, _ in pairs), "run": sum(b for _, b in pairs), "p": sign_test(only_base, only_new)})
+        excess = [sum(x["tokens"] for x in flat(run)) / max(1, sum(x["canonical_tokens"] for x in flat(run))) for run in runs]
+        report[lang] = {**r, "loops": loops, "tokens_vs_canonical": excess}
+        print(f"{lang}: delta {r['delta']:+.2f} chrF++ on {r['n']} sentences x {r['runs']} runs, 95% [{r['ci95'][0]:+.2f}, {r['ci95'][1]:+.2f}], "
+              f"one-sided bound {r['lower95']:+.2f} ({'non-inferior' if r['non_inferior'] else 'not shown non-inferior'} at {args.margin}); "
+              f"loops {[(l['base'], l['run']) for l in loops]}; tokens vs canonical {[round(e, 3) for e in excess]}", file=sys.stderr)
+    args.out.write_text(json.dumps(report, indent=1) + "\n")
+    return 0
+
+
 def main(argv: Sequence[str]) -> int:
     ap = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     ap.add_argument("--device", default="cuda")
@@ -649,8 +702,14 @@ def main(argv: Sequence[str]) -> int:
     c = sub.add_parser("score")
     c.add_argument("samples", type=Path, nargs="+", help="JSON from the sample stage")
     c.add_argument("--out", type=Path, required=True)
+    p = sub.add_parser("pooled", help="one estimate per language over all test sets and training runs")
+    p.add_argument("--base", type=Path, nargs="+", required=True, help="the original's samples, one file per test set")
+    p.add_argument("--run", type=Path, nargs="+", action="append", required=True, help="one training run's samples, test sets in the same order; repeat per run")
+    p.add_argument("--margin", type=float, default=1.0, help="non-inferiority margin in chrF++, chosen before looking")
+    p.add_argument("--rounds", type=int, default=5000)
+    p.add_argument("--out", type=Path, required=True)
     args = ap.parse_args(argv)
-    stages = {"onpolicy": stage_onpolicy, "score": stage_score, "distill": stage_distill, "expand": stage_expand, "bpc": stage_bpc, "train": stage_train, "sample": stage_sample}
+    stages = {"pooled": stage_pooled, "onpolicy": stage_onpolicy, "score": stage_score, "distill": stage_distill, "expand": stage_expand, "bpc": stage_bpc, "train": stage_train, "sample": stage_sample}
     return stages[args.stage](args)
 
 if __name__ == "__main__":
