@@ -36,9 +36,60 @@ def init_rows(table: np.ndarray, parts: dict[int, list[int]], weights: dict[int,
     return np.stack(rows).astype(table.dtype)
 
 
-def char_lengths(parts: dict[int, list[int]], id_to_bytes) -> dict[int, list[float]]:
-    """Weights for the output head: each piece's length in decoded bytes."""
-    return {i: [max(1, len(id_to_bytes(p))) for p in ps] for i, ps in parts.items()}
+def char_lengths(parts: dict[int, list[int]], id_to_bytes, unit: str = "bytes") -> dict[int, list[float]]:
+    """Weights for the output head: each piece's length in decoded bytes, or
+    with `unit="chars"` in characters (arXiv 2608.03494 weights by characters;
+    ị is three bytes but one character, so bytes favour accented pieces)."""
+    size = (lambda b: sum((x & 0xC0) != 0x80 for x in b)) if unit == "chars" else len
+    return {i: [max(1, size(id_to_bytes(p))) for p in ps] for i, ps in parts.items()}
+
+
+def norm_calibrated(rows: np.ndarray, target: float) -> np.ndarray:
+    """Rows rescaled to L2 norm `target`. A mean of several piece rows is
+    shorter than any of them (WazoCore v4: 0.38 against 0.69 for original
+    rows), so the model reads a new token as a faint one."""
+    norms = np.linalg.norm(rows.astype(np.float64), axis=1, keepdims=True)
+    return (rows * (target / np.maximum(norms, 1e-12))).astype(rows.dtype)
+
+
+def mbr_pick(candidates: Sequence[str], utility) -> int:
+    """Index of the candidate that agrees most with the others (minimum
+    Bayes risk): the highest mean `utility(candidate, other)`. Training on
+    these instead of greedy replies lets a student pass its teacher's
+    greedy decoding (arXiv 2309.10966). Ties go to the earliest candidate,
+    so put the greedy reply first."""
+    if len(candidates) < 3:
+        return 0
+    mean = lambda i: sum(utility(candidates[i], c) for j, c in enumerate(candidates) if j != i) / (len(candidates) - 1)
+    return max(range(len(candidates)), key=lambda i: (mean(i), -i))
+
+
+def smol_pairs(record: dict) -> list[tuple[str, str]]:
+    """(English, translation) sentence pairs of one SMOL record (google/smol,
+    CC BY 4.0, professional translations made for training): SmolSent holds
+    one pair in src/trg, SmolDoc aligned sentence lists in srcs/trgs. Both
+    sides come back in NFC, the form the new tokens were learned on."""
+    import unicodedata
+
+    pairs = zip(record["srcs"], record["trgs"]) if "srcs" in record else [(record["src"], record["trg"])]
+    nfc = lambda t: unicodedata.normalize("NFC", t.strip())
+    return [(nfc(a), nfc(b)) for a, b in pairs if a and b and a.strip() and b.strip()]
+
+
+def merge_table(new_tokens: Sequence[dict], vocab: dict[str, int], size: int) -> tuple[list[int], list[int]]:
+    """The new merges as rows of a sparse table: `rights[offsets[a]:offsets[a + 1]]`
+    are the ids that may not follow token `a`, because the tokenizer would
+    have merged the pair. Text from the tokenizer has no such pair (13 in
+    1.2M on Wikipedia), so a model that writes one is spelling a word with
+    its pieces and losing the saving."""
+    by_left: dict[int, list[int]] = {}
+    for t in new_tokens:
+        by_left.setdefault(vocab[t["left"]], []).append(vocab[t["right"]])
+    offsets, rights = [0], []
+    for a in range(size):
+        rights += sorted(by_left.get(a, []))
+        offsets.append(len(rights))
+    return offsets, rights
 
 
 def bits_per_char(nll_nats: float, chars: int) -> float:

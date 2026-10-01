@@ -25,22 +25,28 @@ import time
 from pathlib import Path
 from typing import Sequence
 
-from wazocore.vx_core import ENGLISH_MARKERS, bits_per_char, byte_decoder, careful_text, char_lengths, chunk_align, chunks, decompose, init_rows, looping, lr_at, mixture, nfc_rows, sign_test
+from wazocore.vx_core import ENGLISH_MARKERS, bits_per_char, byte_decoder, careful_text, char_lengths, chunk_align, chunks, decompose, init_rows, looping, lr_at, mbr_pick, merge_table, mixture, nfc_rows, norm_calibrated, sign_test, smol_pairs
 
 CODES = {"en": "eng_Latn", "yo": "yor_Latn", "ha": "hau_Latn", "ig": "ibo_Latn"}
 
 # ---- model surgery (torch, but pure over its inputs) --------------------------
 
-def expand_model(model, parts: dict[int, list[int]], out_weights: dict[int, list[float]]):
+def expand_model(model, parts: dict[int, list[int]], out_weights: dict[int, list[float]], calibrate: bool = False):
     """Appends one input and one output row per new token (ids in order),
     initialised from the token's pieces. Returns the same model object,
-    resized; original rows are copied unchanged."""
+    resized; original rows are copied unchanged. `calibrate` rescales the
+    new input rows to the median norm of the pieces they are made of
+    (output rows are left alone: calibrating them harms, arXiv 2608.03494)."""
+    import numpy as np
     import torch
 
     ids = sorted(parts)
     emb = model.get_input_embeddings().weight.detach().float().cpu().numpy()
     head = model.get_output_embeddings().weight.detach().float().cpu().numpy()
     new_in = init_rows(emb, parts)
+    if calibrate:
+        pieces = sorted({p for ps in parts.values() for p in ps})
+        new_in = norm_calibrated(new_in, float(np.median(np.linalg.norm(emb[pieces], axis=1))))
     new_out = init_rows(head, parts, out_weights)
     old = emb.shape[0]
     if ids != list(range(old, old + len(ids))):
@@ -153,6 +159,106 @@ def anchor_kl(student_logits, teacher_logits, n_old: int):
     return (t.exp() * (t - s)).sum(-1).mean()
 
 
+def forbidden_pairs(prev, offsets, rights):
+    """For each position, the tokens that may not follow its previous token
+    (`merge_table`), as flat (position, token) index tensors."""
+    import torch
+
+    counts = offsets[prev + 1] - offsets[prev]
+    pos = torch.repeat_interleave(torch.arange(len(prev), device=prev.device), counts)
+    within = torch.arange(len(pos), device=prev.device) - torch.repeat_interleave(torch.cumsum(counts, 0) - counts, counts)
+    return pos, rights[offsets[prev][pos] + within]
+
+
+def canon_penalty(logits, prev, label, offsets, rights):
+    """Mean -log(1 - mass on forbidden tokens): unlikelihood (arXiv
+    1908.04319) on the piece spelling of a word that has a token of its
+    own. `logits` [P, V], `prev` and `label` [P]. Positions whose own label
+    is forbidden (pre-tokenizer boundaries, about 1 in 100,000) are skipped."""
+    import torch
+
+    pos, ids = forbidden_pairs(prev, offsets, rights)
+    zeros = torch.zeros(len(prev), device=logits.device)
+    mass = zeros.index_add(0, pos, torch.softmax(logits.float(), dim=-1)[pos, ids])
+    keep = zeros.index_add(0, pos, (ids == label[pos]).float()) == 0
+    return (-torch.log1p(-mass.clamp(max=1 - 1e-6)) * keep).sum() / keep.sum().clamp(min=1)
+
+
+def projected_kl(student_logits, teacher_logits, first_piece, prev, offsets, rights):
+    """KL(teacher || student) at positions of the new tokenisation, with
+    both brought to the original vocabulary. `student_logits` [P, V],
+    `teacher_logits` [P, n_old] read at the same places in the text.
+
+    The student is projected: a new token's probability counts for its
+    first original piece (`first_piece`, one id per new token), because
+    that is the token the teacher would write there. The teacher reads
+    pieces, so after a token it still expects the piece that completes a
+    merge; in the new tokenisation that pair never occurs, so those
+    entries are removed from the teacher and it is renormalised. Unlike an
+    anchor on the old segmentation, this cannot reward the piece spelling."""
+    import torch
+
+    n_old = teacher_logits.shape[-1]
+    p = torch.softmax(student_logits.float(), dim=-1)
+    proj = p[:, :n_old].index_add(1, first_piece, p[:, n_old:])
+    pos, ids = forbidden_pairs(prev, offsets, rights)
+    old = ids < n_old
+    t = teacher_logits.float().index_put((pos[old], ids[old]), torch.tensor(float("-inf"), device=teacher_logits.device))
+    t = torch.log_softmax(t, dim=-1)
+    return (t.exp() * (t.clamp(min=-1e4) - torch.log(proj.clamp(min=1e-9)))).sum(-1).mean()
+
+
+def piece_stream(rows: Sequence[Sequence[int]], pieces: Sequence[Sequence[int]]) -> tuple[list[list[int]], list[list[int]]]:
+    """Each row of new-tokenisation ids as the original tokenisation of the
+    same text (every token replaced by its pieces; the two are identical by
+    construction), and for each token the index of its last piece: where the
+    teacher has read exactly as much text as the student."""
+    out, ends = [], []
+    for row in rows:
+        flat, last = [], []
+        for i in row:
+            flat += pieces[i]
+            last.append(len(flat) - 1)
+        out.append(flat)
+        ends.append(last)
+    return out, ends
+
+
+def teacher_at(teacher, rows: Sequence[Sequence[int]], pieces, pad: int, device: str):
+    """The teacher's next-token logits after each token of `rows` except the
+    last ([rows, T - 1, n_old]), read on the original tokenisation."""
+    import torch
+
+    flat, ends = piece_stream(rows, pieces)
+    width = max(len(f) for f in flat)
+    ids = torch.tensor([f + [pad] * (width - len(f)) for f in flat], device=device)
+    with torch.no_grad():
+        logits = teacher(input_ids=ids).logits  # causal: right padding cannot reach earlier positions
+    at = torch.tensor([e[:-1] for e in ends], device=device)
+    return logits.gather(1, at[:, :, None].expand(-1, -1, logits.shape[-1]))
+
+
+def canonical_processor(offsets, rights):
+    """A `generate` logits processor that forbids the pairs in
+    `merge_table`, so replies are written the way the tokenizer would
+    write them. For measurement only: a standard GGUF cannot carry it."""
+    def process(input_ids, scores):
+        for row, p in enumerate(input_ids[:, -1].tolist()):
+            scores[row, rights[offsets[p]:offsets[p + 1]]] = float("-inf")
+        return scores
+
+    return process
+
+
+def load_merge_table(model_dir: Path, tok, device: str):
+    """`merge_table` of a model directory's new tokens as tensors on `device`."""
+    import torch
+
+    new = json.loads((model_dir / "new_tokens.json").read_text(encoding="utf-8"))
+    offsets, rights = merge_table(new["tokens"], tok.get_vocab(), len(tok))
+    return torch.tensor(offsets, device=device), torch.tensor(rights, device=device)
+
+
 def lm_loss(model, batch):
     """Mean next-token cross-entropy over a [B, T] batch."""
     import torch.nn.functional as F
@@ -199,8 +305,8 @@ def stage_expand(args) -> int:
     parts = decompose(new["tokens"], orig_vocab)
     inv = {i: s for s, i in orig_vocab.items()}
     bd = byte_decoder()
-    weights = char_lengths(parts, lambda i: bytes(bd[c] for c in inv[i]))
-    model = expand_model(model, parts, weights)
+    weights = char_lengths(parts, lambda i: bytes(bd[c] for c in inv[i]), args.out_weights)
+    model = expand_model(model, parts, weights, args.calibrate_input_norm)
     model.save_pretrained(args.out, safe_serialization=True)
     for f in ["tokenizer.json", "tokenizer_config.json", "special_tokens_map.json", "new_tokens.json"]:
         shutil.copy(args.vx / f, args.out / f)
@@ -259,7 +365,17 @@ def stage_train(args) -> int:
         teacher = teacher.to(args.device).eval().requires_grad_(False)
         convs = [json.loads(l)["messages"] for l in args.chat.read_text(encoding="utf-8").splitlines()]
         anchor = windows([i for c in convs for i in ttok.apply_chat_template(c, tokenize=True, return_dict=False)], args.seq)
-        print(f"KL anchor: weight {args.kl_weight}, {len(anchor)} windows tokenised the original way", file=sys.stderr)
+        print(f"KL anchor: weight {args.kl_weight}, " + ("on the training text, student projected onto the original vocabulary" if args.anchor == "canonical"
+              else f"{len(anchor)} windows tokenised the original way"), file=sys.stderr)
+    canonical = args.anchor == "canonical"
+    table = load_merge_table(args.model, tok, args.device) if args.canon_weight > 0 or canonical else None
+    if canonical:
+        if teacher is None:
+            raise SystemExit("--anchor canonical needs --teacher and --kl-weight > 0")
+        new = json.loads(nt.read_text(encoding="utf-8"))["tokens"]
+        parts = decompose(new, ttok.get_vocab())
+        pieces = [parts.get(i, [i]) for i in range(len(tok))]
+        first_piece = torch.tensor([parts[i][0] for i in sorted(parts)], device=args.device)
     per_step = args.batch * args.accum
     steps = args.tokens // (args.seq * per_step)
     data = mixture(per_lang, shares, steps * per_step, args.seed)
@@ -275,21 +391,34 @@ def stage_train(args) -> int:
             lo = (step * args.accum + k) * args.batch
             batch = torch.tensor(data[lo:lo + args.batch], device=args.device)
             with amp():
-                loss = lm_loss(model, batch)
-                total = loss
-                if teacher is not None:
+                if table is not None:
+                    logits = model(input_ids=batch[:, :-1]).logits.float()
+                    flat, prev, label = logits.reshape(-1, logits.shape[-1]), batch[:, :-1].reshape(-1), batch[:, 1:].reshape(-1)
+                    loss = torch.nn.functional.cross_entropy(flat, label)
+                    canon = canon_penalty(flat, prev, label, *table)
+                    total = loss + args.canon_weight * canon
+                else:
+                    loss = lm_loss(model, batch)
+                    total = loss
+                if canonical:  # anchor on the same text, read by the teacher in its own tokenisation
+                    rows = batch[:args.kl_batch]
+                    t_logits = teacher_at(teacher, rows.tolist(), pieces, tok.eos_token_id, args.device)
+                    kl = projected_kl(logits[:len(rows)].reshape(-1, logits.shape[-1]), t_logits.reshape(-1, t_logits.shape[-1]),
+                                      first_piece, rows[:, :-1].reshape(-1), *table)
+                    total = total + args.kl_weight * kl
+                elif teacher is not None:
                     j = (step * args.accum + k) * args.kl_batch
                     a = torch.tensor([anchor[(j + i) % len(anchor)] for i in range(args.kl_batch)], device=args.device)
                     with torch.no_grad():
                         t_logits = teacher(input_ids=a).logits
                     kl = anchor_kl(model(input_ids=a).logits, t_logits, teacher.config.vocab_size)
-                    total = loss + args.kl_weight * kl
+                    total = total + args.kl_weight * kl
             (total / args.accum).backward()
         torch.nn.utils.clip_grad_norm_(params, args.clip)
         opt.step()
         opt.zero_grad(set_to_none=True)
         if (step + 1) % args.report == 0 or step + 1 == steps:
-            rec = {"step": step + 1, "tokens": (step + 1) * per_step * args.seq, "loss": loss.item(), "kl": kl.item(),
+            rec = {"step": step + 1, "tokens": (step + 1) * per_step * args.seq, "loss": loss.item(), "kl": kl.item(), **({"canon": canon.item()} if table is not None else {}),
                    "tok_s": (step + 1) * per_step * args.seq / (time.time() - t0), "lr": opt.param_groups[0]["lr"]}
             log.write(json.dumps(rec) + "\n")
             log.flush()
@@ -480,21 +609,52 @@ def stage_distill(args) -> int:
         src = lambda lang, k: (args.flores / "dev" / f"{CODES[lang]}.dev").read_text(encoding="utf-8").splitlines()[: args.n]
     prompts = []
     for k, (lang, name) in enumerate(NAMES.items()):
-        prompts += translation_prompts(src("en", k), name) + reverse_prompts(src(lang, 10 + k), name)
+        prompts += translation_prompts(src("en", k), name) + ([] if args.forward_only else reverse_prompts(src(lang, 10 + k), name))
+    utility = None
+    if args.candidates > 1:
+        import sacrebleu
+
+        utility = lambda hyp, ref: sacrebleu.sentence_chrf(hyp, [ref], word_order=2).score
+        torch.manual_seed(args.seed)
     args.out.parent.mkdir(parents=True, exist_ok=True)
     with args.out.open("w", encoding="utf-8") as f:
         for b in range(0, len(prompts), args.batch):
             chunk = prompts[b:b + args.batch]
             enc = tok.apply_chat_template([[{"role": "user", "content": p}] for p in chunk], add_generation_prompt=True,
                                           return_tensors="pt", return_dict=True, padding=True).to(args.device)
-            with torch.no_grad():
-                out = model.generate(**enc, max_new_tokens=args.max_tokens, do_sample=False, pad_token_id=tok.pad_token_id)
-            for p, g in zip(chunk, out[:, enc["input_ids"].shape[1]:].tolist()):
-                reply = tok.decode(g, skip_special_tokens=True).strip()
-                stopped = any(i in eos for i in g)
-                if stopped and reply:
-                    f.write(json.dumps({"messages": [{"role": "user", "content": p}, {"role": "assistant", "content": reply}]}, ensure_ascii=False) + "\n")
+            # The greedy reply first, then samples (epsilon sampling, as in MBR practice).
+            passes = []
+            for k in range(args.candidates):
+                how = {"do_sample": False} if k == 0 else {"do_sample": True, "temperature": 1.0, "top_p": 1.0, "top_k": 0, "epsilon_cutoff": args.epsilon}
+                with torch.no_grad():
+                    out = model.generate(**enc, max_new_tokens=args.max_tokens, pad_token_id=tok.pad_token_id, **how)
+                passes.append(out[:, enc["input_ids"].shape[1]:].tolist())
+            for n, p in enumerate(chunk):
+                replies = [tok.decode(g[n], skip_special_tokens=True).strip() for g in passes if any(i in eos for i in g[n])]
+                replies = list(dict.fromkeys(r for r in replies if r and not (utility and looping(r))))  # complete, distinct, greedy first
+                if replies:
+                    reply = replies[mbr_pick(replies, utility)] if utility else replies[0]
+                    f.write(json.dumps({"messages": [{"role": "user", "content": p}, {"role": "assistant", "content": reply}], "candidates": len(replies)}, ensure_ascii=False) + "\n")
             print(f"{b + len(chunk)}/{len(prompts)}", file=sys.stderr)
+    return 0
+
+
+def stage_smol(args) -> int:
+    """Human translations as training conversations, both directions, in
+    the prompt format of `distill`: the signal that can lift the student
+    above its teacher. Needs smolsent/ and smoldoc/ from google/smol."""
+    n = 0
+    args.out.parent.mkdir(parents=True, exist_ok=True)
+    with args.out.open("w", encoding="utf-8") as f:
+        for lang, name in NAMES.items():
+            pairs = [pr for kind in ("smolsent", "smoldoc") for line in (args.smol / kind / f"en_{lang}.jsonl").read_text(encoding="utf-8").splitlines()
+                     for pr in smol_pairs(json.loads(line)) if max(map(len, pr)) <= args.max_chars]
+            en, xx = [a for a, _ in pairs], [b for _, b in pairs]
+            for prompt, reply in [*zip(translation_prompts(en, name), xx), *zip(reverse_prompts(xx, name), en)]:
+                f.write(json.dumps({"messages": [{"role": "user", "content": prompt}, {"role": "assistant", "content": reply}]}, ensure_ascii=False) + "\n")
+            n += 2 * len(pairs)
+            print(f"{lang}: {len(pairs)} sentence pairs", file=sys.stderr)
+    print(f"{n} conversations -> {args.out}", file=sys.stderr)
     return 0
 
 
@@ -536,6 +696,7 @@ def stage_sample(args) -> int:
     tok.pad_token = tok.pad_token or tok.eos_token
     first_new = 128256
     eos = eos_ids(tok, model)
+    extra = {"logits_processor": [canonical_processor(*load_merge_table(args.model, tok, args.device))]} if args.canonical else {}
     kind, root = ("ntrex", args.ntrex) if args.ntrex else ("flores", args.flores)
     rows = []
     for lang, name in NAMES.items():
@@ -545,7 +706,7 @@ def stage_sample(args) -> int:
             msgs = [[{"role": "user", "content": f"Translate the following English text into {name}. Reply with the translation only.\n\n{x}"}] for x in chunk]
             enc = tok.apply_chat_template(msgs, add_generation_prompt=True, return_tensors="pt", return_dict=True, padding=True).to(args.device)
             with torch.no_grad():
-                out = model.generate(**enc, max_new_tokens=args.max_tokens, do_sample=False, pad_token_id=tok.pad_token_id)
+                out = model.generate(**enc, max_new_tokens=args.max_tokens, do_sample=False, pad_token_id=tok.pad_token_id, **extra)
             for j, g in enumerate(out[:, enc["input_ids"].shape[1]:].tolist()):
                 k = b + j
                 text = tok.decode(g, skip_special_tokens=True).strip()
@@ -637,6 +798,8 @@ def main(argv: Sequence[str]) -> int:
     e.add_argument("--base", type=Path, required=True)
     e.add_argument("--vx", type=Path, required=True)
     e.add_argument("--out", type=Path, required=True)
+    e.add_argument("--out-weights", choices=["bytes", "chars"], default="bytes", help="length unit weighting the output-row mean (v4: bytes)")
+    e.add_argument("--calibrate-input-norm", action="store_true", help="rescale new input rows to the median norm of their pieces")
     b = sub.add_parser("bpc")
     b.add_argument("--model", type=Path, required=True)
     b.add_argument("--flores", type=Path, required=True)
@@ -665,6 +828,9 @@ def main(argv: Sequence[str]) -> int:
     t.add_argument("--teacher", type=Path, help="original model for the KL anchor")
     t.add_argument("--kl-weight", type=float, default=0.0)
     t.add_argument("--kl-batch", type=int, default=4, help="anchor windows per micro-batch")
+    t.add_argument("--anchor", choices=["old", "canonical"], default="old",
+                   help="KL anchor on replies tokenised the original way (v4), or on the training text itself with the student projected onto the original vocabulary")
+    t.add_argument("--canon-weight", type=float, default=0.0, help="weight of the penalty on pairs the tokenizer would have merged (v4: 0)")
     o = sub.add_parser("onpolicy", help="v5: on-policy self-distillation across tokenizers")
     o.add_argument("--model", type=Path, required=True, help="the expanded model to refine (v4)")
     o.add_argument("--teacher", type=Path, required=True, help="the original N-ATLaS")
@@ -690,7 +856,15 @@ def main(argv: Sequence[str]) -> int:
     d.add_argument("--wiki", type=Path, help="take sources from WIKI/{en,yo,ha,ig}.txt instead of FLORES dev")
     d.add_argument("--batch", type=int, default=64)
     d.add_argument("--max-tokens", type=int, default=256)
+    d.add_argument("--candidates", type=int, default=1, help="replies per request: the greedy one plus samples; the MBR choice is kept (v4: 1)")
+    d.add_argument("--epsilon", type=float, default=0.02, help="epsilon-sampling cutoff for the sampled candidates")
+    d.add_argument("--seed", type=int, default=0)
+    d.add_argument("--forward-only", action="store_true", help="only English -> yo/ha/ig requests")
     d.add_argument("--out", type=Path, required=True)
+    g = sub.add_parser("smol", help="human translations (google/smol) as training conversations")
+    g.add_argument("--smol", type=Path, required=True, help="folder holding smolsent/ and smoldoc/")
+    g.add_argument("--max-chars", type=int, default=600)
+    g.add_argument("--out", type=Path, required=True)
     s = sub.add_parser("sample")
     s.add_argument("--model", type=Path, required=True)
     s.add_argument("--flores", type=Path, required=True)
@@ -698,6 +872,7 @@ def main(argv: Sequence[str]) -> int:
     s.add_argument("--batch", type=int, default=32)
     s.add_argument("--n", type=int, default=5, help="sentences per language")
     s.add_argument("--max-tokens", type=int, default=160)
+    s.add_argument("--canonical", action="store_true", help="forbid pairs the tokenizer would have merged (diagnostic)")
     s.add_argument("--out", type=Path, required=True)
     c = sub.add_parser("score")
     c.add_argument("samples", type=Path, nargs="+", help="JSON from the sample stage")
@@ -709,7 +884,7 @@ def main(argv: Sequence[str]) -> int:
     p.add_argument("--rounds", type=int, default=5000)
     p.add_argument("--out", type=Path, required=True)
     args = ap.parse_args(argv)
-    stages = {"pooled": stage_pooled, "onpolicy": stage_onpolicy, "score": stage_score, "distill": stage_distill, "expand": stage_expand, "bpc": stage_bpc, "train": stage_train, "sample": stage_sample}
+    stages = {"smol": stage_smol, "pooled": stage_pooled, "onpolicy": stage_onpolicy, "score": stage_score, "distill": stage_distill, "expand": stage_expand, "bpc": stage_bpc, "train": stage_train, "sample": stage_sample}
     return stages[args.stage](args)
 
 if __name__ == "__main__":

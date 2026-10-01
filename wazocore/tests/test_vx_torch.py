@@ -119,6 +119,80 @@ def test_pooled_bootstrap_averages_runs_and_bounds_the_loss():
     assert pooled_bootstrap(base, [same], [(0, 40)], score, margin=1.0, rounds=300)["non_inferior"]
 
 
+def test_expand_can_calibrate_new_input_rows_to_their_pieces_norm(tiny):
+    from wazocore.vx_torch import expand_model
+
+    emb0 = tiny.get_input_embeddings().weight.detach().clone()
+    head0 = tiny.get_output_embeddings().weight.detach().clone()
+    m = expand_model(tiny, {256: [3, 5], 257: [7, 8, 9]}, {256: [1.0, 1.0], 257: [1.0, 1.0, 1.0]}, calibrate=True)
+    target = float(np.median(np.linalg.norm(emb0[[3, 5, 7, 8, 9]].numpy(), axis=1)))
+    new_rows = m.get_input_embeddings().weight[256:].detach()
+    assert np.allclose(np.linalg.norm(new_rows.numpy(), axis=1), target, rtol=1e-5)
+    mean = (emb0[3] + emb0[5]) / 2
+    assert np.allclose(new_rows[0] / new_rows[0].norm(), mean / mean.norm(), atol=1e-5), "direction is unchanged"
+    assert np.allclose(m.get_output_embeddings().weight[256].detach(), (head0[3] + head0[5]) / 2, atol=1e-6), "output rows are not calibrated"
+
+
+# Toy vocabulary for the canonical-path losses: a=0, b=1, c=2 are original; ab=3 is new (a + b).
+def _toy():
+    torch = pytest.importorskip("torch")
+    from wazocore.vx_core import merge_table
+
+    offsets, rights = merge_table([{"token": "ab", "left": "a", "right": "b"}], {"a": 0, "b": 1, "c": 2, "ab": 3}, 4)
+    return torch, torch.tensor(offsets), torch.tensor(rights)
+
+
+def test_canon_penalty_charges_only_the_piece_that_completes_a_merge():
+    torch, offsets, rights = _toy()
+    from wazocore.vx_torch import canon_penalty
+
+    logits = torch.log(torch.tensor([[0.1, 0.5, 0.2, 0.2], [0.1, 0.5, 0.2, 0.2]]))
+    after_a = canon_penalty(logits, torch.tensor([0, 2]), torch.tensor([2, 1]), offsets, rights)  # b after a is charged; b after c is free
+    assert float(after_a) == pytest.approx(-np.log(0.5) / 2, rel=1e-5)
+    skipped = canon_penalty(logits[:1], torch.tensor([0]), torch.tensor([1]), offsets, rights)  # the text itself has a, b: not charged
+    assert float(skipped) == 0.0
+
+
+def test_projected_kl_counts_a_new_token_for_its_first_piece_and_debiases_the_teacher():
+    torch, offsets, rights = _toy()
+    from wazocore.vx_torch import projected_kl
+
+    first_piece = torch.tensor([0])  # ab starts with a
+    teacher = torch.log(torch.tensor([[0.6, 0.3, 0.1]]))
+    # After c: the student may split the teacher's 0.6 on `a` between a and ab at will.
+    student = torch.log(torch.tensor([[0.2, 0.3, 0.1, 0.4]]))
+    assert float(projected_kl(student, teacher, first_piece, torch.tensor([2]), offsets, rights)) == pytest.approx(0.0, abs=1e-6)
+    # After a: b would complete the merge, so the teacher's 0.3 on b is removed and the rest renormalised.
+    student = torch.log(torch.tensor([[0.6 / 0.7 - 0.2, 1e-9, 0.1 / 0.7, 0.2]]))
+    assert float(projected_kl(student, teacher, first_piece, torch.tensor([0]), offsets, rights)) == pytest.approx(0.0, abs=1e-5)
+    wrong = torch.log(torch.tensor([[0.3, 0.3, 0.1, 0.3]]))
+    assert float(projected_kl(wrong, teacher, first_piece, torch.tensor([0]), offsets, rights)) > 0.01
+
+
+def test_teacher_reads_the_same_text_in_pieces(tiny):
+    import torch
+
+    from wazocore.vx_torch import expand_model, piece_stream, teacher_at
+
+    pieces = [[i] for i in range(256)] + [[3, 5], [7, 8, 9]]
+    flat, ends = piece_stream([[0, 256, 10, 257], [0, 11, 12, 13]], pieces)
+    assert flat == [[0, 3, 5, 10, 7, 8, 9], [0, 11, 12, 13]] and ends == [[0, 2, 3, 6], [0, 1, 2, 3]]
+    got = teacher_at(tiny, [[0, 256, 10, 257], [0, 11, 12, 13]], pieces, 0, "cpu")
+    with torch.no_grad():
+        direct = tiny(input_ids=torch.tensor([[0, 3, 5, 10, 7, 8, 9]])).logits[0]
+        short = tiny(input_ids=torch.tensor([[0, 11, 12, 13]])).logits[0]
+    assert got.shape == (2, 3, 256)
+    assert torch.allclose(got[0], direct[[0, 2, 3]], atol=1e-5) and torch.allclose(got[1], short[:3], atol=1e-5), "padding must not change earlier positions"
+
+
+def test_canonical_processor_blocks_the_piece_spelling():
+    torch, offsets, rights = _toy()
+    from wazocore.vx_torch import canonical_processor
+
+    scores = canonical_processor(offsets, rights)(torch.tensor([[2, 0], [0, 2]]), torch.zeros(2, 4))
+    assert scores[0].tolist() == [0.0, float("-inf"), 0.0, 0.0] and scores[1].tolist() == [0.0] * 4
+
+
 def test_wiki_sentences_can_drop_english():
     from wazocore.vx_torch import wiki_sentences
 

@@ -102,3 +102,42 @@ def test_sign_test_is_exact_and_two_sided():
 
     assert sign_test(0, 0) == 1.0 and sign_test(3, 3) == 1.0
     assert sign_test(1, 7) == sign_test(7, 1) == pytest.approx(18 / 256)
+
+
+def test_char_lengths_can_count_characters_instead_of_bytes():
+    pieces = {1: "ị".encode(), 2: b"na", 3: b"\xe1\xbb"}  # 3 is the first two bytes of a three-byte letter
+    assert char_lengths({9: [1, 2]}, pieces.get) == {9: [3, 2]}
+    assert char_lengths({9: [1, 2, 3]}, pieces.get, "chars") == {9: [1, 2, 1]}
+
+
+def test_norm_calibrated_sets_every_row_to_the_target_norm():
+    from wazocore.vx_core import norm_calibrated
+
+    rows = norm_calibrated(np.array([[3.0, 4.0], [0.3, 0.4]], dtype=np.float32), 2.0)
+    assert np.allclose(np.linalg.norm(rows, axis=1), 2.0) and np.allclose(rows[0], rows[1])
+
+
+def test_mbr_pick_prefers_the_consensus_and_the_earliest_on_ties():
+    from wazocore.vx_core import mbr_pick
+
+    overlap = lambda a, b: len(set(a.split()) & set(b.split()))
+    assert mbr_pick(["x y z", "a b c", "a b d", "a b e"], overlap) == 1
+    assert mbr_pick(["same", "same", "same"], overlap) == 0
+    assert mbr_pick(["greedy", "other"], overlap) == 0  # two candidates cannot outvote the greedy reply
+
+
+def test_merge_table_lists_what_may_not_follow_each_token():
+    from wazocore.vx_core import merge_table
+
+    vocab = {"a": 0, "b": 1, "c": 2, "ab": 3, "abc": 4, "ac": 5}
+    new = [{"token": "ab", "left": "a", "right": "b"}, {"token": "abc", "left": "ab", "right": "c"}, {"token": "ac", "left": "a", "right": "c"}]
+    offsets, rights = merge_table(new, vocab, 6)
+    assert rights[offsets[0]:offsets[1]] == [1, 2] and rights[offsets[3]:offsets[4]] == [2] and offsets[1] == offsets[2] == offsets[3]
+
+
+def test_smol_pairs_read_sentence_and_document_records_in_nfc():
+    from wazocore.vx_core import smol_pairs
+
+    assert smol_pairs({"id": 1, "sl": "en", "tl": "yo", "src": " Good morning. ", "trg": "É "}) == [("Good morning.", "É")]
+    doc = {"id": "t", "srcs": ["One.", "", "Three."], "trgs": ["Ọkan.", "x", "Mẹta."], "sep": []}
+    assert smol_pairs(doc) == [("One.", "Ọkan."), ("Three.", "Mẹta.")]
