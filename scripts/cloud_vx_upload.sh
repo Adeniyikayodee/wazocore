@@ -7,7 +7,7 @@ root=$(cd "$(dirname "$0")/.." && pwd); cd "$root"
 e="ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new -i ${SSH_KEY:-$HOME/.ssh/id_ed25519} -p $port"
 $e root@$host 'mkdir -p /workspace/work/data'
 rsync -az -e "$e" --exclude .venv --exclude __pycache__ --exclude .pytest_cache wazocore root@$host:/workspace/
-rsync -az -e "$e" scripts/cloud_vx_pod.sh scripts/cloud_vx_validate.sh scripts/cloud_vx_v5.sh scripts/cloud_gguf.sh root@$host:/workspace/
+rsync -az -e "$e" scripts/cloud_vx_pod.sh scripts/cloud_vx_validate.sh scripts/cloud_vx_v5.sh scripts/cloud_vx_v6.sh scripts/cloud_gguf.sh root@$host:/workspace/
 [ -d data/ntrex ] && rsync -az -e "$e" data/ntrex/ root@$host:/workspace/work/ntrex/
 # samples of the original and v4 from the validation run, reused by cloud_vx_v5.sh
 $e root@$host 'mkdir -p /workspace/work/prior'
@@ -15,6 +15,8 @@ rsync -az -e "$e" results/vocab/validate/ntrex-n-atlas.json results/vocab/valida
     results/vocab/validate/flores-n-atlas.json results/vocab/validate/flores-v4.json root@$host:/workspace/work/prior/
 rsync -az -e "$e" data/wiki data/flores200_dataset root@$host:/workspace/work/data/
 rsync -az -e "$e" "$vx"/ root@$host:/workspace/work/vx-tok/
+# optional smaller vocabulary for the `small` arm of cloud_vx_v6.sh
+[ -d data/models/n-atlas-vx-5k ] && rsync -az -e "$e" data/models/n-atlas-vx-5k/ root@$host:/workspace/work/vx-tok-small/
 for f in data/runs/cloud/chat-distill.jsonl data/runs/cloud/chat-wiki.jsonl; do  # optional: regenerated on the pod if absent
     [ -s "$f" ] && rsync -az -e "$e" "$f" root@$host:/workspace/work/
 done
