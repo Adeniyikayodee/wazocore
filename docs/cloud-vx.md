@@ -15,6 +15,7 @@ results under `/workspace/work/`.
 | `cloud_vx_pod.sh` | Builds WazoCore with the release recipe: expansion, self-distillation (reuses cached replies when present), training, BPC, 200-sentence chrF++ gate with bootstrap intervals, GGUF export, and the no-new-tokens control run | about 3 h |
 | `cloud_vx_validate.sh` | Retrains with a second seed and scores the original, the released model and the new run on NTREX-128 (500) and FLORES-200 (200) | about 2 h |
 | `cloud_vx_v5.sh` | The on-policy distillation experiment (section 6 of `METHOD.md`) | about 4 h |
+| `cloud_vx_v6.sh` | The next version (section 8 of `METHOD.md`): arms `fix`, `gold` and `control` by default, each trained and scored on 700 sentences per language against the original; `ARMS` adds `mbr` and `small` | about 4 h for the default arms (estimate, not yet run); `mbr` adds about 2 h |
 | `cloud_gguf.sh` | GGUF export, shared by the pipelines | about 5 min |
 
 ## Run it

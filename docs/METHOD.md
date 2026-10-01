@@ -31,10 +31,11 @@ every engine at once, which is the approach taken here.
    tokenizer; 15,000 BPE merges are then learned on top, jointly for Yoruba,
    Hausa and Igbo, from 4M characters per language (Wikipedia plus the FLORES
    dev split). Merges whose result is not whole UTF-8 are rejected. Every
-   original token keeps its id, so English is unaffected.
+   original token keeps its id, so English text tokenises exactly as before.
 2. **Initialisation** (`vx_core`). A new token's input embedding is the mean of
    its original pieces' embeddings; its output embedding is the
-   byte-length-weighted mean (arXiv 2608.03494).
+   byte-length-weighted mean (after arXiv 2608.03494, which weights by
+   characters and also calibrates the norm of input rows; we do neither yet).
 3. **Self-distillation data** (`vx_torch distill`). The original model's own
    greedy replies to about 30,000 translation requests (English to and from
    each language), drawn from FLORES dev and from Wikipedia with English
@@ -75,36 +76,105 @@ first-mover alternating, and only one model was in memory at a time
 against 7 to 13 for every other request); including it, the Yoruba figure is
 0.59×.
 
-Decode speed in tokens per second is unchanged (about 9), so the larger
-vocabulary costs nothing at inference. llama.cpp's tokenisation matches the
+Decode speed in tokens per second did not change measurably (about 9 for
+both models, with about 10% noise between requests), so the gain comes from
+the token count. English runs at 0.96× in words per second; its quality has
+not been scored. llama.cpp's tokenisation matches the
 reference tokenizer on 160 of 160 test sentences, and none of the 80 benchmark
 replies failed.
 
 ### Quality
 
-Greedy English → X translation, scored with chrF++ against human references.
-Intervals are 95% paired-bootstrap intervals (1,000 resamples) on the
-difference from the original. NTREX-128 was never used during development;
+Greedy English → X translation, scored with chrF++ against human references,
+with both sides normalised to Unicode NFC. Intervals are 95% paired-bootstrap
+intervals (1,000 resamples; 5,000 for the pooled row) on the difference from
+the original. NTREX-128 was never used during development;
 the recipe was trained twice with different seeds (`results/vocab/validate/`).
 
 | chrF++ change vs original | Yoruba | Hausa | Igbo |
 |---|---|---|---|
-| NTREX-128 (500), run 1 | +0.1 (−0.2, +0.4) | −0.6 (−1.3, +0.1) | −1.2 (−2.1, −0.3) |
-| NTREX-128 (500), run 2 | +0.4 (+0.1, +0.7) | −0.4 (−1.0, +0.2) | −0.9 (−1.7, −0.0) |
-| FLORES-200 (200), run 1 | +0.6 (−0.5, +1.6) | −0.9 (−2.1, +0.4) | −1.1 (−2.1, −0.1) |
-| FLORES-200 (200), run 2 | +0.5 (−0.6, +1.5) | −0.7 (−1.9, +0.5) | −1.5 (−2.4, −0.5) |
+| NTREX-128 (500), run 1 | +0.6 (−0.3, +1.4) | −0.6 (−1.3, +0.1) | −1.2 (−2.1, −0.3) |
+| NTREX-128 (500), run 2 | +0.4 (−0.4, +1.2) | −0.4 (−1.0, +0.2) | −0.9 (−1.7, −0.0) |
+| FLORES-200 (200), run 1 | +0.7 (−0.6, +1.9) | −0.9 (−2.1, +0.4) | −1.1 (−2.1, −0.1) |
+| FLORES-200 (200), run 2 | +0.7 (−0.6, +1.8) | −0.7 (−1.9, +0.5) | −1.5 (−2.4, −0.5) |
+| **Pooled (700), both runs** | **+0.6 (−0.1, +1.2)** | **−0.6 (−1.1, −0.0)** | **−1.1 (−1.7, −0.5)** |
 
-- Yoruba is equal to or slightly better than the original, Hausa is
-  statistically indistinguishable from it, and Igbo is about 1 chrF++ lower
-  (2 to 3%), consistently across both test sets and both runs.
+- Pooled over both test sets and both runs (`vx_torch pooled`,
+  `results/vocab/validate/pooled-summary.json`), Yoruba is equal to or
+  slightly better than the original, Hausa is about half a chrF++ point lower
+  and Igbo about one point lower (2 to 3%). No single test set could show the
+  Hausa loss; the pooled sentences do. An interval that includes zero shows a
+  test lacked power, not that two models are equal.
+- Against a non-inferiority margin of 1.0 chrF++ (one-sided 95% bound), Yoruba
+  passes (+0.0), Hausa sits on the line (−1.0) and Igbo does not (−1.6). The
+  margin was chosen after seeing these data, so this is exploratory.
 - Run-to-run spread is about ±0.3 to 0.5 chrF++.
-- Tokens per character on NTREX fall 1.54× (yo), 1.41× (ha) and 1.62× (ig),
-  matching FLORES.
-- NTREX Yoruba scores are low for every model (about 13 chrF++): its references
-  follow other conventions and contain some wrong characters (for example ϙ
-  for ọ). This affects all models equally.
+- On the models' own NTREX replies, tokens per character fall 1.54× (yo),
+  1.41× (ha) and 1.62× (ig), matching FLORES.
+- Earlier versions of this table reported NTREX Yoruba at about 13 chrF++ with
+  much tighter intervals. That was a scoring artefact: 482 of the 500
+  references are stored in decomposed Unicode (a letter followed by a
+  combining accent) while the models write composed characters. With both
+  sides in NFC the original scores 29.3 and WazoCore 29.9 and 29.8. The
+  scorer now normalises (`vx_core.nfc_rows`). Hausa and Igbo are unaffected.
 - An earlier single-run FLORES estimate of Yoruba +1.0 was optimistic; the
   figures above supersede it.
+
+### Quality of the shipped file
+
+Everything above was scored on the full-precision (bf16) weights. The file
+users run is the Q4_K_M GGUF, so we scored that too: both Q4_K_M files in
+llama.cpp (build 9430, greedy, the same prompts), on the first 250 NTREX-128
+sentences per language (`scripts/gguf_quality.py`,
+`results/vocab/gguf-quality/`).
+
+| chrF++ | Yoruba | Hausa | Igbo |
+|---|---|---|---|
+| Original, Q4_K_M | 28.57 | 46.64 | 42.79 |
+| WazoCore, Q4_K_M | 29.12 | 45.46 | 39.89 |
+| Difference | +0.6 (−0.7, +1.8) | −1.2 (−2.0, −0.3) | −2.9 (−4.3, −1.6) |
+| Same sentences, bf16 | +0.3 (−0.9, +1.5) | −0.7 (−1.7, +0.2) | −1.0 (−2.3, +0.2) |
+
+- In the file we ship, the cost is about three chrF++ points in Igbo and one
+  in Hausa, not one and a half. Yoruba is unchanged.
+- WazoCore loses quality when quantised to 4 bits and the original does not:
+  from bf16 to Q4_K_M WazoCore moves −1.2 in Igbo (−2.4, −0.3) and −0.5 in
+  Hausa (−1.1, +0.1), the original +0.6 and 0.0. These two rows also change
+  engine (PyTorch to llama.cpp), so they are indicative; the file-against-file
+  row above has no such mix.
+- The extra loss in the 4-bit files is real for Igbo: the difference between
+  the two rows above is −1.9 (−3.3, −0.5). For Hausa it is −0.5 (−1.2, +0.3)
+  and for Yoruba +0.2 (−1.1, +1.5).
+- The cause took several eliminations. Ruled out first: the chat template and tensor
+  types (identical in both files, no importance matrix); llama.cpp's
+  tokenisation (identical to the reference tokenizer on 2,000 prompts, replies
+  and references); the date in the system line (replies are identical with
+  the training-time date); and the precision of the token embeddings (a file
+  with `token_embd.weight` at Q8_0 scores +0.5 (−0.9, +1.9) against the
+  shipped one on 200 Igbo sentences and stays 3.3 behind the original). What
+  remained was 4-bit rounding of the transformer layers, or a difference
+  between PyTorch and llama.cpp.
+- A Q8_0 file in llama.cpp separates the two (Igbo, 240 sentences): it scores
+  the same as the bf16 weights in PyTorch (0.0, interval −0.5 to +0.4, two
+  thirds of replies identical) and 1.2 above the Q4_K_M file (+0.1, +2.3).
+  The engine and the conversion are sound; the loss is 4-bit rounding.
+- The rounding that matters is in the four retrained layers. A Q4_K_M file
+  that keeps blocks 0, 1, 30 and 31 at Q8_0 (`EDGE_TYPE=q8_0` in
+  `scripts/cloud_gguf.sh`; 5.38 GB against 5.01 GB) changes the scores by:
+
+  | chrF++, 250 sentences | Yoruba | Hausa | Igbo |
+  |---|---|---|---|
+  | vs the shipped Q4_K_M file | −0.5 (−1.3, +0.2) | −0.2 (−0.8, +0.4) | +1.7 (+0.7, +2.9) |
+  | vs the original's Q4_K_M file | +0.0 (−1.1, +1.2) | −1.4 (−2.4, −0.4) | −1.2 (−2.4, −0.0) |
+
+  It recovers the Igbo loss (and writes the same replies in 6% fewer tokens,
+  with 1 loop instead of 3), and leaves Yoruba and Hausa within noise, both
+  slightly lower. One Hausa request in 750 failed: the reply contained half
+  of a two-byte letter and llama-server refuses invalid UTF-8; the shipped
+  and original files had no such failure in 750 each. The test file was
+  requantised from Q8_0; a release file should be built from bf16.
+- Token savings in the same replies are unchanged: tokens per word fall from
+  3.02 to 1.97 (Yoruba), 2.05 to 1.44 (Hausa) and 2.61 to 1.65 (Igbo).
 
 ## 4. Where the Igbo gap comes from
 
@@ -113,17 +183,36 @@ tokens (`results/vocab/cloud-v4/`, FLORES-200, 200 sentences):
 
 | vs original | Yoruba | Hausa | Igbo | Hausa ƙɗɓ /100 chars | Igbo dots /100 chars | Loops /600 |
 |---|---|---|---|---|---|---|
-| Original | 25.81 | 48.97 | 38.60 | 0.39 | 9.25 | 2 |
-| Control | +0.3 (−0.8, +1.4) | −0.7 (−1.7, +0.5) | −0.4 (−1.3, +0.5) | 0.29 | 9.41 | 1 |
-| WazoCore | +1.0 (−0.1, +2.1) | −1.1 (−2.5, +0.2) | −1.3 (−2.2, −0.3) | 0.29 | 8.59 | 4 |
+| Original | 26.90 | 48.97 | 38.61 | 0.39 | 9.25 | 2 |
+| Control | +0.5 (−0.6, +1.8) | −0.7 (−1.7, +0.5) | −0.4 (−1.3, +0.5) | 0.29 | 9.41 | 1 |
+| WazoCore | +1.2 (−0.1, +2.4) | −1.1 (−2.5, +0.2) | −1.3 (−2.2, −0.3) | 0.29 | 8.59 | 4 |
 
-- About a third of the Igbo gap comes from the training recipe and two thirds
-  from the new vocabulary; the control's Igbo is statistically equal to the
-  original.
-- The drop in Hausa hooked letters (ƙ ɗ ɓ) comes from the recipe: the control
-  shows it too.
-- The extra repetition loops come with the new tokens (control 1, WazoCore 4).
-  The original also loops occasionally under greedy decoding.
+- By point estimate, about a third of the Igbo gap comes from the training
+  recipe and two thirds from the new vocabulary; the control's Igbo is
+  statistically equal to the original. The split is suggestive only: on these
+  200 sentences WazoCore against the control is −0.9 with a 95% interval of
+  (−1.9, +0.0). The control has not been run on NTREX-128.
+- Hausa hooked letters (ƙ ɗ ɓ) are rarer per 100 characters for both the
+  control and WazoCore, so the recipe is the likelier source. A paired
+  word-by-word comparison of the two models' NTREX replies finds losses and
+  gains balanced (33 words lost a hooked letter, 30 gained one; Igbo dots 13
+  lost, 17 gained), so we do not claim a systematic loss of special letters.
+- WazoCore loops more often than the control under greedy decoding (control
+  1, WazoCore 4). The original also loops occasionally. On NTREX-128 the
+  count is 7 and 8 loops in 1,500 replies for the two runs against 1 for the
+  original (paired exact test, p = 0.07 and 0.04), mostly in Yoruba and Igbo.
+  The loops themselves are short stutters written in original tokens, usually
+  starting inside a word after a foreign name or a number. Removing looped and
+  unstopped replies moves the Igbo difference by about 0.15 chrF++, so loops
+  are a small part of the gap.
+- The gap is a broad shift, not a few failures: dropping the 25 best and 25
+  worst sentences leaves Igbo at about −1.0, and sentences with more new
+  tokens are not worse than sentences with fewer.
+- WazoCore does not always take the longest token. Its replies use 4% (Yoruba),
+  7% (Hausa) and 5% (Igbo) more tokens than its own tokenizer gives the same
+  text, because a word can be written with the new token or with its original
+  pieces. That is speed left unclaimed, and it is the mild form of what
+  undid v5 (section 6).
 
 ## 5. How we got here
 
@@ -166,26 +255,114 @@ KL anchor. Two seeds, 300 steps of 32 rollouts each.
 | Igbo characters per token | 2.12 | 3.44 | 2.26 |
 
 v5 closed the Igbo gap and restored the special letters, but only by returning
-to the original tokens: the share of new tokens in its own replies fell from
-23% to 6 to 8% during training, leaving its token count within 7% of the
-original's. The on-policy objective rewards whatever the original finds likely,
-and the original's likelihood lives on its own short tokens; reverse KL is
-mode-seeking, so it pulls the student onto that segmentation.
+to the original tokens: the share of new tokens in its sampled training
+replies fell from 22% to 6 to 8% within the first 30 steps (v4's greedy
+replies use 31 to 38%), leaving its token count within 7% of the original's.
 
-The fix is to score only the canonical path: re-tokenise each rollout with the
-new tokenizer and train on that segmentation, so the student can lower its loss
-only by writing better text. That is the basis of the next version.
+The cause is the target, not the choice of divergence. A word can be written
+with its new token or with the original pieces, and the per-chunk target
+counted that word's probability twice: once under the new token, and again
+under its first piece, whose probability under the original model includes
+every continuation. A target whose mass exceeds one is best matched by
+spreading probability across both spellings, which is what the student did.
+The correction for scoring a larger vocabulary with a model of the smaller one
+is published (arXiv 2512.14954): an original token's target is the probability
+that it occurs and the merge does not follow.
+
+The fix therefore has two parts: train only on the canonical segmentation
+(re-tokenise each rollout with the new tokenizer), and correct the target for
+original tokens as above. The KL anchor on the old segmentation, which also
+keeps the piece spelling alive in v4, is replaced by one on canonical text.
+That is the basis of the next version.
 
 ## 7. Limitations and open work
 
-- **Igbo quality** is about 1 chrF++ below the original; closing it without
-  losing speed is the main open problem (section 6).
+- **Igbo quality** is about 1 chrF++ below the original and Hausa about half
+  a point at full precision, and about 3 and 1 in the Q4_K_M file (section
+  3). Closing both without losing speed is the main open problem (sections 6
+  and 8); repairing the quantised file comes first.
+- **Unicode form.** The tokenizer has no normaliser and the new tokens were
+  learned on composed (NFC) text. On decomposed input (a letter followed by a
+  combining accent, as in the NTREX-128 Yoruba references) the token saving
+  falls from 1.63× to 1.15× for Yoruba and from 1.69× to 1.27× for Igbo.
+  Normalise input to NFC before tokenising.
+- **Vocabulary size.** The low-budget recipe we follow (arXiv 2406.11477) was
+  validated with 100 to 1,000 new tokens; 15,000 is beyond what that paper
+  tested, and more than half of our new tokens are rare in the training text.
+  A smaller vocabulary has not been compared yet.
 - **Evaluation scope.** Quality is measured on English → X translation in two
   domains (FLORES-200 and NTREX-128 news). Dialogue, reasoning and X → English
   are not yet scored; native-speaker judgement is being collected with the
   blind A/B kit in `tester-kit/`.
-- **Hardware.** Speed was measured on one laptop CPU. GPU inference was
+- **Hardware.** Speed was measured on one laptop CPU with 20 prompts per
+  language, which shows a speed-up of about 1.5 to 1.7× but not its second
+  decimal (per-prompt 95% intervals: Yoruba 1.3 to 1.7, Hausa 1.3 to 2.0, Igbo
+  1.5 to 1.8). GPU inference was
   spot-checked (about 21 tokens/s with Metal on an M4); llama.cpp and LM Studio
   are tested, Ollama is not yet.
 - **Inherited behaviour.** WazoCore keeps N-ATLaS's biases, its 8,092-token
   context and the limits of its instruction tuning.
+
+## 8. v6: the plan to pass the original
+
+v4 trains the student on the original's own greedy replies, so the best it can
+do is match the original, and the new vocabulary then costs 0.6 chrF++ in Hausa
+and 1.1 in Igbo. v6 changes the two things the measurements point at: what the
+student is anchored to, and what it learns from. It is implemented and tested
+on a small model (`scripts/cloud_vx_v6.sh`); it has not been trained on
+N-ATLaS yet, so everything below is a plan with its evidence, not a result.
+
+**Stay on the long tokens.** Three changes remove the second spelling
+(section 4) from training:
+
+- *Canonical anchor* (`train --anchor canonical`). The KL anchor moves from
+  replies in the old tokenisation to the training text itself. The original
+  reads that text in its own tokens (the new tokenisation decomposes into the
+  original one exactly: 0 differences on 56,554 Wikipedia lines), and the
+  student's distribution is projected onto the original vocabulary by counting
+  each new token for its first original piece. The original's probability for
+  a piece that would complete a merge with the previous token is removed
+  first, following arXiv 2512.14954. This anchor cannot reward the piece
+  spelling.
+- *Canonical penalty* (`--canon-weight`). An unlikelihood term (arXiv
+  1908.04319) on any token that would form a pair the tokenizer merges. Text
+  from the tokenizer contains such a pair 13 times in 1.2M tokens.
+- *Calibrated initialisation* (`expand --calibrate-input-norm --out-weights
+  chars`). New input rows start at the norm of their pieces; in v4 they start
+  and stay at about 55% of it. Output weights follow arXiv 2608.03494.
+
+**Learn from something better than a greedy reply.**
+
+- *Human translations.* google/smol (CC BY 4.0, professional translations made
+  for training) gives 23,662 sentence pairs: Yoruba 8,647, Hausa 8,653, Igbo
+  6,362. None of its English sources occurs in FLORES-200 dev or devtest or in
+  NTREX-128. v6 no longer trains on FLORES text.
+- *MBR replies* (`distill --candidates`). The original writes several replies
+  to each request and the one closest to the others is kept (arXiv
+  2309.10966). We measured the headroom on 31 FLORES dev sentences per
+  language with the original's Q4_K_M file, nine candidates each
+  (`results/vocab/v6-prep/mbr-headroom.json`):
+
+  | chrF++ vs greedy | Yoruba | Hausa | Igbo |
+  |---|---|---|---|
+  | MBR choice of 9 | +1.7 (−2.0, +5.4) | +0.7 (−0.3, +1.8) | +0.9 (−0.1, +1.9) |
+  | Best candidate by reference (upper bound) | +9.1 | +4.5 | +4.2 |
+
+  The gain is positive in every language and not yet significant in any
+  (all three together: +0.8 per sentence, interval −0.3 to +2.0). Better
+  replies exist among the candidates, but agreement between candidates finds
+  few of them. MBR is therefore an optional arm, not the main lever.
+
+**Arms.** Each changes one thing and is scored with `vx_torch pooled` on the
+same 700 sentences per language: `fix` (v4's Wikipedia replies with the three
+canonical changes), `gold` (fix plus human translations), `mbr` (gold with MBR
+replies), `control` (the original model on gold's data, no new tokens) and
+`small` (gold with the first 5,000 merges, which carry 83% of new-token use).
+
+**Gate.** A version replaces v4 only if, in the pooled estimate, no language
+is below the original (interval containing zero or above it), new tokens are
+used at least as much as in v4, generated tokens are within 1% of the
+tokenizer's own count, and loops do not exceed the original's. A gain over
+the original counts as a gain of the vocabulary work only by the margin over
+`control`; if `control` also rises, the honest claim is "faster, and better
+than N-ATLaS thanks to the added data".

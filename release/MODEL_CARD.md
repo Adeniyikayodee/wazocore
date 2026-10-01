@@ -11,8 +11,8 @@ tags: [llama-3, vocabulary-expansion, yoruba, hausa, igbo, gguf]
 
 **Faster in your own language.** WazoCore is N-ATLaS with
 15,000 new Yoruba, Hausa and Igbo tokens. It writes these languages in 1.4 to
-1.6 times fewer tokens, so replies arrive 1.55 to 1.64 times faster in any
-standard engine, with no change to your code.
+1.6 times fewer tokens, so replies arrive 1.55 to 1.64 times faster in
+llama.cpp and LM Studio, with no change to your code.
 
 > N-ATLaS is an initiative of the Federal Ministry of Communications,
 > Innovation and Digital Economy, and powered by Awarri Technologies.
@@ -22,14 +22,15 @@ standard engine, with no change to your code.
 N-ATLaS inherits Llama-3's vocabulary, which was built mostly for English. A
 Yoruba word costs about 2.9 tokens where an English word costs 1.2, so every
 Nigerian-language reply is slower to generate, more expensive to serve, and
-fits less context. WazoCore adds whole-word tokens for the three languages and
-keeps every original token, so English and everything N-ATLaS already knows
-stay intact.
+fits less context. WazoCore adds word and word-piece tokens for the three
+languages and keeps every original token with its exact embedding, so English
+text tokenises as before.
 
 ## Results
 
-All numbers compare WazoCore with the original N-ATLaS on sentences never used
-in development.
+All numbers compare WazoCore with the original N-ATLaS. Speed is measured on
+the shipped Q4_K_M file; quality is given for the full-precision weights and
+for the Q4_K_M file. NTREX-128 was never used in development.
 
 **Speed.** llama.cpp (build 9430), Apple M4 laptop CPU, 4 threads, Q4_K_M, 20
 translations per language. Both models answered each sentence back to back,
@@ -50,20 +51,29 @@ Raw decoding speed in tokens per second is the same for both models. The whole
 gain comes from needing fewer tokens.
 
 **Quality.** Greedy English → X translation, scored with chrF++ against human
-references, with 95% paired-bootstrap intervals for the difference. The table
-shows NTREX-128 (500 news sentences per language, never used in development)
-for two independent training runs.
+references in Unicode NFC, with 95% paired-bootstrap intervals for the
+difference. The table shows NTREX-128 (500 news sentences per language, never
+used in development) for two independent training runs, and both runs pooled
+with 200 FLORES-200 sentences.
 
-| Language | chrF++ change vs original, run 1 | Run 2 |
-|---|---|---|
-| Yoruba | +0.1 (−0.2, +0.4) | +0.4 (+0.1, +0.7) |
-| Hausa | −0.6 (−1.3, +0.1) | −0.4 (−1.0, +0.2) |
-| Igbo | −1.2 (−2.1, −0.3) | −0.9 (−1.7, −0.0) |
+| Language | chrF++ change vs original, run 1 | Run 2 | Pooled (700 sentences, both runs) |
+|---|---|---|---|
+| Yoruba | +0.6 (−0.3, +1.4) | +0.4 (−0.4, +1.2) | +0.6 (−0.1, +1.2) |
+| Hausa | −0.6 (−1.3, +0.1) | −0.4 (−1.0, +0.2) | −0.6 (−1.1, −0.0) |
+| Igbo | −1.2 (−2.1, −0.3) | −0.9 (−1.7, −0.0) | −1.1 (−1.7, −0.5) |
 
-Yoruba matches or beats the original, Hausa is statistically indistinguishable
-from it, and Igbo is about 1 point lower (2 to 3%). FLORES-200 shows the same
-pattern. A control run attributes about a third of the Igbo gap to the training
-recipe and the rest to the new vocabulary.
+Yoruba is equal to or slightly better than the original, Hausa is about half a
+point lower and Igbo about 1 point lower (2 to 3%). On 200 FLORES-200
+sentences a control run with the same recipe and no new tokens is 0.4 below
+the original in Igbo and WazoCore is 0.9 below the control (95% interval −1.9
+to 0.0), which suggests most of the Igbo gap comes from the new vocabulary.
+
+**Quality of the Q4_K_M file.** The two Q4_K_M files compared with each other
+in llama.cpp on 250 NTREX-128 sentences per language: Yoruba +0.6 (−0.7,
++1.8), Hausa −1.2 (−2.0, −0.3), Igbo −2.9 (−4.3, −1.6). WazoCore loses more
+than the original when quantised to 4 bits. If Igbo quality matters more to
+you than file size, use the full-precision weights until a higher-precision
+GGUF is published.
 
 ## Use
 
@@ -101,11 +111,20 @@ The code, the data recipe and every measurement are in the WazoCore repository
 
 ## Limitations
 
-- Igbo translation quality is about 1 chrF++ point below the original.
+- Igbo translation quality is about 1 chrF++ point below the original and
+  Hausa about half a point at full precision; in the Q4_K_M file the gaps are
+  about 3 points and 1 point.
+- Input should be in composed Unicode (NFC). On decomposed text (a letter
+  followed by a combining accent) the token saving falls to about 1.15 times
+  for Yoruba and 1.27 times for Igbo.
+- Under greedy decoding WazoCore falls into a repetition loop slightly more
+  often than the original (7 to 8 replies in 1,500 against 1).
 - Quality was measured on English → X translation in two domains (FLORES-200
   and NTREX-128 news). Dialogue, reasoning and X → English were not scored.
-- Speed was measured on one laptop CPU; GPU inference was only spot-checked
-  (about 21 tokens/s with Metal on an M4).
+- Speed was measured on one laptop CPU with 20 prompts per language; GPU
+  inference was only spot-checked (about 21 tokens/s with Metal on an M4).
+  English quality has not been scored; English speed is 0.96 times the
+  original's.
 - Everything else about N-ATLaS carries over, including its biases, its
   8,092-token context and the limits of its instruction tuning.
 

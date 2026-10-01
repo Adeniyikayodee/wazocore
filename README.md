@@ -4,12 +4,12 @@
 
 <sub>The same FLORES-200 passage in Yoruba, Hausa and Igbo. Replay of real tokenisations, streamed at the decode speed measured in llama.cpp on an Apple M4 CPU (9 tokens per second), shown at 2× speed. Text colour alternates at each token boundary.</sub>
 
-A version of N-ATLaS, Nigeria's open language model, that reads and writes Yoruba, Hausa and Igbo in 1.4 to 1.6 times fewer tokens. It drops into llama.cpp, LM Studio and any OpenAI-compatible stack as a standard GGUF, and generates these languages 1.55 to 1.64 times faster on an ordinary laptop. We trade about one chrF++ point in Igbo for that speed; Yoruba and Hausa quality is unchanged, and so is English.
+A version of N-ATLaS, Nigeria's open language model, that reads and writes Yoruba, Hausa and Igbo in 1.4 to 1.6 times fewer tokens. It drops into llama.cpp, LM Studio and any OpenAI-compatible stack as a standard GGUF, and generates these languages 1.55 to 1.64 times faster on an ordinary laptop. That speed has a cost in the 4-bit file we ship: about three chrF++ points in Igbo and one in Hausa (one point and half a point at full precision). Yoruba is equal or slightly better.
 
-- **Faster replies**: the same answer arrives in 61 to 65% of the time, because each token now carries more of a word. Decode speed in tokens per second is identical, so the gain holds on any hardware.
-- **Lower serving cost**: a reply costs a third fewer tokens. A 5,000-word health leaflet in Yoruba falls from about 14,500 tokens to 9,200.
+- **Faster replies**: the same answer arrives in 61 to 65% of the time, because each token now carries more of a word. Decode speed in tokens per second is about the same for both models, so the gain comes from the token count and not from the machine.
+- **Lower serving cost**: a reply costs a third fewer tokens. A 5,000-word health leaflet written in Yoruba falls from about 14,600 tokens to 9,950.
 - **More in context**: N-ATLaS's 8,092-token window holds 8.8 pages of Yoruba instead of 5.6.
-- **Drop-in**: same file format, same chat template, same API. All 128,256 original tokens keep their ids, so English and everything N-ATLaS already knows stay intact.
+- **Drop-in**: same file format, same chat template, same API. All 128,256 original tokens keep their ids and their exact embeddings, and training is anchored to the original model's predictions.
 
 ![WazoCore against N-ATLaS: speed-up, token reduction and quality](assets/results.gif)
 
@@ -17,7 +17,7 @@ WazoCore continues N-ATLaS's byte-level BPE with 15,000 merges learned jointly o
 
 ## Benchmarks
 
-Speed is words per second from a paired benchmark in llama.cpp (Q4_K_M, Apple M4 CPU, 4 threads, 20 translations per language, both models answering each sentence in turn). Quality is chrF++ against human references with 95% paired-bootstrap intervals, on NTREX-128 (500 news sentences per language, never used in development) and FLORES-200, across two independent training runs. A control run with the same recipe and no new tokens separates the effect of the vocabulary from the effect of training.
+Speed is words per second from a paired benchmark in llama.cpp (Q4_K_M, Apple M4 CPU, 4 threads, 20 translations per language, both models answering each sentence in turn; one stalled Yoruba request is excluded and reported). Quality is chrF++ against human references with 95% paired-bootstrap intervals, on NTREX-128 (500 news sentences per language, never used in development) and FLORES-200, across two independent training runs. Pooled over both test sets and both runs, the change from the original is +0.6 for Yoruba (−0.1, +1.2), −0.6 for Hausa (−1.1, −0.0) and −1.1 for Igbo (−1.7, −0.5) at full precision. The shipped Q4_K_M files, compared with each other on 250 NTREX-128 sentences, give +0.6 (−0.7, +1.8), −1.2 (−2.0, −0.3) and −2.9 (−4.3, −1.6): WazoCore loses more than the original when quantised to 4 bits. A control run with the same recipe and no new tokens separates the effect of the vocabulary from the effect of training.
 
 Full tables, raw results and the experiments we rejected are in [docs/METHOD.md](docs/METHOD.md).
 
@@ -74,7 +74,7 @@ scripts/paired_vx.sh LABEL 4 20 0 path/to/model.gguf
 
 ## Roadmap
 
-- **Close the Igbo gap** without giving back speed, by training on the new-token segmentation only.
+- **Close the Igbo and Hausa gaps** without giving back speed: first in the quantised file, then with the next training recipe ([METHOD.md](docs/METHOD.md), section 8).
 - **More languages**: Nigerian Pidgin and Fulfulde next, then other African languages that pay the same token tax.
 - **Distribution**: Ollama and the LM Studio catalogue, and a public technical report.
 - **Upstream**: future N-ATLaS releases that ship with an expanded vocabulary, so every developer gets the speed-up by default.
