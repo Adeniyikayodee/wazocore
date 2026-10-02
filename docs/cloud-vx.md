@@ -1,8 +1,8 @@
 # Training on a cloud GPU
 
 Everything except training runs on a laptop. Training, evaluation and GGUF
-export need one 80 GB GPU for about three hours. This runbook uses RunPod; any
-host with SSH, an NVIDIA A100 or H100 80GB, CUDA PyTorch and 150 GB of disk
+export need one 80 GB GPU for about two hours. This runbook uses RunPod; any
+host with SSH, an NVIDIA A100 or H100 80GB, CUDA PyTorch and 200 GB of disk
 works the same way.
 
 ## Pipelines
@@ -12,17 +12,17 @@ results under `/workspace/work/`.
 
 | Script | What it does | Time on an A100 |
 |---|---|---|
-| `cloud_vx_pod.sh` | Builds WazoCore with the release recipe: expansion, self-distillation (reuses cached replies when present), training, BPC, 200-sentence chrF++ gate with bootstrap intervals, GGUF export, and the no-new-tokens control run | about 3 h |
+| `cloud_vx_pod.sh` | Builds WazoCore with the v4 recipe: expansion, self-distillation (reuses cached replies when present), training, BPC, 200-sentence chrF++ gate with bootstrap intervals, GGUF export, and the no-new-tokens control run | about 3 h |
 | `cloud_vx_validate.sh` | Retrains with a second seed and scores the original, the released model and the new run on NTREX-128 (500) and FLORES-200 (200) | about 2 h |
 | `cloud_vx_v5.sh` | The on-policy distillation experiment (section 6 of `METHOD.md`) | about 4 h |
-| `cloud_vx_v6.sh` | The next version (section 8 of `METHOD.md`): arms `fix`, `gold` and `control` by default, each trained and scored on 700 sentences per language against the original; `ARMS` adds `mbr` and `small` | about 4 h for the default arms (estimate, not yet run); `mbr` adds about 2 h |
+| `cloud_vx_v6.sh` | The release (section 8 of `METHOD.md`). `ARMS=long` builds it: expansion, human-translation data, training, a 700-sentence gate against the original and GGUF export. The default arms `fix`, `gold` and `control` and the optional `small` and `mbr` are the experiments behind it | `long` about 1.5 h; the three default arms 2.6 h; `small` 50 min; `mbr` adds about 2 h (not run) |
 | `cloud_gguf.sh` | GGUF export, shared by the pipelines | about 5 min |
 
 ## Run it
 
 1. **Start a GPU host.** On RunPod: add your public SSH key under Settings →
    SSH Public Keys *before* deploying, then deploy an A100 80GB with the
-   "RunPod PyTorch" template and a 150 GB disk. Note the "SSH over exposed TCP"
+   "RunPod PyTorch" template and a 200 GB disk. Note the "SSH over exposed TCP"
    host and port.
 2. **Upload code and inputs** from the repository root (about 150 MB):
 
@@ -38,15 +38,16 @@ results under `/workspace/work/`.
 4. **Start the pipeline** in `tmux`, so it survives a dropped connection:
 
    ```sh
-   tmux new -d -s run 'HF_HOME=/workspace/.cache/huggingface bash /workspace/cloud_vx_pod.sh 2>&1 | tee /workspace/run.log'
+   tmux new -d -s run 'HF_HOME=/workspace/.cache/huggingface ARMS=long GGUF=long bash /workspace/cloud_vx_v6.sh 2>&1 | tee /workspace/run.log'
    ```
 
    `cloud_vx_validate.sh` and `cloud_vx_v5.sh` also need
    `HF_MODEL=<user>/<repo>`, the Hugging Face repository holding the trained
    model to evaluate or refine.
-5. **Copy results back** with `rsync`, and check `sha256.txt` against the
-   copies before stopping the host. The host bills by the hour until it is
-   deleted.
+5. **Copy results back** with `rsync` as each arm finishes, and check
+   `sha256.txt` against the copies before stopping the host. The host bills by
+   the hour until it is deleted. Upload the trained model (16 GB) to a private
+   Hugging Face repository from the host; it is too large to bring to a laptop.
 
 ## Outputs
 
@@ -72,5 +73,11 @@ results under `/workspace/work/`.
   hash to `llama-bpe`, which is correct because the pre-tokenizer itself is
   unchanged.
 - **Memory.** With the teacher model loaded for the KL anchor, training uses
-  about 78 of 80 GB at micro-batch 8; lower `--batch` and raise `--accum` if a
-  different GPU runs out of memory.
+  about 79 of 80 GB at micro-batch 8; set `KL_BATCH=2`, then `BATCH=4 ACCUM=4`,
+  if a different GPU runs out of memory.
+- **Unreachable SSH port.** If the host's exposed TCP port stops answering,
+  move files with `runpodctl send` on the host and `runpodctl receive` on the
+  laptop; it needs no inbound connection.
+- **Disk without a volume.** If `/workspace` is on the host's own disk and not
+  on a network volume, everything is erased when the host stops. Once free
+  space falls below 80 GB the pipeline also keeps models in memory.
