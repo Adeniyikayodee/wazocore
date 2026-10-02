@@ -5,6 +5,11 @@ and trains the model to use them. This document describes the recipe, the
 evidence behind every reported number, and the approaches we tested and
 rejected. Raw results are in `results/`.
 
+The release is v6 (section 8): faster by the same margin as v4, better than
+the original in Yoruba and level with it in Hausa and Igbo. Sections 2 to 7
+describe v4, the previous release, and the analysis of its weaknesses that led
+to v6; they are kept as the record.
+
 ## 1. The problem
 
 N-ATLaS uses Llama-3's 128,256-token vocabulary, built mostly for English. On
@@ -25,7 +30,7 @@ about three times faster than our kernels, so we closed that line; its code is
 preserved under the `pre-cleanup` git tag. Reducing the number of tokens helps
 every engine at once, which is the approach taken here.
 
-## 2. The recipe
+## 2. The v4 recipe
 
 1. **Vocabulary** (`vocab_expand`). Text is first segmented by the original
    tokenizer; 15,000 BPE merges are then learned on top, jointly for Yoruba,
@@ -56,7 +61,7 @@ every engine at once, which is the approach taken here.
 
 Training takes about 40 minutes on one A100 80GB.
 
-## 3. Results
+## 3. v4 results
 
 ### Speed
 
@@ -158,21 +163,23 @@ sentences per language (`scripts/gguf_quality.py`,
   the same as the bf16 weights in PyTorch (0.0, interval −0.5 to +0.4, two
   thirds of replies identical) and 1.2 above the Q4_K_M file (+0.1, +2.3).
   The engine and the conversion are sound; the loss is 4-bit rounding.
-- The rounding that matters is in the four retrained layers. A Q4_K_M file
+- Part of that rounding loss sits in the four retrained layers. A Q4_K_M file
   that keeps blocks 0, 1, 30 and 31 at Q8_0 (`EDGE_TYPE=q8_0` in
-  `scripts/cloud_gguf.sh`; 5.38 GB against 5.01 GB) changes the scores by:
+  `scripts/cloud_gguf.sh`; 5.38 GB against 5.01 GB), built from the bf16
+  weights, changes the scores by:
 
   | chrF++, 250 sentences | Yoruba | Hausa | Igbo |
   |---|---|---|---|
-  | vs the shipped Q4_K_M file | −0.5 (−1.3, +0.2) | −0.2 (−0.8, +0.4) | +1.7 (+0.7, +2.9) |
-  | vs the original's Q4_K_M file | +0.0 (−1.1, +1.2) | −1.4 (−2.4, −0.4) | −1.2 (−2.4, −0.0) |
+  | vs the shipped Q4_K_M file | +0.1 (−0.6, +0.7) | −0.2 (−0.6, +0.3) | +1.1 (−0.0, +2.3) |
+  | vs the original's Q4_K_M file | +0.6 (−0.5, +1.7) | −1.4 (−2.3, −0.5) | −1.8 (−2.8, −0.7) |
 
-  It recovers the Igbo loss (and writes the same replies in 6% fewer tokens,
-  with 1 loop instead of 3), and leaves Yoruba and Hausa within noise, both
-  slightly lower. One Hausa request in 750 failed: the reply contained half
-  of a two-byte letter and llama-server refuses invalid UTF-8; the shipped
-  and original files had no such failure in 750 each. The test file was
-  requantised from Q8_0; a release file should be built from bf16.
+  It recovers about one Igbo point of the 1.2 lost to rounding, writes the
+  same replies in 5% fewer tokens, and leaves Yoruba and Hausa unchanged. An
+  earlier build of the same layout, requantised from Q8_0, measured +1.7
+  (+0.7, +2.9) for Igbo; the two builds do not differ significantly (−0.2).
+  In both builds the same Hausa request (1 of 750) failed: the reply
+  contained half of a two-byte letter and llama-server refuses invalid UTF-8.
+  The shipped and original files had no such failure.
 - Token savings in the same replies are unchanged: tokens per word fall from
   3.02 to 1.97 (Yoruba), 2.05 to 1.44 (Hausa) and 2.61 to 1.65 (Igbo).
 
@@ -227,8 +234,9 @@ Each version was measured before the next was built.
 | v1 | + 6k self-distilled replies | Looked equal on 30 sentences; 12 half-character tokens produced invalid UTF-8 | 30 sentences is too few; never split a character |
 | v2 | Character-safe vocabulary | Hausa −2.0, Igbo −2.3 chrF++ on 100 sentences | The gate needs bootstrap intervals |
 | v3 | + 24k Wikipedia replies, 60% share | Yoruba and Hausa equal; Igbo −1.9 | More behavioural data helps |
-| **v4** | 85% replies, filtered Wikipedia, KL anchor | Section 3 | Release |
+| v4 | 85% replies, filtered Wikipedia, KL anchor | Section 3 | Previous release |
 | v5 | On-policy distillation from v4 | Igbo gap closed, speed-up lost | Section 6 |
+| **v6** | Human translations, canonical anchor, calibrated initialisation, 12M tokens | Section 8 | Release. The new rows had been under-trained |
 
 Two hypotheses from the v3 analysis were tested and ruled out. Hausa Wikipedia
 often drops hooked letters (`dan` for `ɗan`), which suggested the model learned
@@ -277,10 +285,15 @@ That is the basis of the next version.
 
 ## 7. Limitations and open work
 
-- **Igbo quality** is about 1 chrF++ below the original and Hausa about half
-  a point at full precision, and about 3 and 1 in the Q4_K_M file (section
-  3). Closing both without losing speed is the main open problem (sections 6
-  and 8); repairing the quantised file comes first.
+- **Yoruba loops (v6).** Under greedy decoding 5 and 11 of 700 Yoruba replies
+  in the two runs fall into a loop, most of them a run of one combining mark,
+  against 2 for the original. The cause is training on fully tone-marked
+  Yoruba (section 8). Hausa and Igbo are unaffected.
+- **Hausa (v6)** is 0.4 chrF++ below the original in both runs. The pooled
+  interval includes zero, so the loss is not established, but it is the one
+  language where v6 has not reached the original.
+- **v4** is about 1 chrF++ below the original in Igbo and half a point in
+  Hausa at full precision, and about 3 and 1 in its Q4_K_M file (section 3).
 - **Unicode form.** The tokenizer has no normaliser and the new tokens were
   learned on composed (NFC) text. On decomposed input (a letter followed by a
   combining accent, as in the NTREX-128 Yoruba references) the token saving
@@ -289,7 +302,9 @@ That is the basis of the next version.
 - **Vocabulary size.** The low-budget recipe we follow (arXiv 2406.11477) was
   validated with 100 to 1,000 new tokens; 15,000 is beyond what that paper
   tested, and more than half of our new tokens are rare in the training text.
-  A smaller vocabulary has not been compared yet.
+  v6 compared both remedies: 5,000 tokens at the same training length, and
+  15,000 tokens at twice the length. Both remove the loss; the second keeps
+  the full token saving (section 8).
 - **Evaluation scope.** Quality is measured on English → X translation in two
   domains (FLORES-200 and NTREX-128 news). Dialogue, reasoning and X → English
   are not yet scored; native-speaker judgement is being collected with the
@@ -303,14 +318,15 @@ That is the basis of the next version.
 - **Inherited behaviour.** WazoCore keeps N-ATLaS's biases, its 8,092-token
   context and the limits of its instruction tuning.
 
-## 8. v6: the plan to pass the original
+## 8. v6: the release
 
 v4 trains the student on the original's own greedy replies, so the best it can
 do is match the original, and the new vocabulary then costs 0.6 chrF++ in Hausa
 and 1.1 in Igbo. v6 changes the two things the measurements point at: what the
-student is anchored to, and what it learns from. It is implemented and tested
-on a small model (`scripts/cloud_vx_v6.sh`); it has not been trained on
-N-ATLaS yet, so everything below is a plan with its evidence, not a result.
+student is anchored to, and what it learns from. The plan and its evidence come first; the
+results of running it (`scripts/cloud_vx_v6.sh`, one A100) follow. The release
+is the `long` arm: `ARMS=long bash cloud_vx_v6.sh`, about 85 minutes of
+training.
 
 **Stay on the long tokens.** Three changes remove the second spelling
 (section 4) from training:
@@ -366,3 +382,81 @@ tokenizer's own count, and loops do not exceed the original's. A gain over
 the original counts as a gain of the vocabulary work only by the margin over
 `control`; if `control` also rises, the honest claim is "faster, and better
 than N-ATLaS thanks to the added data".
+
+### Results
+
+chrF++ against the original on NTREX-128 (500) plus FLORES-200 (200), bf16
+weights, with 95% intervals (`results/vocab/v6/`). Token ratio is characters
+per token on the NTREX replies, relative to the original.
+
+| Arm | Yoruba | Hausa | Igbo | Token ratio (yo, ha, ig) |
+|---|---|---|---|---|
+| v4 (both runs) | +0.6 (−0.1, +1.2) | −0.6 (−1.1, −0.0) | −1.1 (−1.7, −0.5) | 1.54, 1.41, 1.62 |
+| `fix` | −0.2 (−0.9, +0.6) | −0.6 (−1.3, −0.0) | −0.8 (−1.5, −0.1) | n/a |
+| `gold` | +0.4 (−0.5, +1.3) | −0.4 (−1.0, +0.2) | −0.7 (−1.4, +0.1) | 1.38, 1.38, 1.55 |
+| `control` (no new tokens) | +2.3 (+1.6, +3.1) | +0.6 (+0.1, +1.1) | +1.2 (+0.6, +1.8) | 0.96, 0.99, 1.00 |
+| `small` (5,000 tokens) | +0.7 (−0.1, +1.5) | −0.2 (−0.8, +0.3) | −0.2 (−0.8, +0.3) | 1.39, 1.31, 1.47 |
+| **`long`** (gold, 12M tokens), run 1 | +2.3 (+1.6, +3.1) | −0.4 (−0.9, +0.2) | +0.3 (−0.3, +1.0) | 1.51, 1.43, 1.60 |
+| **`long`**, run 2 | +2.0 (+1.2, +2.8) | −0.4 (−0.9, +0.2) | +0.1 (−0.5, +0.7) | n/a |
+| **`long`**, both runs pooled | **+2.2 (+1.5, +2.9)** | **−0.4 (−0.8, +0.1)** | **+0.2 (−0.4, +0.8)** | |
+
+- The human translations lift the original in every language (`control`).
+  With the new vocabulary and v4's training length the gain does not arrive:
+  `gold` is 1.9, 1.0 and 1.8 below `control` (intervals exclude zero).
+- The new rows were under-trained. A third of the vocabulary (`small`) or
+  twice the training (`long`) both remove the loss; `long` keeps v4's token
+  saving. With 12M tokens the model is better than the original in Yoruba,
+  level in Igbo and 0.4 lower in Hausa (not significant, but the same in both
+  runs), and passes non-inferiority at a 1.0 margin in all three.
+- The canonical changes did not remove the piece spelling by themselves
+  (`fix` and `gold` write 4 to 7% more tokens than the tokenizer would, like
+  v4); `small` and `long` write 2 to 4% more. Forcing v4 onto the canonical
+  path at decoding time costs quality (−0.4, −1.4, −1.2), so for v4 the piece
+  spelling is a fallback, not waste.
+- Loops: training on fully tone-marked human Yoruba makes Yoruba replies loop
+  more often, with or without new tokens (of 700: original 2, `control` 10,
+  `gold` 19, `small` 16, `long` 5 and 11). Most are runs of one combining
+  mark. Hausa and Igbo are unaffected. This is the open defect of v6.
+
+**The shipped format.** The plain Q4_K_M file of `long` (run 1) against the
+original's Q4_K_M file, 250 NTREX-128 sentences per language in llama.cpp
+(`results/vocab/gguf-quality/summary-v6-long.json`):
+
+| chrF++ | Yoruba | Hausa | Igbo |
+|---|---|---|---|
+| Original, Q4_K_M | 28.57 | 46.64 | 42.79 |
+| `long`, Q4_K_M | 30.31 | 46.38 | 42.69 |
+| Difference | +1.7 (+0.3, +3.1) | −0.3 (−1.1, +0.6) | −0.1 (−1.4, +1.2) |
+| vs the v4 Q4_K_M file | +1.2 (−0.0, +2.4) | +0.9 (+0.2, +1.7) | +2.8 (+1.5, +4.2) |
+| Tokens per word | 3.02 → 2.09 | 2.05 → 1.42 | 2.61 → 1.59 |
+
+No request failed in 750, and no special tensor layout is needed: unlike v4,
+`long` holds its quality at 4 bits (bf16 to Q4_K_M: Hausa −0.1, Igbo −0.8
+with an interval of −1.8 to +0.2).
+
+**Speed.** The same paired benchmark as section 3, on the `long` Q4_K_M file
+(`results/vocab/m4-cpu-v6-paired.json`):
+
+| Language | Words/s, original → WazoCore | Speed-up, words | Speed-up, characters | Tokens per word |
+|---|---|---|---|---|
+| Yoruba* | 2.73 → 4.45 | 1.63× | 1.58× | 2.87 → 1.91 |
+| Hausa | 3.77 → 6.09 | 1.61× | 1.49× | 2.12 → 1.34 |
+| Igbo | 3.06 → 5.24 | 1.72× | 1.72× | 2.53 → 1.56 |
+| English** | 6.23 → 6.60 | 1.06× | 1.07× | 1.28 → 1.31 |
+
+\*19 sentences: one WazoCore reply contained a broken character and the
+server returned an error. \*\*19 sentences: one request to the original
+stalled for 82 s on the host; with it the English figure is 1.99×. Per-prompt
+geometric means with 95% intervals are 1.49 (1.32, 1.67) for Yoruba, 1.53
+(1.44, 1.61) for Hausa and 1.74 (1.59, 1.94) for Igbo.
+
+**Broken characters.** Some original tokens are half of a multi-byte letter
+(ṣ, ƙ and others). Occasionally a model writes the first half and then
+something else, which leaves invalid UTF-8 in the middle of a reply;
+llama-server answers such a request with an error. Counted in replies that
+ended normally, out of 2,100 per model: the original 0, v4 3 and 1 (two
+runs), `gold` 20, `small` 0, `long` 2 and 2. The shipped-file check of
+`long` had none in 750; the speed benchmark had one in 80. About one reply in
+a thousand for the release, the same rate as v4, and worse when the new rows
+are under-trained. With the Yoruba loops, this is the second open defect.
+

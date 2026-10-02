@@ -33,7 +33,7 @@ PY
 fi
 llama.cpp/build/bin/llama-quantize "$bf16" "$out" Q4_K_M | tail -2
 # EDGE_TYPE=q8_0 also writes a file whose four retrained layers keep 8 bits:
-# 4-bit rounding costs them about 1.7 chrF++ in Igbo (docs/METHOD.md, section 3).
+# 4-bit rounding costs them about one chrF++ point in Igbo (docs/METHOD.md, section 3).
 [ -z "${EDGE_TYPE:-}" ] || llama.cpp/build/bin/llama-quantize --tensor-type "^blk\.(0|1|30|31)\.=$EDGE_TYPE" "$bf16" "${out%.gguf}.edge-$EDGE_TYPE.gguf" Q4_K_M | tail -2
 rm "$bf16"; rm -rf "$S"
 sha256sum "$out" "$src"/model.safetensors | tee -a "$logs"/sha256.txt

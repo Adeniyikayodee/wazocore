@@ -1,0 +1,2 @@
+ada0476ad96f8e01df3c2328ee697519226c3ff9f24463d82724b87cf6edd898  /workspace/work/WazoCore-v6-gold.Q4_K_M.gguf
+2aaa89beb6d933aaad029af1a475da2f37753d51c724c2136521252add7995cd  /workspace/work/gold/model.safetensors
