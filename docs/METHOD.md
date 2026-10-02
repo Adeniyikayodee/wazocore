@@ -5,10 +5,9 @@ and trains the model to use them. This document describes the recipe, the
 evidence behind every reported number, and the approaches we tested and
 rejected. Raw results are in `results/`.
 
-The release is v6 (section 8): faster by the same margin as v4, better than
-the original in Yoruba and level with it in Hausa and Igbo. Sections 2 to 7
-describe v4, the previous release, and the analysis of its weaknesses that led
-to v6; they are kept as the record.
+The release is v6 (section 8). Sections 2 to 7 describe v4, the previous
+release, and the analysis of its weaknesses that led to v6; they are kept as
+the record.
 
 ## 1. The problem
 
@@ -405,9 +404,8 @@ per token on the NTREX replies, relative to the original.
   `gold` is 1.9, 1.0 and 1.8 below `control` (intervals exclude zero).
 - The new rows were under-trained. A third of the vocabulary (`small`) or
   twice the training (`long`) both remove the loss; `long` keeps v4's token
-  saving. With 12M tokens the model is better than the original in Yoruba,
-  level in Igbo and 0.4 lower in Hausa (not significant, but the same in both
-  runs), and passes non-inferiority at a 1.0 margin in all three.
+  saving. With 12M tokens the model passes non-inferiority at a 1.0 margin in
+  all three languages.
 - The canonical changes did not remove the piece spelling by themselves
   (`fix` and `gold` write 4 to 7% more tokens than the tokenizer would, like
   v4); `small` and `long` write 2 to 4% more. Forcing v4 onto the canonical

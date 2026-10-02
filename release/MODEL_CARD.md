@@ -12,8 +12,7 @@ tags: [llama-3, vocabulary-expansion, yoruba, hausa, igbo, gguf]
 **Faster in your own language.** WazoCore is N-ATLaS with
 15,000 new Yoruba, Hausa and Igbo tokens. It writes these languages in 1.4 to
 1.6 times fewer tokens, so replies arrive 1.6 to 1.7 times faster in
-llama.cpp and LM Studio, with no change to your code. Translation into Yoruba
-is better than the original's; Hausa and Igbo are level with it.
+llama.cpp and LM Studio, with no change to your code.
 
 > N-ATLaS is an initiative of the Federal Ministry of Communications,
 > Innovation and Digital Economy, and powered by Awarri Technologies.
@@ -72,11 +71,10 @@ in llama.cpp on 250 NTREX-128 sentences per language.
 | WazoCore | 30.31 | 46.38 | 42.69 |
 | Difference | +1.7 (+0.3, +3.1) | −0.3 (−1.1, +0.6) | −0.1 (−1.4, +1.2) |
 
-Yoruba is better than the original. Hausa and Igbo are not distinguishable
-from it; Hausa is 0.3 to 0.4 lower in every measurement. A control run with
-the same training data and no new tokens is +2.3, +0.6 and +1.2, so most of
-the Yoruba gain comes from the added human translations and the new
-vocabulary costs up to a point in Hausa and Igbo against that control.
+A control run with the same training data and no new tokens is +2.3, +0.6
+and +1.2, so most of the Yoruba gain comes from the added human translations
+and the new vocabulary costs up to a point in Hausa and Igbo against that
+control.
 
 ## Use
 
