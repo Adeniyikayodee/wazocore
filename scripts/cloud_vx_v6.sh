@@ -11,10 +11,12 @@
 #   control  the original model on gold's data, no new tokens: separates what
 #            the data gives from what the vocabulary costs.
 #   small    gold, with a smaller vocabulary (needs $W/vx-tok-small).
+#   long     gold, with twice the training (12M tokens): the release recipe.
 # Run after scripts/cloud_vx_upload.sh and `hf auth login`:
 #   bash /workspace/cloud_vx_v6.sh
-# Knobs: ARMS (default "fix gold control"), CANDIDATES (default 9), TOKENS,
-# CANON, KL_BATCH (lower it if the canonical anchor runs out of memory),
+# Knobs: ARMS (default "fix gold control"), CANDIDATES (default 9), TOKENS, SEED,
+# CANON, KL_BATCH, BATCH and ACCUM (on an out-of-memory error lower KL_BATCH to
+# 2, then BATCH to 4 with ACCUM 4; finished arms are skipped on a rerun),
 # HF_MODEL (the v4 weights: adds the canonical-decoding diagnostic), GGUF
 # (arm to export, default gold).
 set -euo pipefail
@@ -22,7 +24,7 @@ export HF_HOME=${HF_HOME:-/workspace/.cache/huggingface}
 export PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True
 W=${W:-/workspace/work}; R=$W/results-v6; mkdir -p "$R"
 ARMS=${ARMS:-"fix gold control"}; CANDIDATES=${CANDIDATES:-9}; TOKENS=${TOKENS:-6000000}
-CANON=${CANON:-1.0}; KL_BATCH=${KL_BATCH:-4}; GGUF=${GGUF:-gold}
+CANON=${CANON:-1.0}; KL_BATCH=${KL_BATCH:-4}; BATCH=${BATCH:-8}; ACCUM=${ACCUM:-2}; SEED=${SEED:-0}; GGUF=${GGUF:-gold}
 PY=/workspace/venv/bin/python; F=$W/data/flores200_dataset; N=$W/ntrex; P=$W/prior
 log() { echo "== $(date +%H:%M:%S) $*"; }
 
@@ -38,8 +40,8 @@ $PY -m pip install -q "transformers==5.17.0" safetensors "huggingface_hub[hf_xet
 $PY -c "import torch; assert torch.cuda.is_available(), 'no CUDA GPU'"
 [ -f $M/n-atlas/config.json ] || /workspace/venv/bin/hf download NCAIR1/N-ATLaS --local-dir $M/n-atlas \
     --exclude "*.gguf" --exclude "original/*"
-[ -f $W/smol/smoldoc/en_ig.jsonl ] || /workspace/venv/bin/hf download google/smol --repo-type dataset --local-dir $W/smol \
-    --include "smolsent/en_yo.jsonl" "smolsent/en_ha.jsonl" "smolsent/en_ig.jsonl" "smoldoc/en_yo.jsonl" "smoldoc/en_ha.jsonl" "smoldoc/en_ig.jsonl"
+[ -f $W/smol/smolsent/en_yo.jsonl ] || /workspace/venv/bin/hf download google/smol --repo-type dataset --local-dir $W/smol \
+    smolsent/en_yo.jsonl smolsent/en_ha.jsonl smolsent/en_ig.jsonl smoldoc/en_yo.jsonl smoldoc/en_ha.jsonl smoldoc/en_ig.jsonl
 
 cd /workspace/wazocore
 V="$PY -m wazocore.vx_torch"
@@ -64,7 +66,7 @@ for name, lines in recipes.items():
     print(f"chat-v6-{name}: {len(lines)} conversations", file=sys.stderr)
 PY
 
-recipe() { echo "--data $W/data --chat $W/chat-v6-$1.jsonl --chat-share 0.85 --careful-wiki --batch 8 --accum 2 --eval-every 100 --tokens $TOKENS --teacher $M/n-atlas --kl-weight 1.0 --kl-batch $KL_BATCH"; }
+recipe() { echo "--data $W/data --chat $W/chat-v6-$1.jsonl --chat-share 0.85 --careful-wiki --batch $BATCH --accum $ACCUM --eval-every 100 --tokens $TOKENS --seed $SEED --teacher $M/n-atlas --kl-weight 1.0 --kl-batch $KL_BATCH"; }
 gate() {  # NAME: sample both test sets, one pooled estimate per language against the original
     log "sample $1"
     $V sample --model $M/$1 --flores $F --ntrex $N --n 500 --out $R/ntrex-$1.json 2>/dev/null
@@ -98,6 +100,7 @@ for a in $ARMS; do
     gold)    init init-v6 $W/vx-tok;          arm gold $M/init-v6 gold $CANONICAL ;;
     mbr)     init init-v6 $W/vx-tok;          arm mbr $M/init-v6 mbr $CANONICAL ;;
     small)   init init-small $W/vx-tok-small; arm small $M/init-small gold $CANONICAL ;;
+    long)    init init-v6 $W/vx-tok;          TOKENS=12000000 arm long $M/init-v6 gold $CANONICAL ;;
     control) arm control $M/n-atlas gold ;;
     *) echo "unknown arm: $a" >&2; exit 1 ;;
     esac
