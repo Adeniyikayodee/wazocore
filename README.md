@@ -2,7 +2,7 @@
 
 ![The same passage streamed by N-ATLaS and by WazoCore in Yoruba, Hausa and Igbo](assets/demo.gif)
 
-<sub>The same FLORES-200 passage in Yoruba, Hausa and Igbo. Replay of real tokenisations, streamed at the decode speed measured in llama.cpp on an Apple M4 CPU (9 tokens per second), shown at 2× speed. Text colour alternates at each token boundary.</sub>
+<sub>The same FLORES-200 passage in Yoruba, Hausa and Igbo. Replay of real tokenisations, streamed at the decode speed measured in llama.cpp on an Apple M4 CPU (8 tokens per second), shown at 2× speed. Text colour alternates at each token boundary.</sub>
 
 A version of N-ATLaS, Nigeria's open language model, that reads and writes Yoruba, Hausa and Igbo in 1.4 to 1.6 times fewer tokens. It drops into llama.cpp, LM Studio and any OpenAI-compatible stack as a standard GGUF, and generates these languages 1.6 to 1.7 times faster on an ordinary laptop. Two defects remain and are documented: about one reply in a thousand contains a broken character, and Yoruba replies fall into a repetition loop slightly more often.
 
