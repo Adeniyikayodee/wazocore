@@ -2,8 +2,27 @@
 license: other
 license_name: n-atlas-open-source-research-and-innovation-license
 base_model: NCAIR1/N-ATLaS
+base_model_relation: finetune
 language: [yo, ha, ig, en]
-tags: [llama-3, vocabulary-expansion, yoruba, hausa, igbo, gguf]
+pipeline_tag: text-generation
+library_name: transformers
+datasets: [google/smol]
+metrics: [chrf]
+tags:
+  - yoruba
+  - hausa
+  - igbo
+  - nigerian-languages
+  - african-languages
+  - low-resource-languages
+  - vocabulary-expansion
+  - tokenizer
+  - bpe
+  - translation
+  - n-atlas
+  - llama-3
+  - llama-cpp
+  - gguf
 ---
 
 <!-- The N-ATLaS licence requires renamed derivatives to end with "Powered by Awarri." -->
