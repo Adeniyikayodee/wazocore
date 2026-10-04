@@ -17,105 +17,39 @@ llama.cpp and LM Studio, with no change to your code.
 > N-ATLaS is an initiative of the Federal Ministry of Communications,
 > Innovation and Digital Economy, and powered by Awarri Technologies.
 
-## Why it exists
+## Model details
+
+| | |
+|---|---|
+| Base model | NCAIR1/N-ATLaS (Llama-3 architecture, 8B parameters) |
+| What changed | 15,000 added tokens for Yoruba, Hausa and Igbo: the vocabulary grows from 128,256 to 143,256. Every original token keeps its id and its exact embedding |
+| Files | A Q4_K_M GGUF (5.0 GB) and the full-precision weights |
+| Languages | Yoruba, Hausa, Igbo, English |
+| Licence | N-ATLaS Open-Source Research and Innovation License (see Licence) |
+| Code and evidence | [github.com/Adeniyikayodee/wazocore](https://github.com/Adeniyikayodee/wazocore) |
 
 N-ATLaS inherits Llama-3's vocabulary, which was built mostly for English. A
 Yoruba word costs about 2.9 tokens where an English word costs 1.2, so every
 Nigerian-language reply is slower to generate, more expensive to serve, and
 fits less context. WazoCore adds word and word-piece tokens for the three
-languages and keeps every original token with its exact embedding, so English
-text tokenises as before.
+languages, so English text tokenises as before.
 
-## Results
+## Intended use
 
-All numbers compare WazoCore with the original N-ATLaS. Speed and the second
-quality table are measured on the shipped Q4_K_M file. NTREX-128 was never
-used in development.
+Generating and translating Yoruba, Hausa and Igbo text on local hardware with
+llama.cpp or LM Studio, in place of N-ATLaS, where the token count in these
+languages limits speed, cost or context. Use is governed by the N-ATLaS
+licence.
 
-**Speed.** llama.cpp (build 9430), Apple M4 laptop CPU, 4 threads, Q4_K_M, 20
-translations per language. Both models answered each sentence back to back,
-taking turns going first.
+## Out of scope
 
-| Language | Words/s, original → WazoCore | Speed-up (words) | Speed-up (characters) | Tokens per word |
-|---|---|---|---|---|
-| Yoruba* | 2.73 → 4.45 | 1.63× | 1.58× | 2.87 → 1.91 |
-| Hausa | 3.77 → 6.09 | 1.61× | 1.49× | 2.12 → 1.34 |
-| Igbo | 3.06 → 5.24 | 1.72× | 1.72× | 2.53 → 1.56 |
-| English** | 6.23 → 6.60 | 1.06× | 1.07× | 1.28 → 1.31 |
+- Any use the licence prohibits (see Licence).
+- Tasks that were not evaluated: dialogue, reasoning, translation into
+  English, and English quality (see Limitations).
+- Applications that cannot handle a failed request or a looping reply. Both
+  occur at the rates under Limitations and need handling in the client.
 
-\*19 sentences: one WazoCore reply contained a broken character and the
-server returned an error (see Limitations). \*\*19 sentences: one request to
-the original stalled for 82 s on the host; with it the English figure is
-1.99×. Raw data: `results/vocab/m4-cpu-v6-paired.json`.
-
-Decoding speed in tokens per second is about 8 for both models. The gain
-comes from needing fewer tokens.
-
-**Whole request.** The same run, counting the time to read the prompt as well
-as the time to write the reply, with no prompt cache. Mean seconds per
-request, original → WazoCore.
-
-| Language | Reading the prompt | Writing the reply | Whole request | Speed-up | Words per reply |
-|---|---|---|---|---|---|
-| Yoruba | 6.0 → 5.6 | 11.8 → 8.4 | 17.9 → 14.0 | 1.28× | 32 → 37 |
-| Hausa | 5.8 → 5.6 | 8.3 → 6.6 | 14.1 → 12.2 | 1.16× | 31 → 40 |
-| Igbo | 5.8 → 5.7 | 9.7 → 5.6 | 15.5 → 11.3 | 1.38× | 30 → 29 |
-| English | 10.0 → 7.2 | 4.6 → 4.2 | 14.6 → 11.3 | 1.29× | 29 → 27 |
-
-The prompts into Yoruba, Hausa and Igbo are in English (about 83 tokens with
-the chat template), so the new vocabulary does not shorten them and the time
-to read them is unchanged. The English row translates from Yoruba: its prompt
-falls from 142 tokens to 108. The two models' replies differ in length, so
-this table compares requests and the table above compares speed per word.
-
-**Metal.** The same benchmark with every layer on the laptop's GPU
-(`results/vocab/m4-metal-v6-paired.json`). Whole request is mean seconds per
-request with no prompt cache.
-
-| Language | Words/s, original → WazoCore | Speed-up (words) | Speed-up (characters) | Whole request, s | Speed-up (whole request) | Tokens per word |
-|---|---|---|---|---|---|---|
-| Yoruba* | 3.26 → 5.43 | 1.66× | 1.63× | 12.0 → 8.5 | 1.42× | 2.93 → 1.93 |
-| Hausa | 4.71 → 7.00 | 1.49× | 1.46× | 8.5 → 6.2 | 1.36× | 2.10 → 1.39 |
-| Igbo | 4.00 → 6.18 | 1.54× | 1.51× | 9.9 → 6.3 | 1.56× | 2.64 → 1.58 |
-| English | 8.22 → 7.77 | 0.95× | 0.94× | 5.8 → 5.4 | 1.08× | 1.30 → 1.31 |
-
-\*19 sentences: the sentence that failed in the CPU run failed again with the
-same broken character.
-
-The laptop slowed under sustained load. Both models wrote 17 to 20 tokens per
-second for the first two sentences and 8 to 12 for the other eighteen, and
-read prompts at 95 to 138 tokens per second and then 40 to 60. They slowed
-together and took turns going first, so the ratios stand. The absolute
-figures describe back-to-back requests; a single request on a cool machine
-runs at about 20 tokens per second. The pattern is that of thermal
-throttling; no temperature was recorded.
-
-**Quality at full precision.** Greedy English → X translation, scored with
-chrF++ against human references in Unicode NFC, with 95% paired-bootstrap
-intervals for the difference, on NTREX-128 (500 news sentences per language)
-and FLORES-200 (200), for two independent training runs.
-
-| Language | chrF++ change vs original, run 1 | Run 2 | Both runs pooled |
-|---|---|---|---|
-| Yoruba | +2.3 (+1.6, +3.1) | +2.0 (+1.2, +2.8) | +2.2 (+1.5, +2.9) |
-| Hausa | −0.4 (−0.9, +0.2) | −0.4 (−0.9, +0.2) | −0.4 (−0.8, +0.1) |
-| Igbo | +0.3 (−0.3, +1.0) | +0.1 (−0.5, +0.7) | +0.2 (−0.4, +0.8) |
-
-**Quality of the Q4_K_M file.** The two Q4_K_M files compared with each other
-in llama.cpp on 250 NTREX-128 sentences per language.
-
-| chrF++ | Yoruba | Hausa | Igbo |
-|---|---|---|---|
-| Original | 28.57 | 46.64 | 42.79 |
-| WazoCore | 30.31 | 46.38 | 42.69 |
-| Difference | +1.7 (+0.3, +3.1) | −0.3 (−1.1, +0.6) | −0.1 (−1.4, +1.2) |
-
-A control run with the same training data and no new tokens is +2.3, +0.6
-and +1.2, so most of the Yoruba gain comes from the added human translations
-and the new vocabulary costs up to a point in Hausa and Igbo against that
-control.
-
-## Use
+## How to use
 
 WazoCore is a standard Llama-3 GGUF. It is tested in llama.cpp and LM Studio:
 
@@ -131,7 +65,18 @@ file, which reports 131,072 tokens, and reserves memory for all of it.
 The full-precision weights load with `transformers` 5.x, like N-ATLaS. It runs
 offline on a laptop with 8 GB of memory or more.
 
-## How it was made
+## Training data
+
+| Source | Used for | Amount |
+|---|---|---|
+| N-ATLaS's own greedy replies to translation requests, English to and from each language, with sources from Wikipedia | Training | About 24,000 requests |
+| google/smol, professional translations (CC BY 4.0) | Training | 23,662 sentence pairs: Yoruba 8,647, Hausa 8,653, Igbo 6,362 |
+| Yoruba, Hausa and Igbo Wikipedia, filtered for careful spelling | Training and vocabulary | 15% of training tokens |
+| FLORES-200 dev split | Vocabulary only | With Wikipedia, 4M characters per language |
+
+No FLORES or NTREX text is used in training.
+
+## Training procedure
 
 1. **Vocabulary.** N-ATLaS's tokenizer is kept, and 15,000 BPE merges are
    learned on top of it from Yoruba, Hausa and Igbo Wikipedia and the FLORES
@@ -153,8 +98,42 @@ offline on a laptop with 8 GB of memory or more.
 4. **Export.** GGUF from the bf16 weights, quantised to Q4_K_M. llama.cpp's
    tokenisation matches the reference tokenizer on 2,000 test texts.
 
-The code, the data recipe and every measurement are in the WazoCore repository
-(`docs/METHOD.md`).
+
+## Evaluation
+
+All numbers compare WazoCore with the original N-ATLaS.
+
+| WazoCore against N-ATLaS | Yoruba | Hausa | Igbo |
+|---|---|---|---|
+| Tokens per word | 2.87 → 1.91 | 2.12 → 1.34 | 2.53 → 1.56 |
+| Speed-up in words per second, laptop CPU | 1.63×* | 1.61× | 1.72× |
+| Speed-up for the whole request, laptop CPU | 1.28× | 1.16× | 1.38× |
+| Speed-up in words per second, laptop GPU | 1.66×* | 1.49× | 1.54× |
+| Speed-up for the whole request, laptop GPU | 1.42× | 1.36× | 1.56× |
+| chrF++ change, full precision | +2.2 (+1.5, +2.9) | −0.4 (−0.8, +0.1) | +0.2 (−0.4, +0.8) |
+| chrF++ change, shipped Q4_K_M file | +1.7 (+0.3, +3.1) | −0.3 (−1.1, +0.6) | −0.1 (−1.4, +1.2) |
+| chrF++ change, same training data and no new tokens | +2.3 (+1.6, +3.1) | +0.6 (+0.1, +1.1) | +1.2 (+0.6, +1.8) |
+
+\*19 of 20 sentences: one WazoCore reply contained a broken character and
+the server returned an error (see Limitations).
+
+- **Speed.** llama.cpp (build 9430), Q4_K_M, one Apple M4 laptop, 20
+  translations per language. Both models answered each sentence back to
+  back, taking turns going first. Decoding speed in tokens per second is
+  about the same for both models; the gain comes from needing fewer tokens.
+  The whole request includes reading the prompt, with no prompt cache.
+- **Quality at full precision.** Greedy English → X translation, scored with
+  chrF++ against human references in Unicode NFC, with 95% paired-bootstrap
+  intervals for the difference, on NTREX-128 (500 news sentences per
+  language) and FLORES-200 (200), pooled over two independent training runs.
+- **Quality of the shipped file.** The two Q4_K_M files compared with each
+  other in llama.cpp on 250 NTREX-128 sentences per language.
+- **Control.** The last row is the original model trained on the same data
+  with no new tokens. It separates the effect of the vocabulary from the
+  effect of the training data.
+
+The protocol, the full tables and the command behind each number are in
+[`docs/METHOD.md`](https://github.com/Adeniyikayodee/wazocore/blob/main/docs/METHOD.md).
 
 ## Limitations
 
@@ -179,7 +158,11 @@ The code, the data recipe and every measurement are in the WazoCore repository
   for Yoruba and 1.27 times for Igbo.
 - Quality was measured on English → X translation in two domains (FLORES-200
   and NTREX-128 news). Dialogue, reasoning and X → English were not scored,
-  and English quality has not been scored; English speed is unchanged.
+  and English quality has not been scored. English speed is 1.06× on the
+  CPU and 0.95× on the GPU.
+- Every training variant was scored on the same 700 sentences per language
+  and the release was chosen among them, so its scores on those sentences are
+  not an independent confirmation. No test sentence is trained on.
 - Speed was measured on one laptop, on its CPU and on its GPU, with 20
   prompts per language. The GPU run was throttled to about half the
   machine's cool speed, and no other GPU was measured.

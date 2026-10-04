@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # v5: on-policy self-distillation across tokenizers, starting from v4
-# (docs/METHOD.md). Two seeds, scored on NTREX (500) and FLORES (200)
+# (docs/HISTORY.md, section 5). Two seeds, scored on NTREX (500) and FLORES (200)
 # against the original and against v4, then exported to GGUF.
 #   HF_MODEL=<private repo holding v4> bash /workspace/cloud_vx_v5.sh
 # Needs $W/prior/ with the validation run's original and v4 samples

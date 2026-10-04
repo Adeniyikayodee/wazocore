@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # v6: aim above the original in all three languages, on the canonical path
-# (docs/METHOD.md, section 8). One pod session; each arm changes one thing and
+# (docs/METHOD.md). One pod session; each arm changes one thing and
 # is scored against the original on NTREX-128 (500) + FLORES-200 (200) with
 # `vx_torch pooled`. No arm trains on FLORES text.
 #   fix      v4's data (the original's greedy replies to Wikipedia requests),

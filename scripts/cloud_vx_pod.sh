@@ -5,7 +5,7 @@
 # Inputs under $W: vx-tok/ (expanded tokenizer), data/{wiki,flores200_dataset},
 # chat-distill.jsonl and chat-wiki.jsonl (the original model's replies;
 # regenerated if absent, ~15 and ~45 min).
-# Recipe v4 (docs/METHOD.md): 85% distilled replies, 15% carefully spelled
+# Recipe v4 (docs/HISTORY.md): 85% distilled replies, 15% carefully spelled
 # Wikipedia, KL anchor to the original on old-tokenised replies. Then a
 # 200-sentence gate against the original and, with CONTROL=1 (default), the
 # same recipe on the original model to separate drift from vocabulary.

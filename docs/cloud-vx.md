@@ -14,8 +14,8 @@ results under `/workspace/work/`.
 |---|---|---|
 | `cloud_vx_pod.sh` | Builds WazoCore with the v4 recipe: expansion, self-distillation (reuses cached replies when present), training, BPC, 200-sentence chrF++ gate with bootstrap intervals, GGUF export, and the no-new-tokens control run | about 3 h |
 | `cloud_vx_validate.sh` | Retrains with a second seed and scores the original, the released model and the new run on NTREX-128 (500) and FLORES-200 (200) | about 2 h |
-| `cloud_vx_v5.sh` | The on-policy distillation experiment (section 6 of `METHOD.md`) | about 4 h |
-| `cloud_vx_v6.sh` | The release (section 8 of `METHOD.md`). `ARMS=long` builds it: expansion, human-translation data, training, a 700-sentence gate against the original and GGUF export. The default arms `fix`, `gold` and `control` and the optional `small` and `mbr` are the experiments behind it | `long` about 1.5 h; the three default arms 2.6 h; `small` 50 min; `mbr` adds about 2 h (not run) |
+| `cloud_vx_v5.sh` | The on-policy distillation experiment (section 5 of `HISTORY.md`) | about 4 h |
+| `cloud_vx_v6.sh` | The release (`METHOD.md`). `ARMS=long` builds it: expansion, human-translation data, training, a 700-sentence gate against the original and GGUF export. The default arms `fix`, `gold` and `control` and the optional `small` and `mbr` are the experiments behind it | `long` about 1.5 h; the three default arms 2.6 h; `small` 50 min; `mbr` adds about 2 h (not run) |
 | `cloud_gguf.sh` | GGUF export, shared by the pipelines. `IMATRIX=/workspace/work/data/wiki` also writes a file quantised with an importance matrix (not yet run or gated) | about 5 min; the importance matrix is untimed |
 
 ## Run it
@@ -44,7 +44,17 @@ results under `/workspace/work/`.
    `cloud_vx_validate.sh` and `cloud_vx_v5.sh` also need
    `HF_MODEL=<user>/<repo>`, the Hugging Face repository holding the trained
    model to evaluate or refine.
-5. **Copy results back** with `rsync` as each arm finishes, and check
+5. **Check the run.** The log prints one `== HH:MM:SS` line per stage and
+   ends with `ALL-DONE`; the gate result and the exported file should exist:
+
+   ```sh
+   tail -1 /workspace/run.log   # == HH:MM:SS ALL-DONE
+   ls /workspace/work/results-v6/pooled-long.json /workspace/work/WazoCore-v6-long.Q4_K_M.gguf
+   ```
+
+   A finished arm is skipped on a rerun, so after an error fix the cause and
+   start the same command again.
+6. **Copy results back** with `rsync` as each arm finishes, and check
    `sha256.txt` against the copies before stopping the host. The host bills by
    the hour until it is deleted. Upload the trained model (16 GB) to a private
    Hugging Face repository from the host; it is too large to bring to a laptop.

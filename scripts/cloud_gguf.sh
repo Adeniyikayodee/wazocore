@@ -33,7 +33,7 @@ PY
 fi
 llama.cpp/build/bin/llama-quantize "$bf16" "$out" Q4_K_M | tail -2
 # EDGE_TYPE=q8_0 also writes a file whose four retrained layers keep 8 bits:
-# 4-bit rounding costs them about one chrF++ point in Igbo (docs/METHOD.md, section 3).
+# 4-bit rounding costs them about one chrF++ point in Igbo (docs/HISTORY.md, section 3).
 [ -z "${EDGE_TYPE:-}" ] || llama.cpp/build/bin/llama-quantize --tensor-type "^blk\.(0|1|30|31)\.=$EDGE_TYPE" "$bf16" "${out%.gguf}.edge-$EDGE_TYPE.gguf" Q4_K_M | tail -2
 # IMATRIX=WIKI_DIR also writes a file quantised with an importance matrix, which
 # weights the 4-bit rounding by activations on equal shares of Yoruba, Hausa,

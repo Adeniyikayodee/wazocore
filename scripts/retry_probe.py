@@ -1,7 +1,7 @@
 """Does a retry with sampling recover a reply with a broken character?
 Every prompt that gave invalid UTF-8 in an earlier run answers greedily
 through llama-server; each one the server rejects is retried under sampling
-(docs/METHOD.md, section 8).
+(docs/METHOD.md, section 5).
 
     uv run --project wazocore python scripts/retry_probe.py MODEL.gguf OUT.json [RETRIES]
 """

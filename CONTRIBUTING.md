@@ -28,7 +28,8 @@ GPU; see [`docs/cloud-vx.md`](docs/cloud-vx.md).
 | `wazocore/wazocore/vx_torch.py` | Everything that touches a model or a GPU |
 | `wazocore/wazocore/paired_vx.py` | Paired speed benchmark |
 | `scripts/` | GPU pipelines |
-| `docs/METHOD.md` | The method and every reported result |
+| `docs/METHOD.md` | The release: method, protocol and every reported result |
+| `docs/HISTORY.md` | Earlier versions and rejected approaches |
 
 ## Adding a language
 

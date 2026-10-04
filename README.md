@@ -6,7 +6,7 @@
 
 A version of N-ATLaS, Nigeria's open language model, that reads and writes Yoruba, Hausa and Igbo in 1.4 to 1.6 times fewer tokens. It drops into llama.cpp, LM Studio and any OpenAI-compatible stack as a standard GGUF, and generates these languages 1.6 to 1.7 times faster on an ordinary laptop. Two defects remain and are documented: about one reply in a thousand contains a broken character, and Yoruba replies fall into a repetition loop slightly more often.
 
-- **Faster replies**: the same answer is written in 58 to 62% of the time, because each token now carries more of a word. Decode speed in tokens per second is about the same for both models, so the gain comes from the token count and not from the machine. Reading an English prompt takes as long as before, so a short translation request on a laptop CPU finishes in 73 to 86% of the time from start to end.
+- **Faster replies**: the same answer is written in 58 to 62% of the time, because each token now carries more of a word. Decode speed in tokens per second is about the same for both models, so the gain comes from the token count and not from the machine.
 - **Lower serving cost**: a reply costs a third fewer tokens. A 5,000-word health leaflet written in Yoruba falls from about 14,350 tokens to 9,550.
 - **More in context**: N-ATLaS's 8,092-token window holds 8.8 pages of Yoruba instead of 5.6.
 - **Drop-in**: same file format, same chat template, same API. All 128,256 original tokens keep their ids and their exact embeddings, and training is anchored to the original model's predictions.
@@ -17,11 +17,20 @@ WazoCore continues N-ATLaS's byte-level BPE with 15,000 merges learned jointly o
 
 ## Benchmarks
 
-Speed is words per second from a paired benchmark in llama.cpp (Q4_K_M, Apple M4 CPU, 4 threads, 20 translations per language, both models answering each sentence in turn): 1.63 times for Yoruba, 1.61 for Hausa and 1.72 for Igbo. Counting the time to read the prompt, with no prompt cache, the whole request is 1.28, 1.16 and 1.38 times faster. On the same laptop's GPU the figures are 1.66, 1.49 and 1.54 times in words per second and 1.42, 1.36 and 1.56 for the whole request.
+| WazoCore against N-ATLaS | Yoruba | Hausa | Igbo |
+|---|---|---|---|
+| Tokens per word | 2.87 → 1.91 | 2.12 → 1.34 | 2.53 → 1.56 |
+| Speed-up in words per second, laptop CPU | 1.63× | 1.61× | 1.72× |
+| Speed-up for the whole request, laptop CPU | 1.28× | 1.16× | 1.38× |
+| Speed-up in words per second, laptop GPU | 1.66× | 1.49× | 1.54× |
+| Speed-up for the whole request, laptop GPU | 1.42× | 1.36× | 1.56× |
+| chrF++ change, full precision | +2.2 (+1.5, +2.9) | −0.4 (−0.8, +0.1) | +0.2 (−0.4, +0.8) |
+| chrF++ change, shipped Q4_K_M file | +1.7 (+0.3, +3.1) | −0.3 (−1.1, +0.6) | −0.1 (−1.4, +1.2) |
+| chrF++ change, same training data and no new tokens | +2.3 (+1.6, +3.1) | +0.6 (+0.1, +1.1) | +1.2 (+0.6, +1.8) |
 
-Quality is chrF++ against human references with 95% paired-bootstrap intervals, on NTREX-128 (500 news sentences per language, never used in development) and FLORES-200, across two independent training runs. Pooled, the change from the original is +2.2 for Yoruba (+1.5, +2.9), −0.4 for Hausa (−0.8, +0.1) and +0.2 for Igbo (−0.4, +0.8). The Q4_K_M file we ship, compared with the original's Q4_K_M file on 250 NTREX-128 sentences, gives +1.7 (+0.3, +3.1), −0.3 (−1.1, +0.6) and −0.1 (−1.4, +1.2). A control run with the same recipe and no new tokens separates the effect of the vocabulary from the effect of the training data.
+Speed is a paired benchmark in llama.cpp (Q4_K_M, Apple M4, 20 translations per language, both models answering each sentence in turn); the whole request includes reading the prompt, with no prompt cache. Quality is chrF++ against human references with 95% paired-bootstrap intervals: pooled over NTREX-128 and FLORES-200 and two training runs at full precision, and on 250 NTREX-128 sentences for the shipped file. No test sentence is trained on.
 
-Full tables, raw results and the experiments we rejected are in [docs/METHOD.md](docs/METHOD.md).
+The protocol, every table and the command behind each number are in [docs/METHOD.md](docs/METHOD.md); earlier versions and the experiments we rejected are in [docs/HISTORY.md](docs/HISTORY.md).
 
 ## Get started
 
@@ -49,7 +58,8 @@ It runs offline on a laptop with 8 GB of memory or more.
 
 ## Guides
 
-- [Method and results](docs/METHOD.md): the release recipe and its evidence, the previous release and what was wrong with it, the version history, and the approaches we rejected.
+- [Method and results](docs/METHOD.md): the release recipe, the evaluation protocol, every result, the known defects and the limits of the evidence.
+- [History](docs/HISTORY.md): the previous release and what was wrong with it, the version history, and the approaches we rejected.
 - [Training on a cloud GPU](docs/cloud-vx.md): the four pipelines, the upload, run times, outputs and known pitfalls.
 - [Model card](release/MODEL_CARD.md): intended use, results, limitations and licence terms.
 - [Blind A/B tester kit](tester-kit/): the guide, tasks and feedback form for native-speaker evaluation.
@@ -76,7 +86,7 @@ scripts/paired_vx.sh LABEL 4 20 0 path/to/model.gguf
 
 ## Roadmap
 
-- **Remove the two known defects**: Yoruba repetition loops and the rare broken character, then lift Hausa above the original ([METHOD.md](docs/METHOD.md), sections 7 and 8).
+- **Remove the two known defects**: Yoruba repetition loops and the rare broken character, then lift Hausa above the original ([METHOD.md](docs/METHOD.md), sections 5 and 6).
 - **More languages**: Nigerian Pidgin and Fulfulde next, then other African languages that pay the same token tax.
 - **Distribution**: Ollama and the LM Studio catalogue, and a public technical report.
 - **Upstream**: future N-ATLaS releases that ship with an expanded vocabulary, so every developer gets the speed-up by default.

@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Is the v4 result real? One pod session (docs/METHOD.md, "Validation"):
+# Is the v4 result real? One pod session (docs/HISTORY.md, section 3):
 #   - a fresh test set never used in development (NTREX-128, news);
 #   - a second training seed of the v4 recipe;
 # each scored against the original with bootstrap intervals. All three
