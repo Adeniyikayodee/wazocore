@@ -287,7 +287,8 @@ That is the basis of the next version.
 - **Yoruba loops (v6).** Under greedy decoding 5 and 11 of 700 Yoruba replies
   in the two runs fall into a loop, most of them a run of one combining mark,
   against 2 for the original. The cause is training on fully tone-marked
-  Yoruba (section 8). Hausa and Igbo are unaffected.
+  Yoruba (section 8). Hausa and Igbo are unaffected. A repetition penalty of
+  1.1 removes two of the four loops on the shipped file (section 8).
 - **Hausa (v6)** is 0.4 chrF++ below the original in both runs. The pooled
   interval includes zero, so the loss is not established, but it is the one
   language where v6 has not reached the original.
@@ -497,4 +498,33 @@ runs), `gold` 20, `small` 0, `long` 2 and 2. The shipped-file check of
 `long` had none in 750; the speed benchmark had one in 80. About one reply in
 a thousand for the release, the same rate as v4, and worse when the new rows
 are under-trained. With the Yoruba loops, this is the second open defect.
+
+**Workarounds on the shipped file.** Both defects have a remedy on the
+client side, and both were measured on the Q4_K_M file in llama.cpp.
+
+A repetition penalty of 1.1 in the sampler, on the same 250 NTREX-128
+sentences per language (`SAMPLER` in `scripts/gguf_quality.py`;
+`results/vocab/gguf-quality/summary-v6-long-penalty-vs-plain.json`):
+
+| No penalty → penalty 1.1 | Yoruba | Hausa | Igbo |
+|---|---|---|---|
+| Loops | 4 → 2 | 0 → 0 | 0 → 0 |
+| Replies cut off at the token limit | 9 → 2 | 0 → 0 | 3 → 0 |
+| chrF++ | 30.31 → 31.23 | 46.38 → 45.78 | 42.69 → 43.42 |
+| chrF++ change | +0.9 (−0.1, +1.9) | −0.6 (−1.3, +0.0) | +0.7 (−0.2, +1.6) |
+
+The original's file loops 2, 0 and 1 times on these sentences. The two Yoruba
+loops that remain are runs of combining marks, which this penalty does not
+stop. Hausa has no loops to remove and 97% of resamples are worse, so the
+penalty belongs on Yoruba requests only. One strength was tried, and the
+loop count rests on four sentences.
+
+A retry with sampling after a broken character (`scripts/retry_probe.py`;
+`results/vocab/gguf-quality/retry-v6-long.json`). Of the five prompts that
+gave a broken character in any earlier run, one fails on the shipped file
+under greedy decoding: the first FLORES sentence into Yoruba, the failure in
+both speed runs. The four found in the full-precision samples do not.
+Retried 30 times, that prompt returns valid text 24 times at temperature 0.3
+and 27 times at 0.7; four of the valid replies at 0.3 loop and none at 0.7.
+One prompt shows that a retry usually works, not how often.
 

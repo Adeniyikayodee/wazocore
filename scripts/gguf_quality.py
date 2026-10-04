@@ -3,15 +3,16 @@ Q4_K_M GGUFs through llama-server, one model in memory at a time
 (docs/METHOD.md, section 3). Rows suit `vx_torch score`; a stopped run
 resumes where it left off.
 
-    python scripts/gguf_quality.py SENTENCES OUT_DIR [NAME OTHER.gguf]
+    [SAMPLER='{"repeat_penalty": 1.1}'] python scripts/gguf_quality.py SENTENCES OUT_DIR [NAME OTHER.gguf]
     python -m wazocore.vx_torch score OUT_DIR/ntrex-gguf-n-atlas.json OUT_DIR/ntrex-gguf-wazocore.json --out OUT_DIR/summary.json
 """
-import json, subprocess, sys, time, urllib.error, urllib.request
+import json, os, subprocess, sys, time, urllib.error, urllib.request
 from pathlib import Path
 N = int(sys.argv[1]); OUT = Path(sys.argv[2]); OUT.mkdir(parents=True, exist_ok=True)
 MODELS = {"n-atlas": "data/models/N-ATLaS.Q4_K_M.gguf", "wazocore": "data/models/gguf-vx4/WazoCore-8B-v4.Q4_K_M.gguf"}
 if len(sys.argv) > 4:  # another file to score against the same original replies: NAME PATH
     MODELS[sys.argv[3]] = sys.argv[4]
+SAMPLER = json.loads(os.environ.get("SAMPLER", "{}"))  # extra request fields for the NAME file, e.g. a repetition penalty
 NAMES = {"ig": ("Igbo", "ibo"), "ha": ("Hausa", "hau"), "yo": ("Yoruba", "yor")}
 src = Path("data/ntrex/newstest2019-src.eng.txt").read_text(encoding="utf-8").splitlines()[:N]
 def post(path, body):
@@ -34,7 +35,7 @@ for name, gguf in MODELS.items():
                 if (lang, i) in done: continue
                 try:
                     r = post("/v1/chat/completions", {"messages": [{"role": "user", "content": f"Translate the following English text into {full}. Reply with the translation only.\n\n{s}"}],
-                                                      "max_tokens": 160, "temperature": 0.0, "cache_prompt": False})
+                                                      "max_tokens": 160, "temperature": 0.0, "cache_prompt": False, **(SAMPLER if name not in ("n-atlas", "wazocore") else {})})
                 except urllib.error.HTTPError as e:  # the server rejects a reply that is not valid UTF-8: a failed request for a user
                     rows.append({"lang": lang, "i": i, "output": "", "reference": refs[i], "stopped": False, "tokens": 0, "gen_ms": 0.0, "new_tokens": 0, "error": e.code})
                     continue

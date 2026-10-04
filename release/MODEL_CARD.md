@@ -162,12 +162,15 @@ The code, the data recipe and every measurement are in the WazoCore repository
   tests) contains half of a multi-byte letter such as ṣ or ƙ. The text is
   then not valid Unicode and llama-server returns an error for that request.
   The original model does not do this. Retrying the request with sampling is
-  the practical workaround; we have not measured how often it succeeds.
+  the practical workaround: on the one prompt that fails on the shipped file,
+  24 of 30 retries at temperature 0.3 and 27 of 30 at 0.7 returned valid text.
 - **Yoruba loops.** Under greedy decoding 5 and 11 of 700 Yoruba replies in
   the two training runs fall into a repetition loop, usually a run of one
-  accent mark, against 2 for the original. A repetition penalty in the
-  sampler is the usual remedy; we have not measured it. Hausa and Igbo are
-  unaffected.
+  accent mark, against 2 for the original. Hausa and Igbo are unaffected. On
+  the shipped file a repetition penalty of 1.1 cut Yoruba loops from 4 to 2
+  in 250 replies and changed chrF++ by +0.9 (−0.1, +1.9); it does not stop a
+  run of accent marks. Use it for Yoruba only: the same penalty changed Hausa
+  by −0.6 (−1.3, +0.0) and Igbo by +0.7 (−0.2, +1.6).
 - **Hausa** is 0.3 to 0.4 chrF++ below the original in every measurement. The
   intervals include zero, so a loss is not established, but Hausa is the one
   language where WazoCore has not reached the original.

@@ -1,0 +1,117 @@
+{
+ "model": "data/models/gguf-v6/WazoCore-v6-long.Q4_K_M.gguf",
+ "rows": [
+  {
+   "test": "flores",
+   "lang": "Yoruba",
+   "i": 0,
+   "greedy_valid": false,
+   "retries": [
+    {
+     "temperature": 0.3,
+     "n": 30,
+     "valid": 24,
+     "loops": 4,
+     "replies": [
+      "A ní àwọn òróró mẹ́rin [4] oṣù tí kò ní àìsàn àtọ́mù, tí wọ́n sì jẹ́ aláìsàn àtọ́mù.",
+      "\"Àwa ní àwọn ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀y",
+      "\"Àwọ̀n àmì ẹ̀jẹ̀ tí a ń pè ní ẹ̀jẹ̀ tí ó ń fa ìdààmú, tí ó sì ń fa ìdààmú, tí ó sì ń fa ìdààmú, tí ó sì ń fa ìdààmú, tí ó sì ń fa ìdààmú, tí ó sì ń fa ìdàú, tí ó sì ń fa ìdàú, tí ó sì ń fa ìdàú, tí ó sì ń fa ìdàú, tí ó sì ń fa ìdàú, tí ó sì ń fa ìdàú, tí ó sì ń fa ìdàú, tí ó sì ń fa ìdàú, tí ó sì ń fa ìdàú, tí ó sì ń fa ìdàú, tí ó sì ń fa ìdàú, tí ó sì ń fa ìdàú, tí ó sì ń fa ìdàú, tí ó sì ń fa ìdàú, tí ó sì ń fa ìdàú, tí ó sì ń fa ìdàú, tí ó sì ń fa ìd",
+      "A ní àwọn ẹ̀yà ọ̀dọ́ tí wọ́n jẹ́ aláìsàn tí wọ́n ti jẹ́ aláìsàn.",
+      "\"Àwọ̀n àmìrì ẹ̀yà ara tó ń jẹ́ ẹ̀yà ara tó ń jẹ́ ẹ̀yà ara tó ń jẹ́ ẹ̀yà ara tó ń jẹ́ ẹ̀yà ara tó ń jẹ́ ẹ̀yà ara tó ń jẹ́ ẹ̀yà ara tó ń jẹ́ ẹ̀yà ara tó ń jẹ́ ẹ̀yà ara tó ń jẹ́ ẹ̀yà ara tó ń jẹ́ ẹ̀yà ara tó ń jẹ́ ẹ̀yà ara tó ń jẹ́ ẹ̀yà ara tó ń jẹ́ ẹ̀yà ara tó ń jẹ́ ẹ̀yà ara tó ń jẹ́ ẹ̀yà ara tó ń jẹ́ ẹ̀yà ara tó ń jẹ́ ẹ̀yà ara tó ń jẹ́ ẹ̀yà ara tó ń jẹ́ ẹ̀yà ara tó ń jẹ́ ẹ̀yà ara tó ń jẹ́ ẹ̀yà ara tó ń jẹ́ ẹ̀yà ara tó ń jẹ́ ẹ̀yà ara tó ń jẹ́ ẹ̀yà ara tó ń jẹ́ ẹ̀yà ara tó ń jẹ́ ẹ̀yà ara tó ń jẹ́ ẹ̀y",
+      "A ní àwọn ẹrankó òmùgọ̀ kan tó jẹ́ 4 oṣù, tí kò jẹ́ aláìsàn, tí wọ́n sì jẹ́ aláìsàn.",
+      null,
+      "\"Bayi a ni awọn ẹlù ọmẹrin oṣu ti kò ní àtọ̀gbẹ tí wọ́n jẹ́ àtọ̀gbẹ tẹ́lẹ̀.\"",
+      null,
+      null,
+      "\"Àwọ̀n àtọ́mù mẹ́rin [4] ni wọ́n ti ń ṣe, tí kò jẹ́ aláìsàn àtọ́mù, tí wọ́n sì jẹ́ aláìsàn àtọ́mù.\"",
+      "\"A ní àwọn ẹ̀yà ọ̀dọ́dẹ̀ mẹ́rin oṣù tí kò ní àtọ́múdì, tí wọ́n sì jẹ́ aláìsàn àtọ́múdì.\"",
+      "\"A ní àwọn ẹ̀yà ẹ̀yà tó jẹ́ mẹ́rin [4] oṣù, tí kò jẹ́ àtọ́jù, tí wọ́n sì jẹ́ àtọ́jù.\"",
+      "A ní àwọn ẹ̀yà ọ̀sọ̀sọ̀ kan tó jẹ́ oṣù mẹ́rin, tí kò jẹ́ aláìsàn, tí wọ́n sì jẹ́ aláìsàn.",
+      "\"A ní àwọn ọ̀dọ́mọdọ́mọdọ́mọdọ́mù mẹ́rin oṣù tí kò jẹ́ aláàbùjẹ́ tí wọ́n jẹ́ aláàbùjẹ́.\"",
+      null,
+      "\"Àwa ní àwọn ẹ̀yà ojútọ́ tó jẹ́ 4 oṣù, tí kò jẹ́ aláàbọ̀ tí wọ́n sì jẹ́ aláàbọ̀.”",
+      "\"Bayi a ni awọn eku ti o jẹ ọdun mẹ́rin ti ko ni àtọgbẹ ti wọn jẹ àtọgbẹ tẹ́lẹ̀.\"",
+      null,
+      "A ní àwọn ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ",
+      "\"A ní àwọn òróró tí wọ́n ti jẹ́ aláìsàn àtọ́mídí, tí wọ́n sì ti jẹ́ aláìsàn àtọ́mídí, tí wọ́n sì ti jẹ́ aláìsàn àtọ́mídí, tí wọ́n sì ti jẹ́ aláìsàn àtọ́mídí, tí wọ́n sì ti jẹ́ aláìsàn àtọ́mídí, tí wọ́n sì ti jẹ́ aláìsàn àtọ́mídí, tí wọ́n sì ti jẹ́ aláìsàn àtọ́mídí, tí wọ́n sì ti jẹ́ aláìsàn àtọ́mídí, tí wọ́n sì ti jẹ́ aláìsàn àtọ́mídí, tí wọ́n sì ti jẹ́ aláìsàn àtọ́mídí, tí wọ́n sì ti jẹ́ aláìsàn àtọ́mídí, tí wọ́n sì ti jẹ́ aláìsàn àtọ́mídí, tí wọ́n sì ti jẹ́ aláìsàn àtọ́mídí, tí wọ́n sì ti jẹ́ aláìsàn àtọ́mídí,",
+      "\"A ní àwọn ẹyín ọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ̀sọ",
+      "\"A ní àwọn ẹ̀yà ọ̀dọ́dó mẹ́rin oṣù tí kò jẹ́ aláàbọ̀ tí wọ́n jẹ́ aláàbọ̀ tẹ́lẹ̀.\"",
+      null,
+      "\"A ní àwọn ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ̀yà ẹ",
+      "\"A ní àwọn ẹ̀yà òsìbìnrín mẹ́rin oṣù mẹ́rin tí kìí ṣe àwọn aláìsàn tí wọ́n jẹ́ aláìsàn nígbà kan rí.\"",
+      "\"A ní àwọn ẹ̀yà ojútọ́ tó ti jẹ́ aláìsàn àtọ́mídíà, wọ́n sì ti jẹ́ aláìsàn àtọ́mídíà.\"",
+      "\"Bayi a ni awọn ẹrankó òkìtà mẹ́rin tí kò jẹ́ aláwọ̀ tí wọ́n jẹ́ aláwọ̀.\"",
+      "\"A ní àwọn ẹ̀yà òsìbà 4-òsìbà tí kìí ṣe oníṣègùn tí wọ́n ti jẹ́ oníṣègùn.\"",
+      "A ní àwọn ẹ̀yà ojútọ́ tí ó jẹ́ mẹ́rin oṣù tí kò jẹ́ aláìsàn tí wọ́n jẹ́ aláìsàn tẹ́lẹ̀ rí."
+     ]
+    },
+    {
+     "temperature": 0.7,
+     "n": 30,
+     "valid": 27,
+     "loops": 0,
+     "replies": [
+      "“Ní báyìí, a ní ọ̀dọ́bìnrin àwọn òkìtín tó jẹ́ ọmọ oṣù mẹ́rin tí kò ní àtọ́jù, tí wọ́n sì jẹ́ aláwọ̀ funfun.”",
+      "\"Àá, a ní àwọn ẹyín àwọn oògùn ẹ̀jẹ̀ tí wọ́n ti ní àìsàn àtọ̀gbẹ́ nígbà kan rí, tí wọ́n sì ń jẹ́ aláìsàn.",
+      "\"Àwọ̀n àmì ẹ̀yà ẹ̀yà tó ní ẹ̀mí mẹ́rin (4) ló wà, tí kìí ṣe àwọn tí ó ń jẹ́ àtọ́mùdà, tí wọ́n sì jẹ́ àtọ́mùdà tẹ́lẹ̀.\"",
+      "A ní àwọn ọ̀dọ́dúró tí ó jẹ́ mẹ́rin [4] oṣù tí kìí ṣe aláwẹ́wì, tí ó sì jẹ́ aláìsàn.",
+      "\"Àwǽn a ní àwọn asọ ti a bí ní oṣù mẹ́rin tí kò ní àtọ̀gbẹ́ tí ó jẹ́ àwọn tí ó jẹ́ àtọ̀gbẹ́ tẹ́lẹ̀.\"",
+      "A ní àwọn ẹ̀rọ ìtọ́jú ara tí ó jẹ́ 4-osù tí kìí ṣe aláìsàn tí wọ́n jẹ́ aláìsàn.",
+      "\"Bayí a ní àwọn ẹyín òkòwì tí wọ́n jẹ́ ọjúbọ́ mẹ́rin [4] oṣù, tí wọ́n kò jẹ́ aláwọ̀ àti pé wọ́n jẹ́ aláìsàn àtọ́kànwá.\"",
+      "\"Bayi, a ni awọn eku ti o jọmọ oṣu mẹ́rin ti ko ni àtọgbẹ ti wọn jẹ àtọ̀gbẹ tẹlẹ.\"",
+      "\"Àwọ̀n yànmùyánmú tó wà lẹ́nu ọ̀nà tí wọ́n kò jẹ́ aláìsàn ni wọ́n jẹ́ aláìsàn nígbèkù.",
+      "\"Àwọ̀n àkànṣe wa ní báyìí, àwọn ẹyẹ àwọn òdìkejì mẹ́rin [mice] tí kìí ṣe aláìsàn tí ó ti jẹ́ aláìsàn.\"",
+      "\"Àwọ̀n àwọn ọmọ ologbà mẹ́rin ni o wà ni báńkì.",
+      "\"A nìyìí ní àwọn eku tó wọ́mù 4-ósù tí kò ní ààrùn suga, tí wọ́n sì jẹ́ aláàròsọ.\"",
+      "\"A n'íwọn ojorí àwọn ọ̀sọ́ mẹ́rin tó ṣẹ̀ṣẹ̀ bí i lọ́wọ́lọ́wọ́ tí kìí ṣe alágbára, tí wọ́n sì jẹ́ alágbára tẹ́lẹ̀.\"",
+      "A ní àwọn ẹ̀yà àtọ́ka mẹ́rin oṣù, tí kìí ṣe àwọn aládùn, tí wọn jẹ́ aládùn.",
+      "A ní àwọn ẹlẹ́yà ońkọjú tí ó ti bẹ̀rẹ̀ sí ní dọ́dọ́dù, tí wọ́n sì jẹ́ aláìsàn tí wọ́n sì jẹ́ aláwọ̀tà.",
+      "\"Bayi a ni awọn ologbo mẹ́rin oṣù ti ko ni àtọ̀gbẹ ti wọn jẹ àtọ̀gbẹ tẹ́lẹ.\"",
+      "\"Àwa ní àwọn ẹ̀yà ẹlẹ́dẹ̀ mẹ́rin tó ń jẹ́ aláìsàn àtọ́jìjì, tí ó jẹ́ aláwọ̀ funfun.",
+      "\"Bayi, a ni awọn ẹiyẹ oṣiṣẹ mẹ́rin-ọ̀sẹ̀ ti kò jẹ́ àtọgbẹ ti wọn jẹ àtọ̀gbẹ tẹ́lẹ̀.\"",
+      "\"A ní àwọn ẹrankó òmú kan tí ó jẹ́ ọ̀sẹ̀ mẹ́rin, tí kò jẹ́ aláìsàn àtọ́kùnkùn tí ó ti jẹ́ àìsàn àtọ́kùnkùn.\"",
+      "A ni awọn ooni ọmọ oṣooṣu mẹ́rin ti wọn ko ni àtọgbẹ ti wọn lo láti jẹ àtọgbẹ.",
+      "A ní àwọn ẹranko àjèjì mẹ́rin (4) oṣù tó jẹ́ aláìṣẹ́ tí wọ́n jẹ́ aláìṣúyẹ́ tí wọ́n jẹ́ aláṣúyẹ́.",
+      "\"A ní àwọn eku ọmọ oṣù mẹ́rin tí kò jẹ́ aláìsàn tí wọ́n jẹ́ àtòlẹ́yìn.\"",
+      "\"A ní àwọn òróró mẹ́rin tó wà lórúṣooṣù tó wà níbè tí kò ní àìsàn àtọ́kànwá tí wọ́n sì ń ṣe àtọ́kànwá.\"",
+      null,
+      "\"A ní àwọn ẹ̀yà ojútuka méjìlá, àwọn ènìyàn tó ń jẹ ọjẹ́ náà, tí ó ti jẹ́ aláìsàn ààrùn àtọ̀gbẹ́ ní àkókò tí ó ti wà nínú rẹ̀.\"",
+      null,
+      null,
+      "\"Bayi a ni awọn ẹranko ti o ni oṣu mẹ́rin ti ko ni àtọ̀gbẹ ti o ti jẹ àtọ̀gbẹ.\"",
+      "A ní àwọ̀n ọmú mẹ́rin (4) oṣù tí kò ní àìsàn ẹ̀jẹ̀ tí wọ́n sì ń jẹ́ àìsàn ẹ̀jẹ̀ tìlẹ̀ ṣáájú.",
+      "A ní àwọn òke tó wọ́n ti jẹ́ aláìsàn náà, wọ́n sì ti di aláìsàn tọkọtaya."
+     ]
+    }
+   ]
+  },
+  {
+   "test": "ntrex",
+   "lang": "Yoruba",
+   "i": 465,
+   "greedy_valid": true,
+   "retries": []
+  },
+  {
+   "test": "flores",
+   "lang": "Yoruba",
+   "i": 88,
+   "greedy_valid": true,
+   "retries": []
+  },
+  {
+   "test": "flores",
+   "lang": "Hausa",
+   "i": 46,
+   "greedy_valid": true,
+   "retries": []
+  },
+  {
+   "test": "ntrex",
+   "lang": "Hausa",
+   "i": 19,
+   "greedy_valid": true,
+   "retries": []
+  }
+ ]
+}
