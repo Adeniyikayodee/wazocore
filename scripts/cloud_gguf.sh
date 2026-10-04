@@ -1,14 +1,14 @@
 #!/usr/bin/env bash
 # Exports a trained expanded model to Q4_K_M GGUF on the pod.
-#   [EDGE_TYPE=q8_0] bash /workspace/cloud_gguf.sh MODEL_DIR OUT.gguf LOG_DIR
+#   [EDGE_TYPE=q8_0] [IMATRIX=WIKI_DIR] bash /workspace/cloud_gguf.sh MODEL_DIR OUT.gguf LOG_DIR
 set -euo pipefail
 src=${1:?model dir}; out=${2:?output gguf}; logs=${3:?log dir}
 cd /workspace
 [ -d llama.cpp ] || git clone -q --depth 1 https://github.com/ggml-org/llama.cpp
 [ -x venv-gguf/bin/python ] || { python -m venv venv-gguf && venv-gguf/bin/pip install -q -r llama.cpp/requirements/requirements-convert_hf_to_gguf.txt; }
 command -v cmake >/dev/null || { apt-get update -qq && apt-get install -y -qq cmake >/dev/null; }
-[ -x llama.cpp/build/bin/llama-quantize ] || { cmake -S llama.cpp -B llama.cpp/build -DGGML_CUDA=OFF -DLLAMA_CURL=OFF >/dev/null \
-    && cmake --build llama.cpp/build --target llama-quantize -j 32 >/dev/null; }
+[ -x llama.cpp/build/bin/llama-imatrix ] || { cmake -S llama.cpp -B llama.cpp/build -DGGML_CUDA=OFF -DLLAMA_CURL=OFF >/dev/null \
+    && cmake --build llama.cpp/build --target llama-quantize llama-imatrix -j 32 >/dev/null; }
 # transformers 5 writes a tokenizer class the converter's transformers 4 cannot load.
 S=$(mktemp -d); for f in "$src"/*; do ln -s "$f" "$S"/; done
 rm "$S"/tokenizer_config.json
@@ -35,5 +35,17 @@ llama.cpp/build/bin/llama-quantize "$bf16" "$out" Q4_K_M | tail -2
 # EDGE_TYPE=q8_0 also writes a file whose four retrained layers keep 8 bits:
 # 4-bit rounding costs them about one chrF++ point in Igbo (docs/METHOD.md, section 3).
 [ -z "${EDGE_TYPE:-}" ] || llama.cpp/build/bin/llama-quantize --tensor-type "^blk\.(0|1|30|31)\.=$EDGE_TYPE" "$bf16" "${out%.gguf}.edge-$EDGE_TYPE.gguf" Q4_K_M | tail -2
+# IMATRIX=WIKI_DIR also writes a file quantised with an importance matrix, which
+# weights the 4-bit rounding by activations on equal shares of Yoruba, Hausa,
+# Igbo and English text. Untested: gate it with scripts/gguf_quality.py.
+if [ -n "${IMATRIX:-}" ]; then
+    python3 - "$IMATRIX" > "$S"/calib.txt <<'PY'
+import sys, pathlib
+texts = [pathlib.Path(sys.argv[1], f"{l}.txt").read_text(encoding="utf-8")[:150_000] for l in ("yo", "ha", "ig", "en")]
+print("\n".join(t[i:i + 500] for i in range(0, 150_000, 500) for t in texts))  # interleaved: any prefix is balanced
+PY
+    llama.cpp/build/bin/llama-imatrix -m "$bf16" -f "$S"/calib.txt -c 512 --chunks 128 -o "$S"/imatrix.gguf 2>&1 | tail -2
+    llama.cpp/build/bin/llama-quantize --imatrix "$S"/imatrix.gguf "$bf16" "${out%.gguf}.imatrix.gguf" Q4_K_M | tail -2
+fi
 rm "$bf16"; rm -rf "$S"
 sha256sum "$out" "$src"/model.safetensors | tee -a "$logs"/sha256.txt

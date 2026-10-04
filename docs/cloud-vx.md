@@ -16,7 +16,7 @@ results under `/workspace/work/`.
 | `cloud_vx_validate.sh` | Retrains with a second seed and scores the original, the released model and the new run on NTREX-128 (500) and FLORES-200 (200) | about 2 h |
 | `cloud_vx_v5.sh` | The on-policy distillation experiment (section 6 of `METHOD.md`) | about 4 h |
 | `cloud_vx_v6.sh` | The release (section 8 of `METHOD.md`). `ARMS=long` builds it: expansion, human-translation data, training, a 700-sentence gate against the original and GGUF export. The default arms `fix`, `gold` and `control` and the optional `small` and `mbr` are the experiments behind it | `long` about 1.5 h; the three default arms 2.6 h; `small` 50 min; `mbr` adds about 2 h (not run) |
-| `cloud_gguf.sh` | GGUF export, shared by the pipelines | about 5 min |
+| `cloud_gguf.sh` | GGUF export, shared by the pipelines. `IMATRIX=/workspace/work/data/wiki` also writes a file quantised with an importance matrix (not yet run or gated) | about 5 min; the importance matrix is untimed |
 
 ## Run it
 
