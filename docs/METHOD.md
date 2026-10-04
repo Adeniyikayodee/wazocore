@@ -311,9 +311,10 @@ That is the basis of the next version.
 - **Hardware.** Speed was measured on one laptop CPU with 20 prompts per
   language, which shows a speed-up of about 1.5 to 1.7× but not its second
   decimal (per-prompt 95% intervals: Yoruba 1.3 to 1.7, Hausa 1.3 to 2.0, Igbo
-  1.5 to 1.8). GPU inference was
-  spot-checked (about 21 tokens/s with Metal on an M4); llama.cpp and LM Studio
-  are tested, Ollama is not yet.
+  1.5 to 1.8). On the same laptop's GPU the
+  speed-up is 1.5 to 1.7×, measured while the machine was throttled to about
+  half its cool speed (section 8); no other GPU was measured. llama.cpp and
+  LM Studio are tested, Ollama is not yet.
 - **Inherited behaviour.** WazoCore keeps N-ATLaS's biases, its 8,092-token
   context and the limits of its instruction tuning.
 
@@ -464,6 +465,28 @@ the chat template), so the new vocabulary does not shorten them and the time
 to read them is unchanged. The English row translates from Yoruba: its prompt
 falls from 142 tokens to 108. The two models' replies differ in length, so
 this table compares requests and the table above compares speed per word.
+
+**Metal.** The same benchmark with every layer on the laptop's GPU
+(`results/vocab/m4-metal-v6-paired.json`). Whole request is mean seconds per
+request with no prompt cache.
+
+| Language | Words/s, original → WazoCore | Speed-up, words | Speed-up, characters | Whole request, s | Speed-up, whole request | Tokens per word |
+|---|---|---|---|---|---|---|
+| Yoruba* | 3.26 → 5.43 | 1.66× | 1.63× | 12.0 → 8.5 | 1.42× | 2.93 → 1.93 |
+| Hausa | 4.71 → 7.00 | 1.49× | 1.46× | 8.5 → 6.2 | 1.36× | 2.10 → 1.39 |
+| Igbo | 4.00 → 6.18 | 1.54× | 1.51× | 9.9 → 6.3 | 1.56× | 2.64 → 1.58 |
+| English | 8.22 → 7.77 | 0.95× | 0.94× | 5.8 → 5.4 | 1.08× | 1.30 → 1.31 |
+
+\*19 sentences: the sentence that failed in the CPU run failed again with the
+same broken character.
+
+The laptop slowed under sustained load. Both models wrote 17 to 20 tokens per
+second for the first two sentences and 8 to 12 for the other eighteen, and
+read prompts at 95 to 138 tokens per second and then 40 to 60. They slowed
+together and took turns going first, so the ratios stand. The absolute
+figures describe back-to-back requests; a single request on a cool machine
+runs at about 20 tokens per second. The pattern is that of thermal
+throttling; no temperature was recorded.
 
 **Broken characters.** Some original tokens are half of a multi-byte letter
 (ṣ, ƙ and others). Occasionally a model writes the first half and then
