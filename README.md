@@ -6,7 +6,7 @@
 
 A version of N-ATLaS, Nigeria's open language model, that reads and writes Yoruba, Hausa and Igbo in 1.4 to 1.6 times fewer tokens. It drops into llama.cpp, LM Studio and any OpenAI-compatible stack as a standard GGUF, and generates these languages 1.6 to 1.7 times faster on an ordinary laptop. Two defects remain and are documented: about one reply in a thousand contains a broken character, and Yoruba replies fall into a repetition loop slightly more often.
 
-- **Faster replies**: the same answer arrives in 58 to 62% of the time, because each token now carries more of a word. Decode speed in tokens per second is about the same for both models, so the gain comes from the token count and not from the machine.
+- **Faster replies**: the same answer is written in 58 to 62% of the time, because each token now carries more of a word. Decode speed in tokens per second is about the same for both models, so the gain comes from the token count and not from the machine. Reading an English prompt takes as long as before, so a short translation request on a laptop CPU finishes in 73 to 86% of the time from start to end.
 - **Lower serving cost**: a reply costs a third fewer tokens. A 5,000-word health leaflet written in Yoruba falls from about 14,350 tokens to 9,550.
 - **More in context**: N-ATLaS's 8,092-token window holds 8.8 pages of Yoruba instead of 5.6.
 - **Drop-in**: same file format, same chat template, same API. All 128,256 original tokens keep their ids and their exact embeddings, and training is anchored to the original model's predictions.
@@ -17,7 +17,7 @@ WazoCore continues N-ATLaS's byte-level BPE with 15,000 merges learned jointly o
 
 ## Benchmarks
 
-Speed is words per second from a paired benchmark in llama.cpp (Q4_K_M, Apple M4 CPU, 4 threads, 20 translations per language, both models answering each sentence in turn): 1.63 times for Yoruba, 1.61 for Hausa and 1.72 for Igbo.
+Speed is words per second from a paired benchmark in llama.cpp (Q4_K_M, Apple M4 CPU, 4 threads, 20 translations per language, both models answering each sentence in turn): 1.63 times for Yoruba, 1.61 for Hausa and 1.72 for Igbo. Counting the time to read the prompt, with no prompt cache, the whole request is 1.28, 1.16 and 1.38 times faster.
 
 Quality is chrF++ against human references with 95% paired-bootstrap intervals, on NTREX-128 (500 news sentences per language, never used in development) and FLORES-200, across two independent training runs. Pooled, the change from the original is +2.2 for Yoruba (+1.5, +2.9), −0.4 for Hausa (−0.8, +0.1) and +0.2 for Igbo (−0.4, +0.8). The Q4_K_M file we ship, compared with the original's Q4_K_M file on 250 NTREX-128 sentences, gives +1.7 (+0.3, +3.1), −0.3 (−1.1, +0.6) and −0.1 (−1.4, +1.2). A control run with the same recipe and no new tokens separates the effect of the vocabulary from the effect of the training data.
 

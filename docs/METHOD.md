@@ -448,6 +448,23 @@ stalled for 82 s on the host; with it the English figure is 1.99×. Per-prompt
 geometric means with 95% intervals are 1.49 (1.32, 1.67) for Yoruba, 1.53
 (1.44, 1.61) for Hausa and 1.74 (1.59, 1.94) for Igbo.
 
+**Whole request.** The same run, counting the time to read the prompt as well
+as the time to write the reply, with no prompt cache. Mean seconds per
+request, original → WazoCore, with the same exclusions:
+
+| Language | Reading the prompt | Writing the reply | Whole request | Speed-up | Words per reply |
+|---|---|---|---|---|---|
+| Yoruba | 6.0 → 5.6 | 11.8 → 8.4 | 17.9 → 14.0 | 1.28× | 32 → 37 |
+| Hausa | 5.8 → 5.6 | 8.3 → 6.6 | 14.1 → 12.2 | 1.16× | 31 → 40 |
+| Igbo | 5.8 → 5.7 | 9.7 → 5.6 | 15.5 → 11.3 | 1.38× | 30 → 29 |
+| English | 10.0 → 7.2 | 4.6 → 4.2 | 14.6 → 11.3 | 1.29× | 29 → 27 |
+
+The prompts into Yoruba, Hausa and Igbo are in English (about 83 tokens with
+the chat template), so the new vocabulary does not shorten them and the time
+to read them is unchanged. The English row translates from Yoruba: its prompt
+falls from 142 tokens to 108. The two models' replies differ in length, so
+this table compares requests and the table above compares speed per word.
+
 **Broken characters.** Some original tokens are half of a multi-byte letter
 (ṣ, ƙ and others). Occasionally a model writes the first half and then
 something else, which leaves invalid UTF-8 in the middle of a reply;
