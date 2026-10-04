@@ -125,6 +125,9 @@ curl -s localhost:8080/v1/chat/completions -H "Content-Type: application/json" \
   -d '{"messages":[{"role":"user","content":"Translate into Hausa: The clinic opens at eight in the morning."}]}'
 ```
 
+Always pass `-c`. Without it llama-server takes the context size from the
+file, which reports 131,072 tokens, and reserves memory for all of it.
+
 The full-precision weights load with `transformers` 5.x, like N-ATLaS. It runs
 offline on a laptop with 8 GB of memory or more.
 

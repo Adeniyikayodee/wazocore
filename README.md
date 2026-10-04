@@ -17,7 +17,7 @@ WazoCore continues N-ATLaS's byte-level BPE with 15,000 merges learned jointly o
 
 ## Benchmarks
 
-Speed is words per second from a paired benchmark in llama.cpp (Q4_K_M, Apple M4 CPU, 4 threads, 20 translations per language, both models answering each sentence in turn): 1.63 times for Yoruba, 1.61 for Hausa and 1.72 for Igbo. Counting the time to read the prompt, with no prompt cache, the whole request is 1.28, 1.16 and 1.38 times faster.
+Speed is words per second from a paired benchmark in llama.cpp (Q4_K_M, Apple M4 CPU, 4 threads, 20 translations per language, both models answering each sentence in turn): 1.63 times for Yoruba, 1.61 for Hausa and 1.72 for Igbo. Counting the time to read the prompt, with no prompt cache, the whole request is 1.28, 1.16 and 1.38 times faster. On the same laptop's GPU the figures are 1.66, 1.49 and 1.54 times in words per second and 1.42, 1.36 and 1.56 for the whole request.
 
 Quality is chrF++ against human references with 95% paired-bootstrap intervals, on NTREX-128 (500 news sentences per language, never used in development) and FLORES-200, across two independent training runs. Pooled, the change from the original is +2.2 for Yoruba (+1.5, +2.9), −0.4 for Hausa (−0.8, +0.1) and +0.2 for Igbo (−0.4, +0.8). The Q4_K_M file we ship, compared with the original's Q4_K_M file on 250 NTREX-128 sentences, gives +1.7 (+0.3, +3.1), −0.3 (−1.1, +0.6) and −0.1 (−1.4, +1.2). A control run with the same recipe and no new tokens separates the effect of the vocabulary from the effect of the training data.
 
