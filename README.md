@@ -34,9 +34,10 @@ The protocol, every table and the command behind each number are in [docs/METHOD
 
 ## Get started
 
-Serve the GGUF with llama.cpp (or load it in LM Studio and start its server):
+Download the GGUF from [Hugging Face](https://huggingface.co/mkbadeniyi/WazoCore-8B-v6-long) and serve it with llama.cpp (or load it in LM Studio and start its server):
 
 ```sh
+hf download mkbadeniyi/WazoCore-8B-v6-long WazoCore-8B.Q4_K_M.gguf --local-dir .
 llama-server -m WazoCore-8B.Q4_K_M.gguf -c 4096 --port 8080
 ```
 
@@ -104,7 +105,7 @@ scripts/paired_vx.sh LABEL 4 20 0 path/to/model.gguf
 
 ## Licence and acknowledgements
 
-Model weights derived from N-ATLaS are released under the N-ATLaS Open-Source Research and Innovation License, which requires attribution, the same licence for derivatives, and a name ending in "Powered by Awarri."; see the [model card](release/MODEL_CARD.md).
+The code in this repository is released under the [Apache License 2.0](LICENSE). Model weights derived from N-ATLaS are released under the N-ATLaS Open-Source Research and Innovation License, which requires attribution, the same licence for derivatives, and a name ending in "Powered by Awarri."; see the [model card](release/MODEL_CARD.md).
 
 > N-ATLaS is an initiative of the Federal Ministry of Communications, Innovation and Digital Economy, and powered by Awarri Technologies.
 
