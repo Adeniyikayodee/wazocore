@@ -105,7 +105,7 @@ scripts/paired_vx.sh LABEL 4 20 0 path/to/model.gguf
 
 ## Licence and acknowledgements
 
-The code in this repository is released under the [Apache License 2.0](LICENSE). Model weights derived from N-ATLaS are released under the N-ATLaS Open-Source Research and Innovation License, which requires attribution, the same licence for derivatives, and a name ending in "Powered by Awarri."; see the [model card](release/MODEL_CARD.md).
+The code in this repository is released under the [Apache License 2.0](LICENSE). The files under `results/` reproduce human reference translations from FLORES-200 and NTREX-128, both released under [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/); that text keeps its own licence and is not covered by the Apache licence. Model weights derived from N-ATLaS are released under the N-ATLaS Open-Source Research and Innovation License, which requires attribution, the same licence for derivatives, and a name ending in "Powered by Awarri."; see the [model card](release/MODEL_CARD.md).
 
 > N-ATLaS is an initiative of the Federal Ministry of Communications, Innovation and Digital Economy, and powered by Awarri Technologies.
 
