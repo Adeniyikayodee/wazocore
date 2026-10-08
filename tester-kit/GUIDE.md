@@ -55,6 +55,9 @@ cd $env:USERPROFILE\Downloads
 4. Write down how the answer reads, and roughly how long it took to finish.
 5. Switch to **model-B** at the top and do the same five tasks again.
 
+Leave LM Studio's settings as they are. Both models then run under the same
+conditions.
+
 Please use **the same language** for all five tasks. Choose the one you speak
 best.
 

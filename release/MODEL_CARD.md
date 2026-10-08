@@ -168,7 +168,11 @@ The protocol, the full tables and the command behind each number are in
   the shipped file a repetition penalty of 1.1 cut Yoruba loops from 4 to 2
   in 250 replies and changed chrF++ by +0.9 (−0.1, +1.9); it does not stop a
   run of accent marks. Use it for Yoruba only: the same penalty changed Hausa
-  by −0.6 (−1.3, +0.0) and Igbo by +0.7 (−0.2, +1.6).
+  by −0.6 (−1.3, +0.0) and Igbo by +0.7 (−0.2, +1.6). LM Studio applies this
+  penalty of 1.1 by default to every model it loads, the original N-ATLaS
+  included, so in LM Studio the penalty figures are the ones that apply. To
+  run without it, switch off Repeat Penalty in the model settings or send
+  `"repeat_penalty": 1.0` with each API request.
 - **Hausa** is 0.3 to 0.4 chrF++ below the original in every measurement. The
   intervals include zero, so a loss is not established, but Hausa is the one
   language where WazoCore has not reached the original.
