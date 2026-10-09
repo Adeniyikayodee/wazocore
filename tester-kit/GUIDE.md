@@ -58,6 +58,10 @@ cd $env:USERPROFILE\Downloads
 Leave LM Studio's settings as they are. Both models then run under the same
 conditions.
 
+**If a model will not load, or the laptop runs out of memory:** click the
+model's name at the top, open its load settings, set **Context Length** to
+4096, and load it again. Use the same value for both models.
+
 Please use **the same language** for all five tasks. Choose the one you speak
 best.
 
