@@ -1,0 +1,33 @@
+{
+ "gguf": "WazoCore-v6-long.Q4_K_M.gguf",
+ "gguf_sha256_16": "b2cc164f09e958d1",
+ "reference": "tokenizer.json from mkbadeniyi/WazoCore-8B-v6-long",
+ "vocab_size_reference": 143256,
+ "vocab_size_gguf": 143256,
+ "source": "FLORES-200 devtest, first 500 sentences per language, NFC",
+ "by_language": {
+  "yo": {
+   "texts": 500,
+   "identical": 500,
+   "reference_tokens": 22261
+  },
+  "ha": {
+   "texts": 500,
+   "identical": 500,
+   "reference_tokens": 16863
+  },
+  "ig": {
+   "texts": 500,
+   "identical": 500,
+   "reference_tokens": 18732
+  },
+  "en": {
+   "texts": 500,
+   "identical": 500,
+   "reference_tokens": 13614
+  }
+ },
+ "texts": 2000,
+ "identical": 2000,
+ "mismatches": []
+}
