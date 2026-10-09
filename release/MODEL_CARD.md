@@ -157,40 +157,33 @@ The protocol, the full tables and the command behind each number are in
 ## Limitations
 
 - **Broken characters.** About one reply in a thousand (4 of 4,200 in our
-  tests) contains half of a multi-byte letter such as ṣ or ƙ. The text is
-  then not valid Unicode and llama-server returns an error for that request.
-  The original model does not do this. Retrying the request with sampling is
-  the practical workaround: on the one prompt that fails on the shipped file,
-  24 of 30 retries at temperature 0.3 and 27 of 30 at 0.7 returned valid text.
+  tests) contains half of a multi-byte letter such as ṣ or ƙ, and
+  llama-server returns an error for that request. The original model does
+  not do this. Retrying the request with sampling usually returns valid text.
 - **Yoruba loops.** Under greedy decoding 5 and 11 of 700 Yoruba replies in
-  the two training runs fall into a repetition loop, usually a run of one
-  accent mark, against 2 for the original. Hausa and Igbo are unaffected. On
-  the shipped file a repetition penalty of 1.1 cut Yoruba loops from 4 to 2
-  in 250 replies and changed chrF++ by +0.9 (−0.1, +1.9); it does not stop a
-  run of accent marks. Use it for Yoruba only: the same penalty changed Hausa
-  by −0.6 (−1.3, +0.0) and Igbo by +0.7 (−0.2, +1.6). LM Studio applies this
-  penalty of 1.1 by default to every model it loads, the original N-ATLaS
-  included, so in LM Studio the penalty figures are the ones that apply. To
-  run without it, switch off Repeat Penalty in the model settings or send
-  `"repeat_penalty": 1.0` with each API request.
+  the two training runs fall into a repetition loop, against 2 for the
+  original. Hausa and Igbo are unaffected. A repetition penalty of 1.1 cut
+  the loops from 4 to 2 in 250 replies on the shipped file; use it for
+  Yoruba requests only.
+  LM Studio applies that penalty to every model by default: switch off
+  Repeat Penalty or send `"repeat_penalty": 1.0` to run without it.
 - **Hausa** is 0.3 to 0.4 chrF++ below the original in every measurement. The
-  intervals include zero, so a loss is not established, but Hausa is the one
-  language where WazoCore has not reached the original.
-- Input should be in composed Unicode (NFC). On decomposed text (a letter
-  followed by a combining accent) the token saving falls to about 1.15 times
-  for Yoruba and 1.27 times for Igbo.
-- Quality was measured on English → X translation in two domains (FLORES-200
-  and NTREX-128 news). Dialogue, reasoning and X → English were not scored,
-  and English quality has not been scored. English speed is 1.06× on the
-  CPU and 0.95× on the GPU.
-- Every training variant was scored on the same 700 sentences per language
-  and the release was chosen among them, so its scores on those sentences are
-  not an independent confirmation. No test sentence is trained on.
-- Speed was measured on one laptop, on its CPU and on its GPU, with 20
-  prompts per language. The GPU run was throttled to about half the
-  machine's cool speed, and no other GPU was measured.
-- Everything else about N-ATLaS carries over, including its biases, its
-  8,092-token context and the limits of its instruction tuning.
+  intervals include zero, so a loss is not established.
+- **Input form.** Send composed Unicode (NFC). On decomposed text the token
+  saving falls to about 1.15 times for Yoruba and 1.27 times for Igbo.
+- **Scope of the quality tests.** English → X translation on FLORES-200 and
+  NTREX-128 news. Dialogue, reasoning, X → English and English quality were
+  not scored. English speed is 1.06× on the CPU and 0.95× on the GPU.
+- **Selection.** The release was chosen among variants scored on the same
+  700 sentences per language, so those scores are not an independent
+  confirmation. No test sentence is trained on.
+- **Speed setup.** One laptop, CPU and GPU, 20 prompts per language. The GPU
+  run was throttled to about half the machine's cool speed.
+- **Inherited.** N-ATLaS's biases, its 8,092-token context and the limits of
+  its instruction tuning carry over.
+
+The measurements behind both workarounds are in section 5 of
+[`docs/METHOD.md`](https://github.com/Adeniyikayodee/wazocore/blob/main/docs/METHOD.md).
 
 ## Licence
 
