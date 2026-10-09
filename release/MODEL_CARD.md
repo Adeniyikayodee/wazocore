@@ -156,33 +156,15 @@ The protocol, the full tables and the command behind each number are in
 
 ## Limitations
 
-- **Broken characters.** About one reply in a thousand (4 of 4,200 in our
-  tests) contains half of a multi-byte letter such as ṣ or ƙ, and
-  llama-server returns an error for that request. The original model does
-  not do this. Retrying the request with sampling usually returns valid text.
-- **Yoruba loops.** Under greedy decoding 5 and 11 of 700 Yoruba replies in
-  the two training runs fall into a repetition loop, against 2 for the
-  original. Hausa and Igbo are unaffected. A repetition penalty of 1.1 cut
-  the loops from 4 to 2 in 250 replies on the shipped file; use it for
-  Yoruba requests only.
-  LM Studio applies that penalty to every model by default: switch off
-  Repeat Penalty or send `"repeat_penalty": 1.0` to run without it.
-- **Hausa** is 0.3 to 0.4 chrF++ below the original in every measurement. The
-  intervals include zero, so a loss is not established.
-- **Input form.** Send composed Unicode (NFC). On decomposed text the token
-  saving falls to about 1.15 times for Yoruba and 1.27 times for Igbo.
-- **Scope of the quality tests.** English → X translation on FLORES-200 and
-  NTREX-128 news. Dialogue, reasoning, X → English and English quality were
-  not scored. English speed is 1.06× on the CPU and 0.95× on the GPU.
-- **Selection.** The release was chosen among variants scored on the same
-  700 sentences per language, so those scores are not an independent
-  confirmation. No test sentence is trained on.
-- **Speed setup.** One laptop, CPU and GPU, 20 prompts per language. The GPU
-  run was throttled to about half the machine's cool speed.
-- **Inherited.** N-ATLaS's biases, its 8,092-token context and the limits of
-  its instruction tuning carry over.
+| Limit | What to expect | What to do |
+|---|---|---|
+| Broken characters | About 1 reply in 1,000 (4 of 4,200) has half of a letter such as ṣ or ƙ, and the request fails. The original does not do this | Retry with sampling |
+| Yoruba loops | 5 and 11 of 700 replies loop under greedy decoding, against 2 for the original | Repetition penalty 1.1, Yoruba only. LM Studio applies it to every request by default |
+| Hausa | 0.3 to 0.4 chrF++ below the original. The intervals include zero | n/a |
+| Input form | Decomposed Unicode loses most of the token saving | Normalise to NFC |
+| Not scored | Dialogue, reasoning, translation into English, English quality | n/a |
 
-The measurements behind both workarounds are in section 5 of
+Measurements and the full list are in sections 5 and 6 of
 [`docs/METHOD.md`](https://github.com/Adeniyikayodee/wazocore/blob/main/docs/METHOD.md).
 
 ## Licence
