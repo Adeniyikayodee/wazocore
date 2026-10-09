@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WazoCore: faster in your own language</title>
+<meta name="description" content="WazoCore is N-ATLaS with 15,000 new Yoruba, Hausa and Igbo tokens. The same laptop writes these languages 1.6 to 1.7 times faster, with no change to your code.">
+<meta name="author" content="WazoCore Team">
+<meta property="og:title" content="WazoCore: faster in your own language">
+<meta property="og:description" content="N-ATLaS with 15,000 new Yoruba, Hausa and Igbo tokens. 1.6 to 1.7 times faster on an ordinary laptop.">
+<meta property="og:image" content="assets/social.jpg">
+<meta property="og:type" content="website">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="assets/favicon.png">
+<link rel="preload" href="assets/inter-600.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+@font-face{font-family:Inter;font-weight:400;font-display:swap;src:url(assets/inter-400.woff2) format("woff2")}
+@font-face{font-family:Inter;font-weight:600 700;font-display:swap;src:url(assets/inter-600.woff2) format("woff2")}
+@font-face{font-family:Mono;font-display:swap;src:url(assets/mono.woff2) format("woff2")}
+:root{--bg:#fff;--soft:#F5F5F7;--ink:#1D1D1F;--ink2:#424245;--muted:#6E6E73;--line:#D2D2D7;--green:#008751;--base:#7A5FA8;--dark:#0A0A0B;--max:1040px;--r:28px}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+a{color:var(--green);text-decoration:none}a:hover{text-decoration:underline}
+img,video{max-width:100%;display:block}
+.wrap{max-width:var(--max);margin:0 auto;padding:0 22px}
+.center{text-align:center}
+
+/* nav */
+.nav{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.78);backdrop-filter:saturate(180%) blur(20px);-webkit-backdrop-filter:saturate(180%) blur(20px);border-bottom:1px solid rgba(0,0,0,.08)}
+.nav .wrap{display:flex;align-items:center;justify-content:space-between;height:52px}
+.nav img{height:40px;width:auto;margin-left:-8px}
+.nav nav{display:flex;gap:30px;font-size:13px}
+.nav nav a{color:var(--ink);opacity:.82}.nav nav a:hover{opacity:1;text-decoration:none}
+.pill{display:inline-block;padding:7px 15px;border-radius:980px;background:var(--ink);color:#fff;font-size:13px;font-weight:600}
+.pill:hover{text-decoration:none;background:#000}
+
+/* type */
+.eyebrow{font-size:17px;font-weight:600;color:var(--green);margin:0 0 10px}
+h1{font-size:clamp(44px,8.4vw,96px);line-height:1.02;letter-spacing:-.045em;font-weight:600;margin:0 auto 22px;max-width:900px}
+h2{font-size:clamp(32px,5.2vw,56px);line-height:1.06;letter-spacing:-.035em;font-weight:600;margin:0 0 18px}
+h3{font-size:21px;line-height:1.2;letter-spacing:-.01em;font-weight:600;margin:0 0 8px}
+.lead{font-size:clamp(19px,2.2vw,24px);line-height:1.38;color:var(--muted);max-width:720px;margin:0 0 28px}
+.center .lead{margin-left:auto;margin-right:auto}
+.links{display:flex;flex-wrap:wrap;gap:14px 30px;justify-content:center;font-size:19px}
+.links a::after{content:" ›"}
+.btn{display:inline-block;padding:12px 24px;border-radius:980px;background:var(--green);color:#fff;font-weight:600;font-size:17px}
+.btn:hover{text-decoration:none;background:#006E42}
+.btn.ghost{background:transparent;color:var(--green);box-shadow:inset 0 0 0 1.5px var(--green)}
+.btn.ghost:hover{background:var(--green);color:#fff}
+.fine{font-size:13px;color:var(--muted);margin:18px 0 0}
+
+section{padding:110px 0}
+.hero{padding:96px 0 0}
+.stage{background:var(--dark);margin-top:70px;padding:54px 0 70px}
+.stage .frame{max-width:1100px;margin:0 auto;padding:0 22px}
+.stage video{width:100%;height:auto;aspect-ratio:16/9;border-radius:20px;background:#000;box-shadow:0 40px 120px -40px rgba(0,135,81,.45)}
+.stage p{color:#A1A1A6;text-align:center;font-size:14px;margin:20px 0 0}
+
+/* numbers */
+.nums{display:grid;grid-template-columns:repeat(4,1fr);margin-top:8px}
+.nums div{padding:6px 18px;text-align:center;border-left:1px solid var(--line)}
+.nums div:first-child{border-left:0}
+.nums b{display:block;font-size:clamp(40px,6vw,68px);line-height:1;letter-spacing:-.04em;font-weight:600}
+.nums b.g{color:var(--green)}
+.nums span{display:block;margin-top:12px;font-size:15px;color:var(--muted)}
+
+/* tiles */
+.soft{background:var(--soft)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}
+.grid2>*,.grid3>*,.split>*{min-width:0}
+.tile{background:#fff;border-radius:var(--r);padding:36px}
+.plain .tile{background:var(--soft)}
+.tile p{margin:0;color:var(--muted);font-size:17px}
+.tile .big{font-size:clamp(34px,4.4vw,48px);line-height:1.05;letter-spacing:-.035em;font-weight:600;color:var(--ink);margin:0 0 10px}
+.tile .n{display:block;font-size:15px;font-weight:600;color:var(--green);margin-bottom:14px}
+.split{display:grid;grid-template-columns:1fr 1fr;gap:56px;align-items:center}
+
+/* chart */
+.chart .sub{font-size:14px;color:var(--muted);margin:0 0 18px}
+.legend{display:flex;gap:20px;font-size:14px;color:var(--ink2);margin-bottom:16px}
+.legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:7px;vertical-align:-1px}
+.plot{position:relative;padding:4px 0 28px}
+.row{display:grid;grid-template-columns:64px 1fr;align-items:center;gap:10px;margin:16px 0}
+.row .name{font-size:15px;color:var(--ink2)}
+.bars{display:grid;gap:2px;padding-right:64px}
+.bar{position:relative;height:18px;border-radius:0 4px 4px 0;transform-origin:left;cursor:default}
+.bar em{position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:8px;font-style:normal;font-size:13px;color:var(--ink2);white-space:nowrap}
+.bar.b{background:var(--base)}.bar.w{background:var(--green)}
+.bar:hover{filter:brightness(1.1)}
+.ref{position:absolute;top:0;bottom:24px;left:calc(74px + (100% - 74px - 64px) * 0.4133);border-left:1px solid #A1A1A6}
+.ref span{position:absolute;bottom:-22px;left:0;transform:translateX(-50%);font-size:12px;color:var(--muted);white-space:nowrap}
+details{margin-top:8px;font-size:14px}summary{cursor:pointer;color:var(--muted)}
+
+/* tables */
+table{width:100%;border-collapse:collapse;font-size:16px}
+th,td{text-align:left;padding:15px 16px;border-bottom:1px solid #E8E8ED;vertical-align:top}
+th{font-size:13px;font-weight:600;color:var(--muted)}
+tr:last-child td{border-bottom:0}
+.tw{overflow-x:auto;background:#fff;border-radius:var(--r);padding:8px 14px}
+.tw table{min-width:580px}
+.tile table{font-size:15px}.tile th,.tile td{padding:11px 8px 11px 0}
+td.k{color:var(--ink2)}td strong{font-weight:600}
+
+/* code */
+pre{margin:0;background:var(--dark);color:#F5F5F7;border-radius:var(--r);padding:30px;overflow-x:auto;font-family:Mono,ui-monospace,SFMono-Regular,Menlo,monospace;font-size:13.5px;line-height:1.7}
+pre .c{color:#86868B}
+
+/* team */
+.person{display:flex;gap:22px;align-items:center}
+.person img{width:112px;height:112px;border-radius:50%;object-fit:cover;flex:none}
+.person p{font-size:15px}
+
+footer{padding:40px 0 70px;font-size:12px;color:var(--muted);background:var(--soft);border-top:1px solid #E8E8ED}
+footer p{margin:0 0 10px;max-width:820px}
+
+/* reveal on scroll */
+.rv{opacity:0;transform:translateY(22px);transition:opacity .8s cubic-bezier(.2,.7,.2,1),transform .8s cubic-bezier(.2,.7,.2,1)}
+.rv.in{opacity:1;transform:none}
+.rv .bar{transform:scaleX(0);transition:transform 1s cubic-bezier(.2,.7,.2,1) .15s}
+.rv.in .bar{transform:scaleX(1)}
+.no-js .rv{opacity:1;transform:none}.no-js .rv .bar{transform:none}
+
+@media (max-width:860px){
+  section{padding:76px 0}.hero{padding-top:64px}.stage{margin-top:48px;padding:26px 0 40px}
+  .nav nav{display:none}
+  .grid2,.grid3,.split{grid-template-columns:minmax(0,1fr)}.split{gap:34px}
+  .nums{grid-template-columns:1fr 1fr;row-gap:34px}.nums div:nth-child(3){border-left:0}
+  .tile{padding:28px}.person img{width:88px;height:88px}pre{font-size:12px;padding:22px}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}.rv,.rv .bar{opacity:1;transform:none;transition:none}}
+@media print{.rv,.rv .bar{opacity:1;transform:none}}
+</style>
+</head>
+<body class="no-js">
+<script>document.body.classList.remove('no-js')</script>
+
+<header class="nav">
+  <div class="wrap">
+    <a href="#top" aria-label="WazoCore home"><img src="assets/logo.svg" alt="WazoCore"></a>
+    <nav aria-label="Sections"><a href="#demo">Demo</a><a href="#why">Why</a><a href="#how">How</a><a href="#results">Results</a><a href="#start">Get started</a><a href="#team">Team</a></nav>
+    <a class="pill" href="https://huggingface.co/mkbadeniyi/WazoCore-8B-v6-long">Get the model</a>
+  </div>
+</header>
+
+<main id="top">
+
+<section class="hero center">
+  <div class="wrap">
+    <p class="eyebrow">WazoCore Powered by Awarri.</p>
+    <h1>Faster in your own language.</h1>
+    <p class="lead">N-ATLaS, Nigeria's open language model, with 15,000 new Yoruba, Hausa and Igbo tokens. The same laptop writes these languages 1.6 to 1.7 times faster. Your code stays the same.</p>
+    <div class="links"><a href="#demo">Watch the demo</a><a href="https://huggingface.co/mkbadeniyi/WazoCore-8B-v6-long">Get the model</a><a href="https://github.com/Adeniyikayodee/wazocore">Read the code</a></div>
+  </div>
+  <div class="stage" id="demo">
+    <div class="frame">
+      <video controls preload="none" poster="assets/poster.jpg" playsinline>
+        <source src="assets/wazocore-demo.mp4" type="video/mp4">
+        Your browser cannot play this video. <a href="assets/wazocore-demo.mp4">Download it</a>.
+      </video>
+      <p>Both models in LM Studio on the same laptop, at real speed. 4 minutes 49 seconds.</p>
+    </div>
+  </div>
+</section>
+
+<section class="center">
+  <div class="wrap rv">
+    <div class="nums" aria-label="Headline results">
+      <div><b class="g">1.63×</b><span>more Yoruba words per second</span></div>
+      <div><b class="g">1.61×</b><span>more Hausa words per second</span></div>
+      <div><b class="g">1.72×</b><span>more Igbo words per second</span></div>
+      <div><b>15,000</b><span>new tokens added</span></div>
+    </div>
+    <p class="fine">Measured in llama.cpp on one laptop CPU. Both models answered the same 20 sentences per language.</p>
+  </div>
+</section>
+
+<section class="soft" id="why">
+  <div class="wrap">
+    <div class="split">
+      <div class="rv">
+        <p class="eyebrow">The problem</p>
+        <h2>The same words cost more tokens.</h2>
+        <p class="lead">A language model reads and writes in tokens. N-ATLaS inherited a vocabulary built mostly for English, so an English word costs about 1.2 tokens and a Yoruba word costs 2.9.</p>
+        <p class="lead" style="margin-bottom:0">Every reply in these languages is slower to write, costs more to serve and fills the context window sooner.</p>
+      </div>
+      <div class="tile chart rv">
+        <h3>Tokens needed per word</h3>
+        <p class="sub">Lower is better. The same FLORES-200 sentences, in llama.cpp.</p>
+        <div class="legend"><span><i style="background:var(--base)"></i>N-ATLaS (original)</span><span><i style="background:var(--green)"></i>WazoCore</span></div>
+        <div class="plot" role="img" aria-label="Bar chart of tokens per word. Yoruba: N-ATLaS 2.87, WazoCore 1.91. Hausa: 2.12 and 1.34. Igbo: 2.53 and 1.56. English is 1.24.">
+          <div class="ref"><span>English 1.24</span></div>
+          <div class="row"><div class="name">Yoruba</div><div class="bars"><div class="bar b" style="width:95.7%" title="Yoruba, N-ATLaS: 2.87 tokens per word"><em>2.87</em></div><div class="bar w" style="width:63.7%" title="Yoruba, WazoCore: 1.91 tokens per word"><em>1.91</em></div></div></div>
+          <div class="row"><div class="name">Hausa</div><div class="bars"><div class="bar b" style="width:70.7%" title="Hausa, N-ATLaS: 2.12 tokens per word"><em>2.12</em></div><div class="bar w" style="width:44.7%" title="Hausa, WazoCore: 1.34 tokens per word"><em>1.34</em></div></div></div>
+          <div class="row"><div class="name">Igbo</div><div class="bars"><div class="bar b" style="width:84.3%" title="Igbo, N-ATLaS: 2.53 tokens per word"><em>2.53</em></div><div class="bar w" style="width:52%" title="Igbo, WazoCore: 1.56 tokens per word"><em>1.56</em></div></div></div>
+        </div>
+        <details><summary>Show as a table</summary>
+          <table><thead><tr><th>Language</th><th>N-ATLaS</th><th>WazoCore</th></tr></thead>
+          <tbody><tr><td>Yoruba</td><td>2.87</td><td>1.91</td></tr><tr><td>Hausa</td><td>2.12</td><td>1.34</td></tr><tr><td>Igbo</td><td>2.53</td><td>1.56</td></tr><tr><td>English, for reference</td><td>1.24</td><td>n/a</td></tr></tbody></table>
+        </details>
+      </div>
+    </div>
+
+    <div class="grid2" style="margin-top:20px">
+      <div class="tile rv"><p class="big">A third fewer tokens.</p><p>A 5,000-word health leaflet in Yoruba falls from about 14,350 tokens to 9,550. Less waiting, and a lower bill for every reply.</p></div>
+      <div class="tile rv"><p class="big">More fits in context.</p><p>The same context window holds 8.8 pages of Yoruba, up from 5.6.</p></div>
+      <div class="tile rv"><p class="big">Nothing to rewrite.</p><p>Same file format, same chat template, same API. It runs in llama.cpp and LM Studio, offline.</p></div>
+      <div class="tile rv"><p class="big">Nothing forgotten.</p><p>All 128,256 original tokens keep their ids and their exact embeddings. English tokenises as before.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="plain" id="how">
+  <div class="wrap">
+    <div class="center rv">
+      <p class="eyebrow">How it works</p>
+      <h2>One equation. Three steps.</h2>
+      <p class="lead">Words per second is tokens per second divided by tokens per word. The engine and the laptop decide the first number. WazoCore lowers the second.</p>
+    </div>
+    <div class="grid3" style="margin-top:34px">
+      <div class="tile rv"><span class="n">Step 1</span><h3>Learn the new words</h3><p>15,000 new tokens are learned from Yoruba, Hausa and Igbo text, on top of the N-ATLaS tokenizer.</p></div>
+      <div class="tile rv"><span class="n">Step 2</span><h3>Start from what the model knows</h3><p>Each new token begins as the average of the pieces it replaces, so it starts with a sensible meaning.</p></div>
+      <div class="tile rv"><span class="n">Step 3</span><h3>Train, anchored to the original</h3><p>The new rows and four of 32 layers train on the model's own translations and on professional human translations.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="soft" id="results">
+  <div class="wrap">
+    <div class="center rv">
+      <p class="eyebrow">Results</p>
+      <h2>Measured on the file we publish.</h2>
+      <p class="lead">Quality is chrF++ against human translations on 700 test sentences per language, over two training runs, with 95% intervals in brackets. No test sentence is trained on.</p>
+    </div>
+    <div class="tw rv" style="margin-top:34px">
+      <table>
+        <thead><tr><th>WazoCore against N-ATLaS</th><th>Yoruba</th><th>Hausa</th><th>Igbo</th></tr></thead>
+        <tbody>
+          <tr><td class="k">Tokens per word</td><td>2.87 → 1.91</td><td>2.12 → 1.34</td><td>2.53 → 1.56</td></tr>
+          <tr><td class="k">Speed-up in words per second, laptop CPU</td><td><strong>1.63×</strong></td><td><strong>1.61×</strong></td><td><strong>1.72×</strong></td></tr>
+          <tr><td class="k">Speed-up for the whole request, laptop CPU</td><td>1.28×</td><td>1.16×</td><td>1.38×</td></tr>
+          <tr><td class="k">chrF++ change, full precision</td><td>+2.2 (+1.5, +2.9)</td><td>−0.4 (−0.8, +0.1)</td><td>+0.2 (−0.4, +0.8)</td></tr>
+          <tr><td class="k">chrF++ change, shipped Q4_K_M file</td><td>+1.7 (+0.3, +3.1)</td><td>−0.3 (−1.1, +0.6)</td><td>−0.1 (−1.4, +1.2)</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="grid2" style="margin-top:20px">
+      <div class="tile rv">
+        <h3>In the demo</h3>
+        <p style="margin-bottom:14px">The same request in LM Studio. First take of each run, default settings.</p>
+        <table><thead><tr><th>Language</th><th>N-ATLaS</th><th>WazoCore</th></tr></thead>
+        <tbody><tr><td>Yoruba</td><td>160 tokens, 12.9 s</td><td>84 tokens, 7.8 s</td></tr><tr><td>Hausa</td><td>78 tokens, 8.0 s</td><td>55 tokens, 5.7 s</td></tr><tr><td>Igbo</td><td>121 tokens, 10.3 s</td><td>78 tokens, 7.5 s</td></tr></tbody></table>
+      </div>
+      <div class="tile rv">
+        <h3>Known limits</h3>
+        <p style="margin-bottom:14px">Two defects remain. Both are documented with workarounds.</p>
+        <table><tbody>
+          <tr><td class="k">Broken characters</td><td>About 1 reply in 1,000 fails. Retry with sampling.</td></tr>
+          <tr><td class="k">Yoruba loops</td><td>5 and 11 of 700 replies loop, against 2 for the original.</td></tr>
+          <tr><td class="k">Hausa</td><td>0.3 to 0.4 chrF++ below the original. The intervals include zero.</td></tr>
+          <tr><td class="k">Scope</td><td>Scored on English → X translation only.</td></tr>
+        </tbody></table>
+      </div>
+    </div>
+    <p class="fine center">The full method, every table and the command behind each number are in <a href="https://github.com/Adeniyikayodee/wazocore/blob/main/docs/METHOD.md">docs/METHOD.md</a>.</p>
+  </div>
+</section>
+
+<section class="plain" id="start">
+  <div class="wrap split">
+    <div class="rv">
+      <p class="eyebrow">Get started</p>
+      <h2>Running in minutes.</h2>
+      <p class="lead">Download the GGUF, start the server and call it with any OpenAI client. It runs offline on a laptop with 8 GB of memory or more.</p>
+      <div style="display:flex;flex-wrap:wrap;gap:12px"><a class="btn" href="https://huggingface.co/mkbadeniyi/WazoCore-8B-v6-long">Model on Hugging Face</a><a class="btn ghost" href="https://github.com/Adeniyikayodee/wazocore">Toolkit on GitHub</a></div>
+      <p class="fine">Building for another language? The same toolkit takes about two GPU hours per model.</p>
+    </div>
+    <div class="rv">
+<pre><span class="c"># 1. download and serve</span>
+hf download mkbadeniyi/WazoCore-8B-v6-long \
+  WazoCore-8B.Q4_K_M.gguf --local-dir .
+llama-server -m WazoCore-8B.Q4_K_M.gguf \
+  -c 4096 --port 8080
+
+<span class="c"># 2. call it from Python</span>
+from openai import OpenAI
+client = OpenAI(base_url="http://localhost:8080/v1",
+                api_key="local")
+reply = client.chat.completions.create(
+    model="wazocore",
+    messages=[{"role": "user", "content":
+      "Translate into Hausa: The clinic opens "
+      "at eight in the morning."}],
+)
+print(reply.choices[0].message.content)
+<span class="c"># Asibitin yana bude daga karfe takwas na safe.</span></pre>
+    </div>
+  </div>
+</section>
+
+<section class="soft" id="team">
+  <div class="wrap">
+    <div class="center rv">
+      <p class="eyebrow">Team</p>
+      <h2>Who built this.</h2>
+    </div>
+    <div class="grid2" style="margin-top:34px">
+      <div class="tile person rv"><img src="assets/kayode.jpg" alt="Kayode Adeniyi" loading="lazy" width="112" height="112"><div><h3>Kayode Adeniyi</h3><p>Team lead and AI Research Engineer. PhD researcher, Imperial College London. Built the model, the training and the evaluation.</p></div></div>
+      <div class="tile person rv"><img src="assets/afolasade.jpg" alt="Afolasade Adeniyi" loading="lazy" width="112" height="112"><div><h3>Afolasade Adeniyi</h3><p>Product Manager and Data Analyst. Kwara State University alumna. Led user testing and product.</p></div></div>
+    </div>
+    <p class="fine center">An entry to the National AI Innovation Challenge (NAIC) 2026, Innovation &amp; Enterprise Track, PS1: Developer Infrastructure.</p>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <p>N-ATLaS is an initiative of the Federal Ministry of Communications, Innovation and Digital Economy, and powered by Awarri Technologies.</p>
+    <p>WazoCore is a derivative of N-ATLaS, released under the N-ATLaS Open-Source Research and Innovation License. The toolkit code is released under the Apache License 2.0.</p>
+    <p><a href="https://github.com/Adeniyikayodee/wazocore">GitHub</a> · <a href="https://huggingface.co/mkbadeniyi/WazoCore-8B-v6-long">Hugging Face</a> · <a href="https://github.com/Adeniyikayodee/wazocore/blob/main/docs/METHOD.md">Method and results</a></p>
+  </div>
+</footer>
+
+<script>
+(function(){
+  var els=document.querySelectorAll('.rv');
+  if(!('IntersectionObserver' in window)){els.forEach(function(e){e.classList.add('in')});return}
+  var io=new IntersectionObserver(function(es){es.forEach(function(e){if(e.isIntersecting){e.target.classList.add('in');io.unobserve(e.target)}})},{threshold:.12,rootMargin:'0px 0px -40px 0px'});
+  els.forEach(function(e){io.observe(e)});
+})();
+</script>
+</body>
+</html>
