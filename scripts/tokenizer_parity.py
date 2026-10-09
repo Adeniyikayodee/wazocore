@@ -1,5 +1,9 @@
-"""Tokenisation parity: llama.cpp reading the shipped GGUF against the reference tokenizer.json."""
-import hashlib, json, sys, unicodedata
+"""Tokenisation parity: llama.cpp reading the shipped GGUF against the
+reference tokenizer.json, on 500 FLORES-200 devtest sentences per language.
+
+    python scripts/tokenizer_parity.py GGUF_SHA256_PREFIX > OUT.json
+"""
+import json, sys, unicodedata
 from pathlib import Path
 from huggingface_hub import hf_hub_download
 from tokenizers import Tokenizer
