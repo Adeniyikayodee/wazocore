@@ -8,6 +8,8 @@ A version of N-ATLaS, Nigeria's open language model, that reads and writes Yorub
 
 **Model and GGUF on Hugging Face:** [mkbadeniyi/WazoCore-8B-v6-long](https://huggingface.co/mkbadeniyi/WazoCore-8B-v6-long)
 
+**Developed by:** [Quantile Labs](https://quantilelabs.com/), an independent laboratory that evaluates AI systems under the conditions of their deployment. Registered in Nigeria, RC 9787446.
+
 - **Faster replies**: the same answer is written in 58 to 62% of the time, because each token now carries more of a word. Decode speed in tokens per second is about the same for both models, so the gain comes from the token count and not from the machine.
 - **Lower serving cost**: a reply costs a third fewer tokens. A 5,000-word health leaflet written in Yoruba falls from about 14,350 tokens to 9,550.
 - **More in context**: N-ATLaS's 8,092-token window holds 8.8 pages of Yoruba instead of 5.6.
