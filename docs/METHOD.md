@@ -37,7 +37,12 @@ The release is built by `ARMS=long bash scripts/cloud_vx_v6.sh` on one A100
    tokenizer; 15,000 BPE merges are then learned on top, jointly for Yoruba,
    Hausa and Igbo, from 4M characters per language (Wikipedia plus the FLORES
    dev split). Merges whose result is not whole UTF-8 are rejected. Every
-   original token keeps its id, so English text tokenises exactly as before.
+   original token keeps its id and its embedding. Text is re-segmented only
+   where adjacent original pieces form a new merge, and 9,499 of the new
+   tokens are plain ASCII, so English changes slightly: on 355,000 words of
+   English prose, 404 of 31,875 lines tokenise differently and the token
+   count falls by 0.12% (`scripts/english_tokenisation.py`,
+   `results/tokenizer/english-v6.json`).
 2. **Initialisation** (`vx_torch expand --calibrate-input-norm --out-weights
    chars`). A new token's input embedding is the mean of its original pieces'
    embeddings, rescaled to the pieces' norm; without the rescaling the new
@@ -328,6 +333,7 @@ Paths are relative to the repository root. `V` is `uv run --project wazocore
 | Result | Command | Output |
 |---|---|---|
 | Tokens per word (section 1) | `uv run --with tokenizers python -m wazocore.tokens_per_word --flores data/flores200_dataset --split devtest --tokenizer TOKENIZER.json --out OUT.json` | `results/tokenizer/` |
+| English tokenisation (section 2) | `uv run --project wazocore python scripts/english_tokenisation.py TOKENIZER.json NEW_TOKENS.json OUT.json TEXT...` on the released tokenizer, two Project Gutenberg novels (1342, 2701) and this repository's docs | `results/tokenizer/english-v6.json` |
 | Training, samples and gate (4.1) | `ARMS="fix gold control small long" bash scripts/cloud_vx_v6.sh` on the GPU host; `SEED` repeats an arm for a second run | `results/vocab/v6/pooled-*.json` |
 | Shipped file (4.2) | `python scripts/gguf_quality.py 250 OUT NAME FILE.gguf`, then `V score OUT/ntrex-gguf-n-atlas.json OUT/ntrex-gguf-NAME.json --out OUT/summary.json` | `results/vocab/gguf-quality/` |
 | Speed, CPU (4.3) | `scripts/paired_vx.sh LABEL 4 20 0 FILE.gguf` | `results/vocab/LABEL-paired.json` |

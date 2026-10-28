@@ -35,7 +35,8 @@ cheap.
    tokenizer; 15,000 BPE merges are then learned on top, jointly for Yoruba,
    Hausa and Igbo, from 4M characters per language (Wikipedia plus the FLORES
    dev split). Merges whose result is not whole UTF-8 are rejected. Every
-   original token keeps its id, so English text tokenises exactly as before.
+   original token keeps its id and its embedding; English text changes
+   slightly (0.12% fewer tokens, [METHOD.md](METHOD.md), section 2).
 2. **Initialisation** (`vx_core`). A new token's input embedding is the mean of
    its original pieces' embeddings; its output embedding is the
    byte-length-weighted mean (after arXiv 2608.03494, which weights by
