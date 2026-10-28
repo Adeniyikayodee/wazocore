@@ -40,7 +40,7 @@ llama.cpp and LM Studio, with no change to your code.
 
 | | |
 |---|---|
-| Developed by | [Quantile Labs](https://quantilelabs.com/), an independent laboratory that evaluates AI systems under the conditions of their deployment. Registered in Nigeria, RC 9787446 |
+| Developed by | [Quantile Labs](https://quantilelabs.com/), an independent laboratory building on-device AI for environmental sensing in low-resource settings. Registered in Nigeria, RC 9787446 |
 | Base model | NCAIR1/N-ATLaS (Llama-3 architecture, 8B parameters) |
 | What changed | 15,000 added tokens for Yoruba, Hausa and Igbo: the vocabulary grows from 128,256 to 143,256. Every original token keeps its id and its exact embedding |
 | Files | A Q4_K_M GGUF (5.0 GB) and the full-precision weights |
