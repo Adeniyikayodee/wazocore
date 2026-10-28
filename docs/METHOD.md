@@ -161,6 +161,12 @@ section 3).
   twice the training (`long`) both remove the loss; `long` keeps v4's token
   saving. With 12M tokens the model passes non-inferiority at a 1.0 margin in
   all three languages.
+- Against `control`, paired and pooled over both `long` runs, the vocabulary
+  costs −0.2 (−0.9, +0.5) in Yoruba, −1.0 (−1.5, −0.4) in Hausa and
+  −1.0 (−1.6, −0.4) in Igbo (`results/vocab/v6/pooled-long-vs-control.json`).
+  The cost is real in Hausa and Igbo; against the original it is hidden
+  because the added data lifts both models. `long` loops about as often as
+  `control` in Yoruba (5 and 11 against 10).
 - The canonical changes did not remove the piece spelling by themselves
   (`fix` and `gold` write 4 to 7% more tokens than the tokenizer would, like
   v4); `small` and `long` write 2 to 4% more. Forcing v4 onto the canonical
@@ -335,6 +341,7 @@ Paths are relative to the repository root. `V` is `uv run --project wazocore
 | Tokens per word (section 1) | `uv run --with tokenizers python -m wazocore.tokens_per_word --flores data/flores200_dataset --split devtest --tokenizer TOKENIZER.json --out OUT.json` | `results/tokenizer/` |
 | English tokenisation (section 2) | `uv run --project wazocore python scripts/english_tokenisation.py TOKENIZER.json NEW_TOKENS.json OUT.json TEXT...` on the released tokenizer, two Project Gutenberg novels (1342, 2701) and this repository's docs | `results/tokenizer/english-v6.json` |
 | Training, samples and gate (4.1) | `ARMS="fix gold control small long" bash scripts/cloud_vx_v6.sh` on the GPU host; `SEED` repeats an arm for a second run | `results/vocab/v6/pooled-*.json` |
+| Release against `control` (4.1) | `V pooled --base ntrex-control.json flores-control.json --run ntrex-long.json flores-long.json --run ntrex-long2.json flores-long2.json --out OUT.json` (files in `results/vocab/v6/`) | `results/vocab/v6/pooled-long-vs-control.json` |
 | Shipped file (4.2) | `python scripts/gguf_quality.py 250 OUT NAME FILE.gguf`, then `V score OUT/ntrex-gguf-n-atlas.json OUT/ntrex-gguf-NAME.json --out OUT/summary.json` | `results/vocab/gguf-quality/` |
 | Speed, CPU (4.3) | `scripts/paired_vx.sh LABEL 4 20 0 FILE.gguf` | `results/vocab/LABEL-paired.json` |
 | Speed, GPU (4.3) | `scripts/paired_vx.sh LABEL 4 20 99 FILE.gguf` | `results/vocab/LABEL-paired.json` |
