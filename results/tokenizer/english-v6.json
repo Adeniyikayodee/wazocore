@@ -1,0 +1,19 @@
+{
+ "files": [
+  "gutenberg-1342 (Pride and Prejudice)",
+  "gutenberg-2701 (Moby Dick)",
+  "docs/METHOD.md",
+  "docs/HISTORY.md",
+  "docs/cloud-vx.md",
+  "README.md",
+  "CONTRIBUTING.md"
+ ],
+ "lines": 31875,
+ "words": 355029,
+ "lines_changed": 404,
+ "tokens_original": 480073,
+ "tokens_expanded": 479496,
+ "token_change": -0.001201900544292256,
+ "tokenizer": "huggingface.co/mkbadeniyi/WazoCore-8B-v6-long tokenizer.json",
+ "docs_commit": "996da58"
+}

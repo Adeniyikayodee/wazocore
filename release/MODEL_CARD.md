@@ -52,7 +52,9 @@ N-ATLaS inherits Llama-3's vocabulary, which was built mostly for English. A
 Yoruba word costs about 2.9 tokens where an English word costs 1.2, so every
 Nigerian-language reply is slower to generate, more expensive to serve, and
 fits less context. WazoCore adds word and word-piece tokens for the three
-languages, so English text tokenises as before.
+languages. Every original token keeps its id and embedding, and English
+text tokenises almost as before: 0.12% fewer tokens on 355,000 words of
+English prose.
 
 ## Intended use
 
