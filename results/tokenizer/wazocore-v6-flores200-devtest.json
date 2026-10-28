@@ -1,0 +1,61 @@
+{
+ "dataset": "FLORES-200 devtest",
+ "normalization": "NFC (tokens_nfd for comparison)",
+ "tokenizer": {
+  "path": "tokenizer.json",
+  "source": "huggingface.co/mkbadeniyi/WazoCore-8B-v6-long (released v6 tokenizer), downloaded 2026-10-28",
+  "sha256": "e277b93ad6781d9fcfab95c1e8de6cc48348721b15f38d53b9d2d69b16c588d6",
+  "vocab_size": 143256
+ },
+ "languages": [
+  {
+   "lang": "en",
+   "sentences": 1012,
+   "words": 21901,
+   "chars": 111077,
+   "tokens": 27114,
+   "tokens_nfd": 27126,
+   "tokens_per_word": 1.2380256609287248,
+   "tokens_per_char": 0.2441009389882694,
+   "tax_vs_en": null,
+   "nfd_inflation": 1.0004425757911042
+  },
+  {
+   "lang": "yo",
+   "sentences": 1012,
+   "words": 25206,
+   "chars": 101228,
+   "tokens": 45098,
+   "tokens_nfd": 75860,
+   "tokens_per_word": 1.7891771800364993,
+   "tokens_per_char": 0.4455091476666535,
+   "tax_vs_en": 1.6632735856015342,
+   "nfd_inflation": 1.682114506186527
+  },
+  {
+   "lang": "ha",
+   "sentences": 1012,
+   "words": 25156,
+   "chars": 115923,
+   "tokens": 33838,
+   "tokens_nfd": 33845,
+   "tokens_per_word": 1.3451264111941486,
+   "tokens_per_char": 0.29190065819552635,
+   "tax_vs_en": 1.2479899682820683,
+   "nfd_inflation": 1.0002068680182044
+  },
+  {
+   "lang": "ig",
+   "sentences": 1012,
+   "words": 24917,
+   "chars": 110542,
+   "tokens": 38569,
+   "tokens_nfd": 55720,
+   "tokens_per_word": 1.5478990247622106,
+   "tokens_per_char": 0.34890810732572236,
+   "tax_vs_en": 1.4224754739249097,
+   "nfd_inflation": 1.4446835541497056
+  }
+ ],
+ "dataset_source": "dl.fbaipublicfiles.com/nllb/flores200_dataset.tar.gz"
+}
