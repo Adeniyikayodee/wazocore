@@ -7,7 +7,11 @@ root=$(cd "$(dirname "$0")/.." && pwd); cd "$root"
 e="ssh -o BatchMode=yes -o StrictHostKeyChecking=accept-new -i ${SSH_KEY:-$HOME/.ssh/id_ed25519} -p $port"
 $e root@$host 'mkdir -p /workspace/work/data'
 rsync -az -e "$e" --exclude .venv --exclude __pycache__ --exclude .pytest_cache wazocore root@$host:/workspace/
-rsync -az -e "$e" scripts/cloud_vx_pod.sh scripts/cloud_vx_validate.sh scripts/cloud_vx_v5.sh scripts/cloud_vx_v6.sh scripts/cloud_gguf.sh root@$host:/workspace/
+rsync -az -e "$e" scripts/cloud_vx_pod.sh scripts/cloud_vx_validate.sh scripts/cloud_vx_v5.sh scripts/cloud_vx_v6.sh \
+    scripts/cloud_vx_v7.sh scripts/africomet.py scripts/cloud_gguf.sh root@$host:/workspace/
+echo "$(git rev-parse HEAD)$(git diff --quiet HEAD -- wazocore scripts || echo ' dirty')" | $e root@$host 'cat > /workspace/wazocore/REVISION'
+# v7 on a fresh pod: send back what earlier pods finished, so it is skipped
+[ -d results/vocab/v7 ] && rsync -az -e "$e" --exclude 'run-*.log' results/vocab/v7/ root@$host:/workspace/work/results-v7/
 [ -d data/ntrex ] && rsync -az -e "$e" data/ntrex/ root@$host:/workspace/work/ntrex/
 # samples of the original and v4 from the validation run, reused by cloud_vx_v5.sh
 $e root@$host 'mkdir -p /workspace/work/prior'
