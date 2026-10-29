@@ -222,3 +222,11 @@ def test_test_set_reads_ntrex_and_flores(tmp_path):
     (tmp_path / "devtest" / "eng_Latn.devtest").write_text("x\n", encoding="utf-8")
     (tmp_path / "devtest" / "hau_Latn.devtest").write_text("X\n", encoding="utf-8")
     assert test_set("flores", tmp_path, "ha", 5) == (["x"], ["X"])
+
+
+def test_expand_without_weights_takes_the_plain_mean(tiny):
+    from wazocore.vx_torch import expand_model
+
+    head0 = tiny.get_output_embeddings().weight.detach().clone()
+    head = expand_model(tiny, {256: [3, 5]}, None).get_output_embeddings().weight
+    assert np.allclose(head[256].detach(), (head0[3] + head0[5]) / 2, atol=1e-6)

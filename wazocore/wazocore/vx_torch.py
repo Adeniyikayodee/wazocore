@@ -305,7 +305,7 @@ def stage_expand(args) -> int:
     parts = decompose(new["tokens"], orig_vocab)
     inv = {i: s for s, i in orig_vocab.items()}
     bd = byte_decoder()
-    weights = char_lengths(parts, lambda i: bytes(bd[c] for c in inv[i]), args.out_weights)
+    weights = None if args.out_weights == "mean" else char_lengths(parts, lambda i: bytes(bd[c] for c in inv[i]), args.out_weights)
     model = expand_model(model, parts, weights, args.calibrate_input_norm)
     model.save_pretrained(args.out, safe_serialization=True)
     for f in ["tokenizer.json", "tokenizer_config.json", "special_tokens_map.json", "new_tokens.json"]:
@@ -798,7 +798,7 @@ def main(argv: Sequence[str]) -> int:
     e.add_argument("--base", type=Path, required=True)
     e.add_argument("--vx", type=Path, required=True)
     e.add_argument("--out", type=Path, required=True)
-    e.add_argument("--out-weights", choices=["bytes", "chars"], default="bytes", help="length unit weighting the output-row mean (v4: bytes)")
+    e.add_argument("--out-weights", choices=["bytes", "chars", "mean"], default="bytes", help="length unit weighting the output-row mean (v4: bytes; mean: unweighted, as FVT)")
     e.add_argument("--calibrate-input-norm", action="store_true", help="rescale new input rows to the median norm of their pieces")
     b = sub.add_parser("bpc")
     b.add_argument("--model", type=Path, required=True)
