@@ -15,7 +15,9 @@ while :; do
     else
         echo "$(date +%H:%M) pod unreachable; results so far are in $out"
     fi
-    if tail -1 "$run" 2>/dev/null | grep -q ALL-DONE; then
+    # v7's data step runs v6, which logs its own ALL-DONE first
+    ends=$(grep -c ALL-DONE "$run" 2>/dev/null) || true
+    if [ "${ends:-0}" -ge 2 ] && tail -1 "$run" | grep -q ALL-DONE; then
         echo "done: results in $out"
         [ "${STOP:-0}" = 1 ] || exit 0
         # runpodctl and its pod-scoped key live in the container's environment, not the SSH session's
