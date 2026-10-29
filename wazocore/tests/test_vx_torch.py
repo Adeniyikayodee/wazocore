@@ -230,3 +230,11 @@ def test_expand_without_weights_takes_the_plain_mean(tiny):
     head0 = tiny.get_output_embeddings().weight.detach().clone()
     head = expand_model(tiny, {256: [3, 5]}, None).get_output_embeddings().weight
     assert np.allclose(head[256].detach(), (head0[3] + head0[5]) / 2, atol=1e-6)
+
+
+def test_test_set_takes_a_slice(tmp_path):
+    from wazocore.vx_torch import test_set
+
+    (tmp_path / "newstest2019-src.eng.txt").write_text("a\nb\nc\nd\n", encoding="utf-8")
+    (tmp_path / "newstest2019-ref.ibo.txt").write_text("A\nB\nC\nD\n", encoding="utf-8")
+    assert test_set("ntrex", tmp_path, "ig", 10, start=2) == (["c", "d"], ["C", "D"])

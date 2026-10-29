@@ -673,21 +673,22 @@ def generation_stats(gen: Sequence[int], canonical: int, first_new: int, eos: se
 NTREX = {"yo": "yor", "ha": "hau", "ig": "ibo"}
 
 
-def test_set(kind: str, root: Path, lang: str, n: int) -> tuple[list[str], list[str]]:
-    """English sources and `lang` references: FLORES-200 devtest, or NTREX-128
-    (news; never seen while WazoCore was developed)."""
+def test_set(kind: str, root: Path, lang: str, n: int, start: int = 0) -> tuple[list[str], list[str]]:
+    """English sources and `lang` references, lines start..start+n:
+    FLORES-200 devtest, or NTREX-128 (news; lines 500 on were never
+    scored before v7)."""
     if kind == "ntrex":
         src = (root / "newstest2019-src.eng.txt").read_text(encoding="utf-8").splitlines()
         ref = (root / f"newstest2019-ref.{NTREX[lang]}.txt").read_text(encoding="utf-8").splitlines()
     else:
         src = (root / "devtest" / "eng_Latn.devtest").read_text(encoding="utf-8").splitlines()
         ref = (root / "devtest" / f"{CODES[lang]}.devtest").read_text(encoding="utf-8").splitlines()
-    return src[:n], ref[:n]
+    return src[start:start + n], ref[start:start + n]
 
 
 def stage_sample(args) -> int:
-    """Greedy chat translations of English test sentences into yo/ha/ig,
-    in batches, with `generation_stats` for each."""
+    """Greedy chat translations of test sentences, English into yo/ha/ig
+    (or back with `--reverse`), in batches, with `generation_stats` for each."""
     import torch
 
     model, tok = load_model(args.model)
@@ -700,10 +701,13 @@ def stage_sample(args) -> int:
     kind, root = ("ntrex", args.ntrex) if args.ntrex else ("flores", args.flores)
     rows = []
     for lang, name in NAMES.items():
-        src, refs = test_set(kind, root, lang, args.n)
+        src, refs = test_set(kind, root, lang, args.n, args.start)
+        if args.reverse:
+            src, refs = refs, src
+        prompt = reverse_prompts if args.reverse else translation_prompts
         for b in range(0, len(src), args.batch):
             chunk = src[b:b + args.batch]
-            msgs = [[{"role": "user", "content": f"Translate the following English text into {name}. Reply with the translation only.\n\n{x}"}] for x in chunk]
+            msgs = [[{"role": "user", "content": p}] for p in prompt(chunk, name)]
             enc = tok.apply_chat_template(msgs, add_generation_prompt=True, return_tensors="pt", return_dict=True, padding=True).to(args.device)
             with torch.no_grad():
                 out = model.generate(**enc, max_new_tokens=args.max_tokens, do_sample=False, pad_token_id=tok.pad_token_id, **extra)
@@ -711,10 +715,13 @@ def stage_sample(args) -> int:
                 k = b + j
                 text = tok.decode(g, skip_special_tokens=True).strip()
                 stats = generation_stats(g, len(tok.encode(text, add_special_tokens=False)), first_new, eos)
-                rows.append({"lang": lang, "i": k, "output": text, "reference": refs[k], **stats})
+                rows.append({"lang": lang, "i": args.start + k, "source": src[k], "output": text, "reference": refs[k], **stats})
             print(f"{lang}: {min(b + args.batch, len(src))}/{len(src)}", file=sys.stderr)
     args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(json.dumps({"model": str(args.model), "test": kind, "rows": rows}, indent=1, ensure_ascii=False) + "\n")
+    tmp = args.out.with_suffix(".part")  # a lost host leaves no half-written result
+    tmp.write_text(json.dumps({"model": str(args.model), "test": kind, "direction": "xx-en" if args.reverse else "en-xx",
+                               "rows": rows}, indent=1, ensure_ascii=False) + "\n")
+    tmp.replace(args.out)
     return 0
 
 
@@ -871,6 +878,8 @@ def main(argv: Sequence[str]) -> int:
     s.add_argument("--ntrex", type=Path, help="NTREX-128 folder: test on it instead of FLORES")
     s.add_argument("--batch", type=int, default=32)
     s.add_argument("--n", type=int, default=5, help="sentences per language")
+    s.add_argument("--start", type=int, default=0, help="first test line (v7 holds out NTREX lines 500 on)")
+    s.add_argument("--reverse", action="store_true", help="translate yo/ha/ig into English")
     s.add_argument("--max-tokens", type=int, default=160)
     s.add_argument("--canonical", action="store_true", help="forbid pairs the tokenizer would have merged (diagnostic)")
     s.add_argument("--out", type=Path, required=True)
