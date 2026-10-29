@@ -92,4 +92,7 @@ About 20 GPU hours in total, plus restarts. See `docs/cloud-vx.md`.
 
 ## Deviations
 
-None yet.
+- **29 October 2026, AfriMGSM filter.** Scored with lm-eval's
+  `flexible-extract` filter. Strict match is 0 in every language because the
+  chat model answers in sentences. Fixed after seeing only the original's
+  scores, before any comparison.
