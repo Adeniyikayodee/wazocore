@@ -16,6 +16,7 @@ results under `/workspace/work/`.
 | `cloud_vx_validate.sh` | Retrains with a second seed and scores the original, the released model and the new run on NTREX-128 (500) and FLORES-200 (200) | about 2 h |
 | `cloud_vx_v5.sh` | The on-policy distillation experiment (section 5 of `HISTORY.md`) | about 4 h |
 | `cloud_vx_v6.sh` | The release (`METHOD.md`). `ARMS=long` builds it: expansion, human-translation data, training, a 700-sentence gate against the original and GGUF export. The default arms `fix`, `gold` and `control` and the optional `small` and `mbr` are the experiments behind it | `long` about 1.5 h; the three default arms 2.6 h; `small` 50 min; `mbr` adds about 2 h (not run) |
+| `cloud_vx_v7.sh` | The open questions of `METHOD.md` section 6, as fixed in `PLAN-v7.md`: held-out test, matched control, ablations, the standard recipe, three seeds, IrokoBench, AfriCOMET. Every step is skipped once its result exists. Trains nothing for release | about 20 h |
 | `cloud_gguf.sh` | GGUF export, shared by the pipelines. `IMATRIX=/workspace/work/data/wiki` also writes a file quantised with an importance matrix (not yet run or gated) | about 5 min; the importance matrix is untimed |
 
 ## Run it
@@ -58,6 +59,37 @@ results under `/workspace/work/`.
    `sha256.txt` against the copies before stopping the host. The host bills by
    the hour until it is deleted. Upload the trained model (16 GB) to a private
    Hugging Face repository from the host; it is too large to bring to a laptop.
+
+## Community Cloud
+
+Community pods cost about a third less than Secure ones, but run on other
+people's machines: a host can disappear, there is no network volume, and the
+host owner has physical access. `cloud_vx_v7.sh` is built for that.
+
+- **Deploy** an A100 80GB (PCIe or SXM) with a 200 GB container disk and no
+  volume, then upload and log in as above, with a fine-grained Hugging Face
+  token that can only read gated repositories. Delete the token after the run.
+- **Start it** in `tmux` and keep `run.log`, which the pull script reads:
+
+  ```sh
+  tmux new -d -s run 'bash /workspace/cloud_vx_v7.sh 2>&1 | tee /workspace/run.log'
+  ```
+
+- **Pull results as they land.** On the laptop, this copies
+  `results-v7/` into `results/vocab/v7/` every five minutes, prints the
+  current step, and with `STOP=1` stops the pod when the run ends:
+
+  ```sh
+  STOP=1 caffeinate -i scripts/cloud_pull.sh HOST PORT
+  ```
+
+- **If the host disappears,** deploy another pod and run the upload again: it
+  sends the pulled results back, and the pipeline skips everything already
+  finished. It refuses to continue if the training data's hashes differ from
+  the first pod's. A new pod can reuse an old address with a new host key;
+  clear it with `ssh-keygen -R "[HOST]:PORT"`.
+- **Nothing private leaves the pod.** v7 downloads the public release, keeps
+  weights only while it scores them, and writes nothing to Hugging Face.
 
 ## Outputs
 
