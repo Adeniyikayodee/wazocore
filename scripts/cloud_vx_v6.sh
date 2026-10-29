@@ -12,6 +12,7 @@
 #            the data gives from what the vocabulary costs.
 #   small    gold, with a smaller vocabulary (needs $W/vx-tok-small).
 #   long     gold, with twice the training (12M tokens): the release recipe.
+#   data     no training: download and build the data, then stop.
 # Run after scripts/cloud_vx_upload.sh and `hf auth login`:
 #   bash /workspace/cloud_vx_v6.sh
 # Knobs: ARMS (default "fix gold control"), CANDIDATES (default 9), TOKENS, SEED,
@@ -102,6 +103,7 @@ for a in $ARMS; do
     small)   init init-small $W/vx-tok-small; arm small $M/init-small gold $CANONICAL ;;
     long)    init init-v6 $W/vx-tok;          TOKENS=12000000 arm long $M/init-v6 gold $CANONICAL ;;
     control) arm control $M/n-atlas gold ;;
+    data)    ;;  # prepare the data only (cloud_vx_v7.sh)
     *) echo "unknown arm: $a" >&2; exit 1 ;;
     esac
 done
