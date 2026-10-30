@@ -96,3 +96,6 @@ About 20 GPU hours in total, plus restarts. See `docs/cloud-vx.md`.
   `flexible-extract` filter. Strict match is 0 in every language because the
   chat model answers in sentences. Fixed after seeing only the original's
   scores, before any comparison.
+- **30 October 2026, old-anchor batch.** Ran out of memory at BATCH 8,
+  ACCUM 2, KL_BATCH 4; retrained at 4, 4 and 2. Same text and anchor
+  windows per step, in the same order.
