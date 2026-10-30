@@ -1,0 +1,1134 @@
+{
+  "results": {
+    "afrixnli_yor_prompt_1": {
+      "name": "afrixnli_yor_prompt_1",
+      "alias": "afrixnli_yor_prompt_1",
+      "sample_len": 600,
+      "acc,none": 0.4816666666666667,
+      "acc_stderr,none": 0.020415708414476413,
+      "f1,none": 0.4498661443407342,
+      "f1_stderr,none": "N/A"
+    },
+    "afrimmlu_direct_yor_prompt_1": {
+      "name": "afrimmlu_direct_yor_prompt_1",
+      "alias": "afrimmlu_direct_yor_prompt_1",
+      "sample_len": 500,
+      "acc,none": 0.316,
+      "acc_stderr,none": 0.020812359515855822,
+      "f1,none": 0.3116753826054498,
+      "f1_stderr,none": "N/A"
+    },
+    "afrimgsm_yor_prompt_1": {
+      "name": "afrimgsm_yor_prompt_1",
+      "alias": "afrimgsm_yor_prompt_1",
+      "sample_len": 250,
+      "exact_match,remove_whitespace": 0.004,
+      "exact_match_stderr,remove_whitespace": 0.004000000000000008,
+      "exact_match,flexible-extract": 0.2,
+      "exact_match_stderr,flexible-extract": 0.025348970020979078
+    },
+    "afrixnli_hau_prompt_1": {
+      "name": "afrixnli_hau_prompt_1",
+      "alias": "afrixnli_hau_prompt_1",
+      "sample_len": 600,
+      "acc,none": 0.53,
+      "acc_stderr,none": 0.020392640002636457,
+      "f1,none": 0.5169245091608754,
+      "f1_stderr,none": "N/A"
+    },
+    "afrimmlu_direct_hau_prompt_1": {
+      "name": "afrimmlu_direct_hau_prompt_1",
+      "alias": "afrimmlu_direct_hau_prompt_1",
+      "sample_len": 500,
+      "acc,none": 0.302,
+      "acc_stderr,none": 0.02055326917420912,
+      "f1,none": 0.3007342610431463,
+      "f1_stderr,none": "N/A"
+    },
+    "afrimgsm_hau_prompt_1": {
+      "name": "afrimgsm_hau_prompt_1",
+      "alias": "afrimgsm_hau_prompt_1",
+      "sample_len": 250,
+      "exact_match,remove_whitespace": 0.0,
+      "exact_match_stderr,remove_whitespace": 0.0,
+      "exact_match,flexible-extract": 0.316,
+      "exact_match_stderr,flexible-extract": 0.02946265759857866
+    },
+    "afrixnli_ibo_prompt_1": {
+      "name": "afrixnli_ibo_prompt_1",
+      "alias": "afrixnli_ibo_prompt_1",
+      "sample_len": 600,
+      "acc,none": 0.5,
+      "acc_stderr,none": 0.02042944616113592,
+      "f1,none": 0.4787272785845219,
+      "f1_stderr,none": "N/A"
+    },
+    "afrimmlu_direct_ibo_prompt_1": {
+      "name": "afrimmlu_direct_ibo_prompt_1",
+      "alias": "afrimmlu_direct_ibo_prompt_1",
+      "sample_len": 500,
+      "acc,none": 0.324,
+      "acc_stderr,none": 0.020950557312477552,
+      "f1,none": 0.32233361834079,
+      "f1_stderr,none": "N/A"
+    },
+    "afrimgsm_ibo_prompt_1": {
+      "name": "afrimgsm_ibo_prompt_1",
+      "alias": "afrimgsm_ibo_prompt_1",
+      "sample_len": 250,
+      "exact_match,remove_whitespace": 0.0,
+      "exact_match_stderr,remove_whitespace": 0.0,
+      "exact_match,flexible-extract": 0.16,
+      "exact_match_stderr,flexible-extract": 0.023232714782060654
+    },
+    "afrixnli_eng_prompt_1": {
+      "name": "afrixnli_eng_prompt_1",
+      "alias": "afrixnli_eng_prompt_1",
+      "sample_len": 600,
+      "acc,none": 0.655,
+      "acc_stderr,none": 0.019423021295885818,
+      "f1,none": 0.6480990631682211,
+      "f1_stderr,none": "N/A"
+    },
+    "afrimmlu_direct_eng_prompt_1": {
+      "name": "afrimmlu_direct_eng_prompt_1",
+      "alias": "afrimmlu_direct_eng_prompt_1",
+      "sample_len": 500,
+      "acc,none": 0.544,
+      "acc_stderr,none": 0.022296238348407067,
+      "f1,none": 0.5437744586434469,
+      "f1_stderr,none": "N/A"
+    },
+    "afrimgsm_eng_prompt_1": {
+      "name": "afrimgsm_eng_prompt_1",
+      "alias": "afrimgsm_eng_prompt_1",
+      "sample_len": 250,
+      "exact_match,remove_whitespace": 0.0,
+      "exact_match_stderr,remove_whitespace": 0.0,
+      "exact_match,flexible-extract": 0.592,
+      "exact_match_stderr,flexible-extract": 0.03114520984654851
+    }
+  },
+  "group_subtasks": {},
+  "configs": {
+    "afrimgsm_eng_prompt_1": {
+      "task": "afrimgsm_eng_prompt_1",
+      "dataset_path": "masakhane/afrimgsm",
+      "dataset_name": "eng",
+      "test_split": "test",
+      "doc_to_text": "{% if answer is not none %}{{question+\"\\nAnswer:\"}}{% else %}{{\"Question: \"+question+\"\\nAnswer:\"}}{% endif %}",
+      "doc_to_target": "{% if answer is not none %}{{answer[21:]}}{% else %}{{answer_number|string}}{% endif %}",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": "",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": {
+        "sampler": "default",
+        "split": null,
+        "process_docs": null,
+        "fewshot_indices": null,
+        "samples": null,
+        "doc_to_text": "{% if answer is not none %}{{question+\"\\nAnswer:\"}}{% else %}{{\"Question: \"+question+\"\\nAnswer:\"}}{% endif %}",
+        "doc_to_choice": null,
+        "doc_to_target": "{% if answer is not none %}{{answer[21:]}}{% else %}{{answer_number|string}}{% endif %}",
+        "gen_prefix": null,
+        "fewshot_delimiter": "\n\n",
+        "target_delimiter": ""
+      },
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "exact_match",
+          "aggregation": "mean",
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "do_sample": false,
+        "until": [
+          "Question:",
+          "</s>",
+          "<|im_end|>"
+        ]
+      },
+      "repeats": 1,
+      "filter_list": [
+        {
+          "name": "remove_whitespace",
+          "filter": [
+            {
+              "function": "remove_whitespace"
+            },
+            {
+              "function": "take_first"
+            }
+          ]
+        },
+        {
+          "filter": [
+            {
+              "function": "regex",
+              "group_select": -1,
+              "regex_pattern": "(-?[$0-9.,]{2,})|(-?[0-9]+)"
+            },
+            {
+              "function": "take_first"
+            }
+          ],
+          "name": "flexible-extract"
+        }
+      ],
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 2.0,
+        "pretrained": "/workspace/work/release",
+        "dtype": "bfloat16",
+        "config_source": "/workspace/venv-eval/lib/python3.12/site-packages/lm_eval/tasks/afrimgsm/direct/prompt_1/afrimgsm_eng.yaml"
+      }
+    },
+    "afrimgsm_hau_prompt_1": {
+      "task": "afrimgsm_hau_prompt_1",
+      "dataset_path": "masakhane/afrimgsm",
+      "dataset_name": "hau",
+      "test_split": "test",
+      "doc_to_text": "{% if answer is not none %}{{question+\"\\nAnswer:\"}}{% else %}{{\"Question: \"+question+\"\\nAnswer:\"}}{% endif %}",
+      "doc_to_target": "{% if answer is not none %}{{answer[21:]}}{% else %}{{answer_number|string}}{% endif %}",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": "",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": {
+        "sampler": "default",
+        "split": null,
+        "process_docs": null,
+        "fewshot_indices": null,
+        "samples": null,
+        "doc_to_text": "{% if answer is not none %}{{question+\"\\nAnswer:\"}}{% else %}{{\"Question: \"+question+\"\\nAnswer:\"}}{% endif %}",
+        "doc_to_choice": null,
+        "doc_to_target": "{% if answer is not none %}{{answer[21:]}}{% else %}{{answer_number|string}}{% endif %}",
+        "gen_prefix": null,
+        "fewshot_delimiter": "\n\n",
+        "target_delimiter": ""
+      },
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "exact_match",
+          "aggregation": "mean",
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "do_sample": false,
+        "until": [
+          "Question:",
+          "</s>",
+          "<|im_end|>"
+        ]
+      },
+      "repeats": 1,
+      "filter_list": [
+        {
+          "name": "remove_whitespace",
+          "filter": [
+            {
+              "function": "remove_whitespace"
+            },
+            {
+              "function": "take_first"
+            }
+          ]
+        },
+        {
+          "filter": [
+            {
+              "function": "regex",
+              "group_select": -1,
+              "regex_pattern": "(-?[$0-9.,]{2,})|(-?[0-9]+)"
+            },
+            {
+              "function": "take_first"
+            }
+          ],
+          "name": "flexible-extract"
+        }
+      ],
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 2.0,
+        "pretrained": "/workspace/work/release",
+        "dtype": "bfloat16",
+        "config_source": "/workspace/venv-eval/lib/python3.12/site-packages/lm_eval/tasks/afrimgsm/direct/prompt_1/afrimgsm_hau.yaml"
+      }
+    },
+    "afrimgsm_ibo_prompt_1": {
+      "task": "afrimgsm_ibo_prompt_1",
+      "dataset_path": "masakhane/afrimgsm",
+      "dataset_name": "ibo",
+      "test_split": "test",
+      "doc_to_text": "{% if answer is not none %}{{question+\"\\nAnswer:\"}}{% else %}{{\"Question: \"+question+\"\\nAnswer:\"}}{% endif %}",
+      "doc_to_target": "{% if answer is not none %}{{answer[21:]}}{% else %}{{answer_number|string}}{% endif %}",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": "",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": {
+        "sampler": "default",
+        "split": null,
+        "process_docs": null,
+        "fewshot_indices": null,
+        "samples": null,
+        "doc_to_text": "{% if answer is not none %}{{question+\"\\nAnswer:\"}}{% else %}{{\"Question: \"+question+\"\\nAnswer:\"}}{% endif %}",
+        "doc_to_choice": null,
+        "doc_to_target": "{% if answer is not none %}{{answer[21:]}}{% else %}{{answer_number|string}}{% endif %}",
+        "gen_prefix": null,
+        "fewshot_delimiter": "\n\n",
+        "target_delimiter": ""
+      },
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "exact_match",
+          "aggregation": "mean",
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "do_sample": false,
+        "until": [
+          "Question:",
+          "</s>",
+          "<|im_end|>"
+        ]
+      },
+      "repeats": 1,
+      "filter_list": [
+        {
+          "name": "remove_whitespace",
+          "filter": [
+            {
+              "function": "remove_whitespace"
+            },
+            {
+              "function": "take_first"
+            }
+          ]
+        },
+        {
+          "filter": [
+            {
+              "function": "regex",
+              "group_select": -1,
+              "regex_pattern": "(-?[$0-9.,]{2,})|(-?[0-9]+)"
+            },
+            {
+              "function": "take_first"
+            }
+          ],
+          "name": "flexible-extract"
+        }
+      ],
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 2.0,
+        "pretrained": "/workspace/work/release",
+        "dtype": "bfloat16",
+        "config_source": "/workspace/venv-eval/lib/python3.12/site-packages/lm_eval/tasks/afrimgsm/direct/prompt_1/afrimgsm_ibo.yaml"
+      }
+    },
+    "afrimgsm_yor_prompt_1": {
+      "task": "afrimgsm_yor_prompt_1",
+      "dataset_path": "masakhane/afrimgsm",
+      "dataset_name": "yor",
+      "test_split": "test",
+      "doc_to_text": "{% if answer is not none %}{{question+\"\\nAnswer:\"}}{% else %}{{\"Question: \"+question+\"\\nAnswer:\"}}{% endif %}",
+      "doc_to_target": "{% if answer is not none %}{{answer[21:]}}{% else %}{{answer_number|string}}{% endif %}",
+      "unsafe_code": false,
+      "description": "",
+      "target_delimiter": "",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": {
+        "sampler": "default",
+        "split": null,
+        "process_docs": null,
+        "fewshot_indices": null,
+        "samples": null,
+        "doc_to_text": "{% if answer is not none %}{{question+\"\\nAnswer:\"}}{% else %}{{\"Question: \"+question+\"\\nAnswer:\"}}{% endif %}",
+        "doc_to_choice": null,
+        "doc_to_target": "{% if answer is not none %}{{answer[21:]}}{% else %}{{answer_number|string}}{% endif %}",
+        "gen_prefix": null,
+        "fewshot_delimiter": "\n\n",
+        "target_delimiter": ""
+      },
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "exact_match",
+          "aggregation": "mean",
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true
+        }
+      ],
+      "output_type": "generate_until",
+      "generation_kwargs": {
+        "do_sample": false,
+        "until": [
+          "Question:",
+          "</s>",
+          "<|im_end|>"
+        ]
+      },
+      "repeats": 1,
+      "filter_list": [
+        {
+          "name": "remove_whitespace",
+          "filter": [
+            {
+              "function": "remove_whitespace"
+            },
+            {
+              "function": "take_first"
+            }
+          ]
+        },
+        {
+          "filter": [
+            {
+              "function": "regex",
+              "group_select": -1,
+              "regex_pattern": "(-?[$0-9.,]{2,})|(-?[0-9]+)"
+            },
+            {
+              "function": "take_first"
+            }
+          ],
+          "name": "flexible-extract"
+        }
+      ],
+      "should_decontaminate": false,
+      "metadata": {
+        "version": 2.0,
+        "pretrained": "/workspace/work/release",
+        "dtype": "bfloat16",
+        "config_source": "/workspace/venv-eval/lib/python3.12/site-packages/lm_eval/tasks/afrimgsm/direct/prompt_1/afrimgsm_yor.yaml"
+      }
+    },
+    "afrimmlu_direct_eng_prompt_1": {
+      "task": "afrimmlu_direct_eng_prompt_1",
+      "dataset_path": "masakhane/afrimmlu",
+      "dataset_name": "eng",
+      "validation_split": "validation",
+      "test_split": "test",
+      "fewshot_split": "validation",
+      "doc_to_text": "def doc_to_text(doc):\n    output = \"\"\"You are a highly knowledgeable and intelligent artificial intelligence\n                model answers multiple-choice questions about {subject}\n\n                Question: {question}\n\n                Choices:\n                        A: {choice1}\n                        B: {choice2}\n                        C: {choice3}\n                        D: {choice4}\n\n                Answer:  \"\"\"\n\n    choices = ast.literal_eval(doc[\"choices\"])\n    text = output.format(\n        subject=doc[\"subject\"],\n        question=doc[\"question\"],\n        choice1=choices[0],\n        choice2=choices[1],\n        choice3=choices[2],\n        choice4=choices[3],\n    )\n    return text\n",
+      "doc_to_target": "{{['A', 'B', 'C', 'D'].index(answer)}}",
+      "unsafe_code": false,
+      "doc_to_choice": "def doc_to_choice(doc):\n    choices = ast.literal_eval(doc[\"choices\"])\n    return choices\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": {
+        "sampler": "default",
+        "split": "validation",
+        "process_docs": null,
+        "fewshot_indices": null,
+        "samples": null,
+        "doc_to_text": "<function doc_to_text at 0x747783996700>",
+        "doc_to_choice": "<function doc_to_choice at 0x7477839963e0>",
+        "doc_to_target": "{{['A', 'B', 'C', 'D'].index(answer)}}",
+        "gen_prefix": null,
+        "fewshot_delimiter": "\n\n",
+        "target_delimiter": " "
+      },
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "f1",
+          "aggregation": "def weighted_f1_score(items):\n    from sklearn.metrics import f1_score\n\n    unzipped_list = list(zip(*items, strict=True))\n    golds = unzipped_list[0]\n    preds = unzipped_list[1]\n    fscore = f1_score(golds, preds, average=\"weighted\")\n    return fscore\n",
+          "average": "weighted",
+          "hf_evaluate": true,
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true,
+          "regexes_to_ignore": [
+            ",",
+            "\\$"
+          ]
+        },
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true,
+          "regexes_to_ignore": [
+            ",",
+            "\\$"
+          ]
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "Question: {{question}}\nAnswer:",
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "/workspace/work/release",
+        "dtype": "bfloat16",
+        "config_source": "/workspace/venv-eval/lib/python3.12/site-packages/lm_eval/tasks/afrimmlu/direct/prompt_1/afrimmlu_direct_eng.yaml"
+      }
+    },
+    "afrimmlu_direct_hau_prompt_1": {
+      "task": "afrimmlu_direct_hau_prompt_1",
+      "dataset_path": "masakhane/afrimmlu",
+      "dataset_name": "hau",
+      "validation_split": "validation",
+      "test_split": "test",
+      "fewshot_split": "validation",
+      "doc_to_text": "def doc_to_text(doc):\n    output = \"\"\"You are a highly knowledgeable and intelligent artificial intelligence\n                model answers multiple-choice questions about {subject}\n\n                Question: {question}\n\n                Choices:\n                        A: {choice1}\n                        B: {choice2}\n                        C: {choice3}\n                        D: {choice4}\n\n                Answer:  \"\"\"\n\n    choices = ast.literal_eval(doc[\"choices\"])\n    text = output.format(\n        subject=doc[\"subject\"],\n        question=doc[\"question\"],\n        choice1=choices[0],\n        choice2=choices[1],\n        choice3=choices[2],\n        choice4=choices[3],\n    )\n    return text\n",
+      "doc_to_target": "{{['A', 'B', 'C', 'D'].index(answer)}}",
+      "unsafe_code": false,
+      "doc_to_choice": "def doc_to_choice(doc):\n    choices = ast.literal_eval(doc[\"choices\"])\n    return choices\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": {
+        "sampler": "default",
+        "split": "validation",
+        "process_docs": null,
+        "fewshot_indices": null,
+        "samples": null,
+        "doc_to_text": "<function doc_to_text at 0x747783996700>",
+        "doc_to_choice": "<function doc_to_choice at 0x7477839963e0>",
+        "doc_to_target": "{{['A', 'B', 'C', 'D'].index(answer)}}",
+        "gen_prefix": null,
+        "fewshot_delimiter": "\n\n",
+        "target_delimiter": " "
+      },
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "f1",
+          "aggregation": "def weighted_f1_score(items):\n    from sklearn.metrics import f1_score\n\n    unzipped_list = list(zip(*items, strict=True))\n    golds = unzipped_list[0]\n    preds = unzipped_list[1]\n    fscore = f1_score(golds, preds, average=\"weighted\")\n    return fscore\n",
+          "average": "weighted",
+          "hf_evaluate": true,
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true,
+          "regexes_to_ignore": [
+            ",",
+            "\\$"
+          ]
+        },
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true,
+          "regexes_to_ignore": [
+            ",",
+            "\\$"
+          ]
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "Question: {{question}}\nAnswer:",
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "/workspace/work/release",
+        "dtype": "bfloat16",
+        "config_source": "/workspace/venv-eval/lib/python3.12/site-packages/lm_eval/tasks/afrimmlu/direct/prompt_1/afrimmlu_direct_hau.yaml"
+      }
+    },
+    "afrimmlu_direct_ibo_prompt_1": {
+      "task": "afrimmlu_direct_ibo_prompt_1",
+      "dataset_path": "masakhane/afrimmlu",
+      "dataset_name": "ibo",
+      "validation_split": "validation",
+      "test_split": "test",
+      "fewshot_split": "validation",
+      "doc_to_text": "def doc_to_text(doc):\n    output = \"\"\"You are a highly knowledgeable and intelligent artificial intelligence\n                model answers multiple-choice questions about {subject}\n\n                Question: {question}\n\n                Choices:\n                        A: {choice1}\n                        B: {choice2}\n                        C: {choice3}\n                        D: {choice4}\n\n                Answer:  \"\"\"\n\n    choices = ast.literal_eval(doc[\"choices\"])\n    text = output.format(\n        subject=doc[\"subject\"],\n        question=doc[\"question\"],\n        choice1=choices[0],\n        choice2=choices[1],\n        choice3=choices[2],\n        choice4=choices[3],\n    )\n    return text\n",
+      "doc_to_target": "{{['A', 'B', 'C', 'D'].index(answer)}}",
+      "unsafe_code": false,
+      "doc_to_choice": "def doc_to_choice(doc):\n    choices = ast.literal_eval(doc[\"choices\"])\n    return choices\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": {
+        "sampler": "default",
+        "split": "validation",
+        "process_docs": null,
+        "fewshot_indices": null,
+        "samples": null,
+        "doc_to_text": "<function doc_to_text at 0x747783996700>",
+        "doc_to_choice": "<function doc_to_choice at 0x7477839963e0>",
+        "doc_to_target": "{{['A', 'B', 'C', 'D'].index(answer)}}",
+        "gen_prefix": null,
+        "fewshot_delimiter": "\n\n",
+        "target_delimiter": " "
+      },
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "f1",
+          "aggregation": "def weighted_f1_score(items):\n    from sklearn.metrics import f1_score\n\n    unzipped_list = list(zip(*items, strict=True))\n    golds = unzipped_list[0]\n    preds = unzipped_list[1]\n    fscore = f1_score(golds, preds, average=\"weighted\")\n    return fscore\n",
+          "average": "weighted",
+          "hf_evaluate": true,
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true,
+          "regexes_to_ignore": [
+            ",",
+            "\\$"
+          ]
+        },
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true,
+          "regexes_to_ignore": [
+            ",",
+            "\\$"
+          ]
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "Question: {{question}}\nAnswer:",
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "/workspace/work/release",
+        "dtype": "bfloat16",
+        "config_source": "/workspace/venv-eval/lib/python3.12/site-packages/lm_eval/tasks/afrimmlu/direct/prompt_1/afrimmlu_direct_ibo.yaml"
+      }
+    },
+    "afrimmlu_direct_yor_prompt_1": {
+      "task": "afrimmlu_direct_yor_prompt_1",
+      "dataset_path": "masakhane/afrimmlu",
+      "dataset_name": "yor",
+      "validation_split": "validation",
+      "test_split": "test",
+      "fewshot_split": "validation",
+      "doc_to_text": "def doc_to_text(doc):\n    output = \"\"\"You are a highly knowledgeable and intelligent artificial intelligence\n                model answers multiple-choice questions about {subject}\n\n                Question: {question}\n\n                Choices:\n                        A: {choice1}\n                        B: {choice2}\n                        C: {choice3}\n                        D: {choice4}\n\n                Answer:  \"\"\"\n\n    choices = ast.literal_eval(doc[\"choices\"])\n    text = output.format(\n        subject=doc[\"subject\"],\n        question=doc[\"question\"],\n        choice1=choices[0],\n        choice2=choices[1],\n        choice3=choices[2],\n        choice4=choices[3],\n    )\n    return text\n",
+      "doc_to_target": "{{['A', 'B', 'C', 'D'].index(answer)}}",
+      "unsafe_code": false,
+      "doc_to_choice": "def doc_to_choice(doc):\n    choices = ast.literal_eval(doc[\"choices\"])\n    return choices\n",
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": {
+        "sampler": "default",
+        "split": "validation",
+        "process_docs": null,
+        "fewshot_indices": null,
+        "samples": null,
+        "doc_to_text": "<function doc_to_text at 0x747783996700>",
+        "doc_to_choice": "<function doc_to_choice at 0x7477839963e0>",
+        "doc_to_target": "{{['A', 'B', 'C', 'D'].index(answer)}}",
+        "gen_prefix": null,
+        "fewshot_delimiter": "\n\n",
+        "target_delimiter": " "
+      },
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "f1",
+          "aggregation": "def weighted_f1_score(items):\n    from sklearn.metrics import f1_score\n\n    unzipped_list = list(zip(*items, strict=True))\n    golds = unzipped_list[0]\n    preds = unzipped_list[1]\n    fscore = f1_score(golds, preds, average=\"weighted\")\n    return fscore\n",
+          "average": "weighted",
+          "hf_evaluate": true,
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true,
+          "regexes_to_ignore": [
+            ",",
+            "\\$"
+          ]
+        },
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true,
+          "regexes_to_ignore": [
+            ",",
+            "\\$"
+          ]
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "Question: {{question}}\nAnswer:",
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "/workspace/work/release",
+        "dtype": "bfloat16",
+        "config_source": "/workspace/venv-eval/lib/python3.12/site-packages/lm_eval/tasks/afrimmlu/direct/prompt_1/afrimmlu_direct_yor.yaml"
+      }
+    },
+    "afrixnli_eng_prompt_1": {
+      "task": "afrixnli_eng_prompt_1",
+      "dataset_path": "masakhane/afrixnli",
+      "dataset_name": "eng",
+      "validation_split": "validation",
+      "test_split": "test",
+      "fewshot_split": "validation",
+      "doc_to_text": "Please identify whether the premise entails or contradicts the hypothesis in the following premise and hypothesis. The answer should be exact entailment, contradiction, or neutral.\n\nPremise: {{premise}}\nHypothesis: {{hypothesis}}\n\nIs it entailment, contradiction, or neutral?",
+      "doc_to_target": "def doc_to_target(doc):\n    replacements = {0: \"entailment\", 1: \"neutral\", 2: \"contradiction\"}\n    return replacements[doc[\"label\"]]\n",
+      "unsafe_code": false,
+      "doc_to_choice": [
+        "entailment",
+        "neutral",
+        "contradiction"
+      ],
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": {
+        "sampler": "default",
+        "split": "validation",
+        "process_docs": null,
+        "fewshot_indices": null,
+        "samples": null,
+        "doc_to_text": "Please identify whether the premise entails or contradicts the hypothesis in the following premise and hypothesis. The answer should be exact entailment, contradiction, or neutral.\n\nPremise: {{premise}}\nHypothesis: {{hypothesis}}\n\nIs it entailment, contradiction, or neutral?",
+        "doc_to_choice": [
+          "entailment",
+          "neutral",
+          "contradiction"
+        ],
+        "doc_to_target": "<function doc_to_target at 0x7477889df740>",
+        "gen_prefix": null,
+        "fewshot_delimiter": "\n\n",
+        "target_delimiter": " "
+      },
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "f1",
+          "aggregation": "def weighted_f1_score(items):\n    from sklearn.metrics import f1_score\n\n    unzipped_list = list(zip(*items, strict=True))\n    golds = unzipped_list[0]\n    preds = unzipped_list[1]\n    fscore = f1_score(golds, preds, average=\"weighted\")\n    return fscore\n",
+          "average": "weighted",
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true
+        },
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "premise",
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "/workspace/work/release",
+        "dtype": "bfloat16",
+        "config_source": "/workspace/venv-eval/lib/python3.12/site-packages/lm_eval/tasks/afrixnli/direct/prompt_1/afrixnli_eng.yaml"
+      }
+    },
+    "afrixnli_hau_prompt_1": {
+      "task": "afrixnli_hau_prompt_1",
+      "dataset_path": "masakhane/afrixnli",
+      "dataset_name": "hau",
+      "validation_split": "validation",
+      "test_split": "test",
+      "fewshot_split": "validation",
+      "doc_to_text": "Please identify whether the premise entails or contradicts the hypothesis in the following premise and hypothesis. The answer should be exact entailment, contradiction, or neutral.\n\nPremise: {{premise}}\nHypothesis: {{hypothesis}}\n\nIs it entailment, contradiction, or neutral?",
+      "doc_to_target": "def doc_to_target(doc):\n    replacements = {0: \"entailment\", 1: \"neutral\", 2: \"contradiction\"}\n    return replacements[doc[\"label\"]]\n",
+      "unsafe_code": false,
+      "doc_to_choice": [
+        "entailment",
+        "neutral",
+        "contradiction"
+      ],
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": {
+        "sampler": "default",
+        "split": "validation",
+        "process_docs": null,
+        "fewshot_indices": null,
+        "samples": null,
+        "doc_to_text": "Please identify whether the premise entails or contradicts the hypothesis in the following premise and hypothesis. The answer should be exact entailment, contradiction, or neutral.\n\nPremise: {{premise}}\nHypothesis: {{hypothesis}}\n\nIs it entailment, contradiction, or neutral?",
+        "doc_to_choice": [
+          "entailment",
+          "neutral",
+          "contradiction"
+        ],
+        "doc_to_target": "<function doc_to_target at 0x7477889df740>",
+        "gen_prefix": null,
+        "fewshot_delimiter": "\n\n",
+        "target_delimiter": " "
+      },
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "f1",
+          "aggregation": "def weighted_f1_score(items):\n    from sklearn.metrics import f1_score\n\n    unzipped_list = list(zip(*items, strict=True))\n    golds = unzipped_list[0]\n    preds = unzipped_list[1]\n    fscore = f1_score(golds, preds, average=\"weighted\")\n    return fscore\n",
+          "average": "weighted",
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true
+        },
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "premise",
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "/workspace/work/release",
+        "dtype": "bfloat16",
+        "config_source": "/workspace/venv-eval/lib/python3.12/site-packages/lm_eval/tasks/afrixnli/direct/prompt_1/afrixnli_hau.yaml"
+      }
+    },
+    "afrixnli_ibo_prompt_1": {
+      "task": "afrixnli_ibo_prompt_1",
+      "dataset_path": "masakhane/afrixnli",
+      "dataset_name": "ibo",
+      "validation_split": "validation",
+      "test_split": "test",
+      "fewshot_split": "validation",
+      "doc_to_text": "Please identify whether the premise entails or contradicts the hypothesis in the following premise and hypothesis. The answer should be exact entailment, contradiction, or neutral.\n\nPremise: {{premise}}\nHypothesis: {{hypothesis}}\n\nIs it entailment, contradiction, or neutral?",
+      "doc_to_target": "def doc_to_target(doc):\n    replacements = {0: \"entailment\", 1: \"neutral\", 2: \"contradiction\"}\n    return replacements[doc[\"label\"]]\n",
+      "unsafe_code": false,
+      "doc_to_choice": [
+        "entailment",
+        "neutral",
+        "contradiction"
+      ],
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": {
+        "sampler": "default",
+        "split": "validation",
+        "process_docs": null,
+        "fewshot_indices": null,
+        "samples": null,
+        "doc_to_text": "Please identify whether the premise entails or contradicts the hypothesis in the following premise and hypothesis. The answer should be exact entailment, contradiction, or neutral.\n\nPremise: {{premise}}\nHypothesis: {{hypothesis}}\n\nIs it entailment, contradiction, or neutral?",
+        "doc_to_choice": [
+          "entailment",
+          "neutral",
+          "contradiction"
+        ],
+        "doc_to_target": "<function doc_to_target at 0x7477889df740>",
+        "gen_prefix": null,
+        "fewshot_delimiter": "\n\n",
+        "target_delimiter": " "
+      },
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "f1",
+          "aggregation": "def weighted_f1_score(items):\n    from sklearn.metrics import f1_score\n\n    unzipped_list = list(zip(*items, strict=True))\n    golds = unzipped_list[0]\n    preds = unzipped_list[1]\n    fscore = f1_score(golds, preds, average=\"weighted\")\n    return fscore\n",
+          "average": "weighted",
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true
+        },
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "premise",
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "/workspace/work/release",
+        "dtype": "bfloat16",
+        "config_source": "/workspace/venv-eval/lib/python3.12/site-packages/lm_eval/tasks/afrixnli/direct/prompt_1/afrixnli_ibo.yaml"
+      }
+    },
+    "afrixnli_yor_prompt_1": {
+      "task": "afrixnli_yor_prompt_1",
+      "dataset_path": "masakhane/afrixnli",
+      "dataset_name": "yor",
+      "validation_split": "validation",
+      "test_split": "test",
+      "fewshot_split": "validation",
+      "doc_to_text": "Please identify whether the premise entails or contradicts the hypothesis in the following premise and hypothesis. The answer should be exact entailment, contradiction, or neutral.\n\nPremise: {{premise}}\nHypothesis: {{hypothesis}}\n\nIs it entailment, contradiction, or neutral?",
+      "doc_to_target": "def doc_to_target(doc):\n    replacements = {0: \"entailment\", 1: \"neutral\", 2: \"contradiction\"}\n    return replacements[doc[\"label\"]]\n",
+      "unsafe_code": false,
+      "doc_to_choice": [
+        "entailment",
+        "neutral",
+        "contradiction"
+      ],
+      "description": "",
+      "target_delimiter": " ",
+      "fewshot_delimiter": "\n\n",
+      "fewshot_config": {
+        "sampler": "default",
+        "split": "validation",
+        "process_docs": null,
+        "fewshot_indices": null,
+        "samples": null,
+        "doc_to_text": "Please identify whether the premise entails or contradicts the hypothesis in the following premise and hypothesis. The answer should be exact entailment, contradiction, or neutral.\n\nPremise: {{premise}}\nHypothesis: {{hypothesis}}\n\nIs it entailment, contradiction, or neutral?",
+        "doc_to_choice": [
+          "entailment",
+          "neutral",
+          "contradiction"
+        ],
+        "doc_to_target": "<function doc_to_target at 0x7477889df740>",
+        "gen_prefix": null,
+        "fewshot_delimiter": "\n\n",
+        "target_delimiter": " "
+      },
+      "num_fewshot": 0,
+      "metric_list": [
+        {
+          "metric": "f1",
+          "aggregation": "def weighted_f1_score(items):\n    from sklearn.metrics import f1_score\n\n    unzipped_list = list(zip(*items, strict=True))\n    golds = unzipped_list[0]\n    preds = unzipped_list[1]\n    fscore = f1_score(golds, preds, average=\"weighted\")\n    return fscore\n",
+          "average": "weighted",
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true
+        },
+        {
+          "metric": "acc",
+          "aggregation": "mean",
+          "higher_is_better": true,
+          "ignore_case": true,
+          "ignore_punctuation": true
+        }
+      ],
+      "output_type": "multiple_choice",
+      "repeats": 1,
+      "should_decontaminate": true,
+      "doc_to_decontamination_query": "premise",
+      "metadata": {
+        "version": 1.0,
+        "pretrained": "/workspace/work/release",
+        "dtype": "bfloat16",
+        "config_source": "/workspace/venv-eval/lib/python3.12/site-packages/lm_eval/tasks/afrixnli/direct/prompt_1/afrixnli_yor.yaml"
+      }
+    }
+  },
+  "versions": {
+    "afrimgsm_eng_prompt_1": 2.0,
+    "afrimgsm_hau_prompt_1": 2.0,
+    "afrimgsm_ibo_prompt_1": 2.0,
+    "afrimgsm_yor_prompt_1": 2.0,
+    "afrimmlu_direct_eng_prompt_1": 1.0,
+    "afrimmlu_direct_hau_prompt_1": 1.0,
+    "afrimmlu_direct_ibo_prompt_1": 1.0,
+    "afrimmlu_direct_yor_prompt_1": 1.0,
+    "afrixnli_eng_prompt_1": 1.0,
+    "afrixnli_hau_prompt_1": 1.0,
+    "afrixnli_ibo_prompt_1": 1.0,
+    "afrixnli_yor_prompt_1": 1.0
+  },
+  "n-shot": {
+    "afrimgsm_eng_prompt_1": 0,
+    "afrimgsm_hau_prompt_1": 0,
+    "afrimgsm_ibo_prompt_1": 0,
+    "afrimgsm_yor_prompt_1": 0,
+    "afrimmlu_direct_eng_prompt_1": 0,
+    "afrimmlu_direct_hau_prompt_1": 0,
+    "afrimmlu_direct_ibo_prompt_1": 0,
+    "afrimmlu_direct_yor_prompt_1": 0,
+    "afrixnli_eng_prompt_1": 0,
+    "afrixnli_hau_prompt_1": 0,
+    "afrixnli_ibo_prompt_1": 0,
+    "afrixnli_yor_prompt_1": 0
+  },
+  "higher_is_better": {
+    "afrimgsm_eng_prompt_1": {
+      "exact_match": true
+    },
+    "afrimgsm_hau_prompt_1": {
+      "exact_match": true
+    },
+    "afrimgsm_ibo_prompt_1": {
+      "exact_match": true
+    },
+    "afrimgsm_yor_prompt_1": {
+      "exact_match": true
+    },
+    "afrimmlu_direct_eng_prompt_1": {
+      "f1": true,
+      "acc": true
+    },
+    "afrimmlu_direct_hau_prompt_1": {
+      "f1": true,
+      "acc": true
+    },
+    "afrimmlu_direct_ibo_prompt_1": {
+      "f1": true,
+      "acc": true
+    },
+    "afrimmlu_direct_yor_prompt_1": {
+      "f1": true,
+      "acc": true
+    },
+    "afrixnli_eng_prompt_1": {
+      "f1": true,
+      "acc": true
+    },
+    "afrixnli_hau_prompt_1": {
+      "f1": true,
+      "acc": true
+    },
+    "afrixnli_ibo_prompt_1": {
+      "f1": true,
+      "acc": true
+    },
+    "afrixnli_yor_prompt_1": {
+      "f1": true,
+      "acc": true
+    }
+  },
+  "n-samples": {
+    "afrixnli_yor_prompt_1": {
+      "original": 600,
+      "effective": 600
+    },
+    "afrimmlu_direct_yor_prompt_1": {
+      "original": 500,
+      "effective": 500
+    },
+    "afrimgsm_yor_prompt_1": {
+      "original": 250,
+      "effective": 250
+    },
+    "afrixnli_hau_prompt_1": {
+      "original": 600,
+      "effective": 600
+    },
+    "afrimmlu_direct_hau_prompt_1": {
+      "original": 500,
+      "effective": 500
+    },
+    "afrimgsm_hau_prompt_1": {
+      "original": 250,
+      "effective": 250
+    },
+    "afrixnli_ibo_prompt_1": {
+      "original": 600,
+      "effective": 600
+    },
+    "afrimmlu_direct_ibo_prompt_1": {
+      "original": 500,
+      "effective": 500
+    },
+    "afrimgsm_ibo_prompt_1": {
+      "original": 250,
+      "effective": 250
+    },
+    "afrixnli_eng_prompt_1": {
+      "original": 600,
+      "effective": 600
+    },
+    "afrimmlu_direct_eng_prompt_1": {
+      "original": 500,
+      "effective": 500
+    },
+    "afrimgsm_eng_prompt_1": {
+      "original": 250,
+      "effective": 250
+    }
+  },
+  "config": {
+    "model": "hf",
+    "model_args": {
+      "pretrained": "/workspace/work/release",
+      "dtype": "bfloat16"
+    },
+    "model_num_parameters": 8153141248,
+    "model_dtype": "torch.bfloat16",
+    "model_revision": "main",
+    "model_sha": "",
+    "batch_size": "auto",
+    "batch_sizes": [
+      64
+    ],
+    "device": "cuda:0",
+    "use_cache": null,
+    "limit": null,
+    "bootstrap_iters": 100000,
+    "gen_kwargs": {},
+    "random_seed": 0,
+    "numpy_seed": 0,
+    "torch_seed": 0,
+    "fewshot_seed": 0
+  },
+  "git_hash": null,
+  "date": 1793304120.910611,
+  "pretty_env_info": "PyTorch version: 2.9.1+cu128\nIs debug build: False\nCUDA used to build PyTorch: 12.8\nROCM used to build PyTorch: N/A\n\nOS: Ubuntu 24.04.3 LTS (x86_64)\nGCC version: (Ubuntu 13.3.0-6ubuntu2~24.04) 13.3.0\nClang version: Could not collect\nCMake version: version 3.28.3\nLibc version: glibc-2.39\n\nPython version: 3.12.3 (main, Nov  6 2025, 13:44:16) [GCC 13.3.0] (64-bit runtime)\nPython platform: Linux-6.14.0-37-generic-x86_64-with-glibc2.39\nIs CUDA available: True\nCUDA runtime version: Could not collect\nCUDA_MODULE_LOADING set to: \nGPU models and configuration: GPU 0: NVIDIA A100-SXM4-80GB\nNvidia driver version: 590.48.01\ncuDNN version: Probably one of the following:\n/usr/lib/x86_64-linux-gnu/libcudnn.so.9.8.0\n/usr/lib/x86_64-linux-gnu/libcudnn_adv.so.9.8.0\n/usr/lib/x86_64-linux-gnu/libcudnn_cnn.so.9.8.0\n/usr/lib/x86_64-linux-gnu/libcudnn_engines_precompiled.so.9.8.0\n/usr/lib/x86_64-linux-gnu/libcudnn_engines_runtime_compiled.so.9.8.0\n/usr/lib/x86_64-linux-gnu/libcudnn_graph.so.9.8.0\n/usr/lib/x86_64-linux-gnu/libcudnn_heuristic.so.9.8.0\n/usr/lib/x86_64-linux-gnu/libcudnn_ops.so.9.8.0\nIs XPU available: False\nHIP runtime version: N/A\nMIOpen runtime version: N/A\nIs XNNPACK available: True\n\nCPU:\nArchitecture:                            x86_64\nCPU op-mode(s):                          32-bit, 64-bit\nAddress sizes:                           43 bits physical, 48 bits virtual\nByte Order:                              Little Endian\nCPU(s):                                  256\nOn-line CPU(s) list:                     0-255\nVendor ID:                               AuthenticAMD\nModel name:                              AMD EPYC 7742 64-Core Processor\nCPU family:                              23\nModel:                                   49\nThread(s) per core:                      2\nCore(s) per socket:                      64\nSocket(s):                               2\nStepping:                                0\nFrequency boost:                         enabled\nCPU(s) scaling MHz:                      46%\nCPU max MHz:                             3416.0681\nCPU min MHz:                             1500.0000\nBogoMIPS:                                4491.50\nFlags:                                   fpu vme de pse tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 clflush mmx fxsr sse sse2 ht syscall nx mmxext fxsr_opt pdpe1gb rdtscp lm constant_tsc rep_good nopl xtopology nonstop_tsc cpuid extd_apicid aperfmperf rapl pni pclmulqdq monitor ssse3 fma cx16 sse4_1 sse4_2 x2apic movbe popcnt aes xsave avx f16c rdrand lahf_lm cmp_legacy svm extapic cr8_legacy abm sse4a misalignsse 3dnowprefetch osvw ibs skinit wdt tce topoext perfctr_core perfctr_nb bpext perfctr_llc mwaitx cpb cat_l3 cdp_l3 hw_pstate ssbd mba ibrs ibpb stibp vmmcall fsgsbase bmi1 avx2 smep bmi2 cqm rdt_a rdseed adx smap clflushopt clwb sha_ni xsaveopt xsavec xgetbv1 xsaves cqm_llc cqm_occup_llc cqm_mbm_total cqm_mbm_local clzero irperf xsaveerptr rdpru wbnoinvd arat npt lbrv svm_lock nrip_save tsc_scale vmcb_clean flushbyasid decodeassists pausefilter pfthreshold avic v_vmsave_vmload vgif v_spec_ctrl umip rdpid overflow_recov succor smca sev sev_es\nVirtualization:                          AMD-V\nL1d cache:                               4 MiB (128 instances)\nL1i cache:                               4 MiB (128 instances)\nL2 cache:                                64 MiB (128 instances)\nL3 cache:                                512 MiB (32 instances)\nNUMA node(s):                            8\nNUMA node0 CPU(s):                       0-15,128-143\nNUMA node1 CPU(s):                       16-31,144-159\nNUMA node2 CPU(s):                       32-47,160-175\nNUMA node3 CPU(s):                       48-63,176-191\nNUMA node4 CPU(s):                       64-79,192-207\nNUMA node5 CPU(s):                       80-95,208-223\nNUMA node6 CPU(s):                       96-111,224-239\nNUMA node7 CPU(s):                       112-127,240-255\nVulnerability Gather data sampling:      Not affected\nVulnerability Ghostwrite:                Not affected\nVulnerability Indirect target selection: Not affected\nVulnerability Itlb multihit:             Not affected\nVulnerability L1tf:                      Not affected\nVulnerability Mds:                       Not affected\nVulnerability Meltdown:                  Not affected\nVulnerability Mmio stale data:           Not affected\nVulnerability Reg file data sampling:    Not affected\nVulnerability Retbleed:                  Mitigation; untrained return thunk; SMT enabled with STIBP protection\nVulnerability Spec rstack overflow:      Mitigation; Safe RET\nVulnerability Spec store bypass:         Mitigation; Speculative Store Bypass disabled via prctl\nVulnerability Spectre v1:                Mitigation; usercopy/swapgs barriers and __user pointer sanitization\nVulnerability Spectre v2:                Mitigation; Retpolines; IBPB conditional; STIBP always-on; RSB filling; PBRSB-eIBRS Not affected; BHI Not affected\nVulnerability Srbds:                     Not affected\nVulnerability Tsa:                       Not affected\nVulnerability Tsx async abort:           Not affected\nVulnerability Vmscape:                   Mitigation; IBPB before exit to userspace\n\nVersions of relevant libraries:\n[pip3] numpy==2.5.4\n[pip3] nvidia-cublas-cu12==12.8.4.1\n[pip3] nvidia-cuda-cupti-cu12==12.8.90\n[pip3] nvidia-cuda-nvrtc-cu12==12.8.93\n[pip3] nvidia-cuda-runtime-cu12==12.8.90\n[pip3] nvidia-cudnn-cu12==9.10.2.21\n[pip3] nvidia-cufft-cu12==11.3.3.83\n[pip3] nvidia-curand-cu12==10.3.9.90\n[pip3] nvidia-cusolver-cu12==11.7.3.90\n[pip3] nvidia-cusparse-cu12==12.5.8.93\n[pip3] nvidia-cusparselt-cu12==0.7.1\n[pip3] nvidia-nccl-cu12==2.27.5\n[pip3] nvidia-nvjitlink-cu12==12.8.93\n[pip3] nvidia-nvtx-cu12==12.8.90\n[pip3] torch==2.9.1+cu128\n[pip3] torchaudio==2.9.1+cu128\n[pip3] triton==3.5.1\n[conda] Could not collect",
+  "transformers_version": "5.17.0",
+  "lm_eval_version": "0.4.13",
+  "upper_git_hash": null,
+  "tokenizer_pad_token": [
+    "<|eot_id|>",
+    "128009"
+  ],
+  "tokenizer_eos_token": [
+    "<|eot_id|>",
+    "128009"
+  ],
+  "tokenizer_bos_token": [
+    "<|begin_of_text|>",
+    "128000"
+  ],
+  "eot_token_id": 128009,
+  "max_length": 131072,
+  "task_hashes": {
+    "afrixnli_yor_prompt_1": "94c8aa250fd6920e460cedccd60b65484d95d8f9c8167ae7f90cffc879b66cf0",
+    "afrimmlu_direct_yor_prompt_1": "f758fd97658782979b83fb864b65d330e5eca816414abb7aeab63687b9167d3e",
+    "afrimgsm_yor_prompt_1": "a78374e2ae276be17fb57df958a5e766adfe715830e084017db0ece89fa694f0",
+    "afrixnli_hau_prompt_1": "2342cf8dd142f9eb9e991b05e6279308a1cc63fa7ef6ef2890f56875beb33324",
+    "afrimmlu_direct_hau_prompt_1": "238914569c50f3acf7387e596fd892b9e71daefce85cb89c94976794a94e7366",
+    "afrimgsm_hau_prompt_1": "de2c9a324bcc2bd7df47a9b035fcb1d565c753806f218c24334a1c9c023e6390",
+    "afrixnli_ibo_prompt_1": "bad5797a2ba70b9252906df0046c80c1d987a8a1f9efbadb7b9cd6fbd0bdafb8",
+    "afrimmlu_direct_ibo_prompt_1": "dca85e5ce4e4fa6f517fbe86a4008908d40489bc139d253b25333ec36298dae5",
+    "afrimgsm_ibo_prompt_1": "19c20cc0ca72e841df428ea3408953cecd636e1b04950b553e6a6a1457c0ddac",
+    "afrixnli_eng_prompt_1": "f556cbb0563129669ea158baa5c6368e7e93266aedac8efe0891224115f10cd1",
+    "afrimmlu_direct_eng_prompt_1": "fe46bc005aba6ae6c6d82943ea3832f9add6df6a1a4be261eb69a9eccec0d63a",
+    "afrimgsm_eng_prompt_1": "0737493c9c200fca717fea49f978f683eadea82df18388da0e4c1a3165123320"
+  },
+  "model_source": "hf",
+  "model_name": "/workspace/work/release",
+  "model_name_sanitized": "__workspace__work__release",
+  "system_instruction": null,
+  "system_instruction_sha": null,
+  "fewshot_as_multiturn": true,
+  "chat_template": "{{- bos_token }}\n{%- if custom_tools is defined %}\n    {%- set tools = custom_tools %}\n{%- endif %}\n{%- if not tools_in_user_message is defined %}\n    {%- set tools_in_user_message = true %}\n{%- endif %}\n{%- if not date_string is defined %}\n    {%- set date_string = \"26 Jul 2024\" %}\n{%- endif %}\n{%- if not tools is defined %}\n    {%- set tools = none %}\n{%- endif %}\n\n{#- This block extracts the system message, so we can slot it into the right place. #}\n{%- if messages[0]['role'] == 'system' %}\n    {%- set system_message = messages[0]['content']|trim %}\n    {%- set messages = messages[1:] %}\n{%- else %}\n    {%- set system_message = \"\" %}\n{%- endif %}\n\n{#- System message + builtin tools #}\n{{- \"<|start_header_id|>system<|end_header_id|>\\n\\n\" }}\n{%- if builtin_tools is defined or tools is not none %}\n    {{- \"Environment: ipython\\n\" }}\n{%- endif %}\n{%- if builtin_tools is defined %}\n    {{- \"Tools: \" + builtin_tools | reject('equalto', 'code_interpreter') | join(\", \") + \"\\n\\n\"}}\n{%- endif %}\n{{- \"Cutting Knowledge Date: December 2023\\n\" }}\n{{- \"Today Date: \" + date_string + \"\\n\\n\" }}\n{%- if tools is not none and not tools_in_user_message %}\n    {{- \"You have access to the following functions. To call a function, please respond with JSON for a function call.\" }}\n    {{- 'Respond in the format {\"name\": function name, \"parameters\": dictionary of argument name and its value}.' }}\n    {{- \"Do not use variables.\\n\\n\" }}\n    {%- for t in tools %}\n        {{- t | tojson(indent=4) }}\n        {{- \"\\n\\n\" }}\n    {%- endfor %}\n{%- endif %}\n{{- system_message }}\n{{- \"<|eot_id|>\" }}\n\n{#- Custom tools are passed in a user message with some extra guidance #}\n{%- if tools_in_user_message and not tools is none %}\n    {#- Extract the first user message so we can plug it in here #}\n    {%- if messages | length != 0 %}\n        {%- set first_user_message = messages[0]['content']|trim %}\n        {%- set messages = messages[1:] %}\n    {%- else %}\n        {{- raise_exception(\"Cannot put tools in the first user message when there's no first user message!\") }}\n{%- endif %}\n    {{- '<|start_header_id|>user<|end_header_id|>\\n\\n' -}}\n    {{- \"Given the following functions, please respond with a JSON for a function call \" }}\n    {{- \"with its proper arguments that best answers the given prompt.\\n\\n\" }}\n    {{- 'Respond in the format {\"name\": function name, \"parameters\": dictionary of argument name and its value}.' }}\n    {{- \"Do not use variables.\\n\\n\" }}\n    {%- for t in tools %}\n        {{- t | tojson(indent=4) }}\n        {{- \"\\n\\n\" }}\n    {%- endfor %}\n    {{- first_user_message + \"<|eot_id|>\"}}\n{%- endif %}\n\n{%- for message in messages %}\n    {%- if not (message.role == 'ipython' or message.role == 'tool' or 'tool_calls' in message) %}\n        {{- '<|start_header_id|>' + message['role'] + '<|end_header_id|>\\n\\n'+ message['content'] | trim + '<|eot_id|>' }}\n    {%- elif 'tool_calls' in message %}\n        {%- if not message.tool_calls|length == 1 %}\n            {{- raise_exception(\"This model only supports single tool-calls at once!\") }}\n        {%- endif %}\n        {%- set tool_call = message.tool_calls[0].function %}\n        {%- if builtin_tools is defined and tool_call.name in builtin_tools %}\n            {{- '<|start_header_id|>assistant<|end_header_id|>\\n\\n' -}}\n            {{- \"<|python_tag|>\" + tool_call.name + \".call(\" }}\n            {%- for arg_name, arg_val in tool_call.arguments | items %}\n                {{- arg_name + '=\"' + arg_val + '\"' }}\n                {%- if not loop.last %}\n                    {{- \", \" }}\n                {%- endif %}\n                {%- endfor %}\n            {{- \")\" }}\n        {%- else  %}\n            {{- '<|start_header_id|>assistant<|end_header_id|>\\n\\n' -}}\n            {{- '{\"name\": \"' + tool_call.name + '\", ' }}\n            {{- '\"parameters\": ' }}\n            {{- tool_call.arguments | tojson }}\n            {{- \"}\" }}\n        {%- endif %}\n        {%- if builtin_tools is defined %}\n            {#- This means we're in ipython mode #}\n            {{- \"<|eom_id|>\" }}\n        {%- else %}\n            {{- \"<|eot_id|>\" }}\n        {%- endif %}\n    {%- elif message.role == \"tool\" or message.role == \"ipython\" %}\n        {{- \"<|start_header_id|>ipython<|end_header_id|>\\n\\n\" }}\n        {%- if message.content is mapping or message.content is iterable %}\n            {{- message.content | tojson }}\n        {%- else %}\n            {{- message.content }}\n        {%- endif %}\n        {{- \"<|eot_id|>\" }}\n    {%- endif %}\n{%- endfor %}\n{%- if add_generation_prompt %}\n    {{- '<|start_header_id|>assistant<|end_header_id|>\\n\\n' }}\n{%- endif %}\n",
+  "chat_template_sha": "e10ca381b1ccc5cf9db52e371f3b6651576caee0a630b452e2816b2d404d4b65",
+  "total_evaluation_time_seconds": "3453.4119413755834"
+}

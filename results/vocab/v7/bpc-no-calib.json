@@ -1,0 +1,41 @@
+{
+ "model": "/workspace/work/no-calib",
+ "rows": [
+  {
+   "lang": "en",
+   "sentences": 1012,
+   "chars": 131966,
+   "tokens": 27114,
+   "nll_nats": 92606.8235168457,
+   "bpc": 1.0124077795813522,
+   "tokens_per_char": 0.20546201294272767
+  },
+  {
+   "lang": "yo",
+   "sentences": 1012,
+   "chars": 126848,
+   "tokens": 46603,
+   "nll_nats": 204824.42595291138,
+   "bpc": 2.329553351847833,
+   "tokens_per_char": 0.3673924697275479
+  },
+  {
+   "lang": "ha",
+   "sentences": 1012,
+   "chars": 140069,
+   "tokens": 33838,
+   "nll_nats": 146975.36905670166,
+   "bpc": 1.51382987007067,
+   "tokens_per_char": 0.24158093511055265
+  },
+  {
+   "lang": "ig",
+   "sentences": 1012,
+   "chars": 134560,
+   "tokens": 38612,
+   "nll_nats": 176586.13222122192,
+   "bpc": 1.893281341002673,
+   "tokens_per_char": 0.2869500594530321
+  }
+ ]
+}
