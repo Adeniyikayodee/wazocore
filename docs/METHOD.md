@@ -169,8 +169,8 @@ section 3).
   costs −0.2 (−0.9, +0.5) in Yoruba, −1.0 (−1.5, −0.4) in Hausa and
   −1.0 (−1.6, −0.4) in Igbo (`results/vocab/v6/pooled-long-vs-control.json`).
   The cost is real in Hausa and Igbo; against the original it is hidden
-  because the added data lifts both models. `long` loops about as often as
-  `control` in Yoruba (5 and 11 against 10).
+  because the added data lifts both models. On matched budgets and three
+  seeds, see 4.4.
 - The canonical changes did not remove the piece spelling by themselves
   (`fix` and `gold` write 4 to 7% more tokens than the tokenizer would, like
   v4); `small` and `long` write 2 to 4% more. Forcing v4 onto the canonical
@@ -251,13 +251,89 @@ figures describe back-to-back requests; a single request on a cool machine
 runs at about 20 tokens per second. The pattern is that of thermal
 throttling; no temperature was recorded.
 
+### 4.4 Held-out test, matched control and ablations (v7)
+
+Preregistered in [PLAN-v7.md](PLAN-v7.md) before any output existed. Every
+model trains on `gold` for 12M tokens. Test: NTREX-128 lines 500 to 1996,
+1,497 sentences per language that no decision has used, in both directions.
+chrF++ differences with 95% intervals (`results/vocab/v7/analysis.json`).
+AfriCOMET never contradicts a chrF++ difference whose interval excludes
+zero, but does not confirm all of them; the exceptions are noted.
+
+**The release on unseen text**, against the original:
+
+| | Yoruba | Hausa | Igbo |
+|---|---|---|---|
+| English → X | +1.6 (+0.9, +2.2) | −0.3 (−0.8, +0.1) | +0.7 (+0.2, +1.2) |
+| X → English | −0.7 (−1.2, −0.2) | −0.1 (−0.6, +0.4) | +1.3 (+0.8, +1.8) |
+
+Non-inferior at 1.0 in five of six; Yoruba → English is not shown
+non-inferior (one-sided bound −1.1). AfriCOMET does not confirm that
+shortfall (−0.3, interval including zero) and puts Hausa → English above
+the original (+0.5, +0.0 to +0.9).
+
+**The cost of the vocabulary**, three release seeds against three control
+seeds at the same budget, averaged per side:
+
+| | Yoruba | Hausa | Igbo |
+|---|---|---|---|
+| English → X | +0.2 (−0.3, +0.6) | −1.2 (−1.6, −0.9) | −0.8 (−1.1, −0.5) |
+| X → English | −1.0 (−1.3, −0.7) | −0.5 (−0.8, −0.2) | −0.4 (−0.7, −0.1) |
+
+v6 measured −0.2, −1.0 and −1.0 at unequal budgets; the matched figure
+confirms it. Control alone gains +0.9 to +1.8 over the original English → X:
+the release's gains come from the data, and the vocabulary buys speed at
+about one point.
+
+**Ablations**, seed 0 against the release. The three release seeds differ by
+at most 0.7 (Yoruba English → X) and 0.4 elsewhere.
+
+| Removed | English → X (yo, ha, ig) | X → English (yo, ha, ig) |
+|---|---|---|
+| Projected KL anchor (`no-kl`) | +0.8, −0.6, +1.0 | −2.2, −3.2, −2.3 |
+| Projection: anchor in the original's tokenisation (`old-anchor`)* | +1.0, −0.4, +0.7 | −1.8, −2.7, −2.1 |
+| Canonical penalty (`no-canon`) | +0.4, +0.2, +0.1 | +0.1, +0.1, −0.1 |
+| Calibrated input rows (`no-calib`) | +0.3, −0.1, −0.1 | −0.3, 0.0, −0.3 |
+| All of it: plain-mean rows, no anchor (`fvt`) | +1.1, −0.4, +0.8 | −1.6, −2.7, −2.0 |
+
+\*Half the micro-batch, same windows per step (PLAN-v7 deviations).
+
+- The projected anchor is the part that matters: without it, or with the
+  anchor in the original's tokenisation, X → English falls 1.6 to 3.2,
+  5 to 15 times the seed spread. The standard recipe (`fvt`, after
+  FVT) loses the same.
+- In return those arms gain 0.7 to 1.0 in Igbo English → X, above the seed
+  spread, and AfriCOMET confirms two of three. The Yoruba gains (0.8 to
+  1.1) pass narrowly on chrF++ and AfriCOMET confirms none.
+- The canonical penalty and calibration change nothing measurable.
+
+**Comprehension and reasoning.** IrokoBench (AfriXNLI, AfriMMLU, AfriMGSM),
+zero-shot, accuracy in points, paired over items, one seed. Training effect:
+control − original. Vocabulary effect: release − control.
+
+| | Training | Vocabulary |
+|---|---|---|
+| AfriXNLI yo, ha, ig, en | −4.5, −3.2, −4.3, −6.2 | −5.3, −1.5, −4.8, −1.7 |
+| AfriMGSM yo, ha, ig, en | −12.0, −1.6, −9.2, +0.8 | −0.8, −5.2, −2.0, −6.0 |
+| AfriMMLU | within ±1.6 | within ±3.0, intervals include 0 |
+
+Intervals are 6 to 13 points wide on AfriMGSM (250 items), so its single
+cells are weak. The pattern is not: inference and maths fall after training,
+by about as much from the recipe as from the vocabulary; knowledge does not.
+The training mixture is translation only.
+
+**English.** Bits per character on FLORES devtest: original 1.228, release
+1.015, control 1.005. English text is modelled better, not worse; English
+reasoning (above) is the cost.
+
 ## 5. Known defects and workarounds
 
-**Yoruba loops.** Training on fully tone-marked human Yoruba makes Yoruba
-replies loop more often, with or without new tokens. Of 700 replies at full
-precision: original 2, `control` 10, `gold` 19, `small` 16, `long` 5 and 11
-(two runs). Most are runs of one combining mark. Hausa and Igbo are
-unaffected.
+**Yoruba loops.** Mostly the vocabulary. On the 1,497 held-out sentences
+(4.4): original 7, three control seeds 6, 9 and 13, three release seeds 19,
+18 and 23. The data adds a few; the new tokens double them. v6 blamed the
+data from two runs on 700 sentences (original 2, `control` 10, `long` 5 and
+11); three seeds each overturn that. Most are runs of one combining mark.
+Hausa and Igbo are unaffected.
 
 **Broken characters.** Some original tokens are half of a multi-byte letter
 (ṣ, ƙ and others). Occasionally a model writes the first half and then
@@ -298,22 +374,20 @@ One prompt shows that a retry usually works, not how often.
 
 ## 6. Limitations
 
-- **Test-set reuse.** No test sentence is trained on. Every arm in section
-  4.1 was scored on the same 700 sentences per language and the release was
-  chosen among them by the gate, so its scores on those sentences are not an
-  independent confirmation. A test set untouched by that choice has not been
-  scored.
-- **Two training runs.** The release recipe was trained twice. The two runs
-  agree to within 0.3 chrF++ in every language, which bounds seed noise
-  loosely and no more.
-- **Evaluation scope.** Quality is measured on English → X translation in two
-  domains (FLORES-200 and NTREX-128 news). Dialogue, reasoning and X → English
-  are not yet scored, and English quality has not been scored;
-  native-speaker judgement is being collected with the blind A/B kit in
-  `tester-kit/`.
-- **Hausa** is 0.4 chrF++ below the original in both runs. The pooled
-  interval includes zero, so the loss is not established, but it is the one
-  language where the release has not reached the original.
+- **Test-set reuse.** Section 4.1 chose the release on its 700 sentences.
+  Section 4.4 scores 1,497 others per language that no decision used.
+- **Seeds.** Three seeds for the release and control; the ablations and
+  IrokoBench have one, judged against the release's seed spread.
+- **Evaluation scope.** Translation is scored in news text (NTREX-128) and
+  FLORES-200, both directions. Dialogue is not scored; native-speaker
+  judgement is being collected with the blind A/B kit in `tester-kit/`.
+- **Reasoning.** The release scores lower than the original on inference
+  in every language, English included, and on maths in all four
+  (English's interval reaches zero) (4.4). The training mixture has no general
+  instruction data.
+- **Hausa** is 0.3 to 0.4 chrF++ below the original English → Hausa in
+  every test, with intervals that include zero; against matched control the vocabulary costs
+  it 1.2.
 - **Hardware.** Speed was measured on one laptop with 20 prompts per
   language, which shows a speed-up of about 1.5 to 1.7× but not its second
   decimal. The GPU run was throttled to about half the machine's cool speed
@@ -351,5 +425,6 @@ Paths are relative to the repository root. `V` is `uv run --project wazocore
 | Speed, CPU (4.3) | `scripts/paired_vx.sh LABEL 4 20 0 FILE.gguf` | `results/vocab/LABEL-paired.json` |
 | Speed, GPU (4.3) | `scripts/paired_vx.sh LABEL 4 20 99 FILE.gguf` | `results/vocab/LABEL-paired.json` |
 | Whole request (4.3) | Mean of `prompt_ms + gen_ms` over the paired samples in the two files above | n/a |
+| v7 (4.4) | `bash scripts/cloud_vx_v7.sh` on the GPU host, `scripts/cloud_pull.sh` on the laptop, then `uv run --project wazocore --with sacrebleu python scripts/v7_analysis.py results/vocab/v7` | `results/vocab/v7/analysis.json` |
 | Repetition penalty (5) | `SAMPLER='{"repeat_penalty": 1.1}' python scripts/gguf_quality.py 250 OUT NAME FILE.gguf`, then `V score` against the plain file | `results/vocab/gguf-quality/` |
 | Retry (5) | `uv run --project wazocore python scripts/retry_probe.py FILE.gguf OUT.json` | `results/vocab/gguf-quality/retry-v6-long.json` |

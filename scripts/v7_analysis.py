@@ -1,6 +1,6 @@
 """v7 comparisons from docs/PLAN-v7.md, on the pulled results.
 Each side is averaged over its seeds inside every bootstrap round; the
-same sentences are drawn for every model.
+same sentences or items are drawn for every model. IrokoBench is paired\nover items: n-atlas, release and control-s0.
     uv run --project wazocore --with sacrebleu python scripts/v7_analysis.py results/vocab/v7
 """
 
@@ -39,6 +39,17 @@ def compare(stats: dict, a: list[str], b: list[str], score, n: int, rounds: int 
     return {"delta": float(delta(np.arange(n))), "ci95": [float(d[int(0.025 * rounds)]), float(d[int(0.975 * rounds) - 1])], "lower95": float(d[int(0.05 * rounds)])}
 
 
+def iroko(r: Path, model: str) -> dict:
+    """Per-item IrokoBench scores; AfriMGSM by flexible-extract (PLAN-v7 deviations)."""
+    out = {}
+    for f in r.glob(f"iroko-{model}/*/samples_*.jsonl"):
+        task = f.name.split("_prompt_1")[0].removeprefix("samples_")
+        rows = [json.loads(l) for l in f.read_text(encoding="utf-8").splitlines()]
+        rows = [x for x in rows if x["filter"] in ("none", "flexible-extract")]
+        out[task] = np.array([x["exact_match" if "afrimgsm" in task else "acc"] for x in sorted(rows, key=lambda x: x["doc_id"])], dtype=float)
+    return out
+
+
 def main(r: Path) -> int:
     models = sorted({m for a, b in SIDES.values() for m in a + b})
     out = {}
@@ -57,6 +68,14 @@ def main(r: Path) -> int:
                 c, k = out[key]["chrf"], out[key]["comet"]
                 print(f"{key}: chrF++ {c['delta']:+.2f} [{c['ci95'][0]:+.2f}, {c['ci95'][1]:+.2f}]  "
                       f"AfriCOMET {k['delta']:+.2f} [{k['ci95'][0]:+.2f}, {k['ci95'][1]:+.2f}]", flush=True)
+    scores = {m: iroko(r, m) for m in ["n-atlas", "release", "control-s0"]}
+    for task in sorted(scores["n-atlas"]):
+        s = {m: v[task] for m, v in scores.items()}
+        for name, a, b in [("control vs n-atlas", "control-s0", "n-atlas"), ("release vs control", "release", "control-s0"), ("release vs n-atlas", "release", "n-atlas")]:
+            key = f"{name} | {task}"
+            out[key] = {"accuracy": compare(s, [a], [b], lambda x: 100 * x.mean(), len(s[a]))}
+            c = out[key]["accuracy"]
+            print(f"{key}: {c['delta']:+.1f} [{c['ci95'][0]:+.1f}, {c['ci95'][1]:+.1f}]", flush=True)
     (r / "analysis.json").write_text(json.dumps(out, indent=1) + "\n")
     return 0
 
