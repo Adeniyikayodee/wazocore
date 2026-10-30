@@ -1,0 +1,41 @@
+{
+ "model": "/workspace/work/control-s2",
+ "rows": [
+  {
+   "lang": "en",
+   "sentences": 1012,
+   "chars": 131966,
+   "tokens": 27171,
+   "nll_nats": 91839.7769241333,
+   "bpc": 1.0040221778700253,
+   "tokens_per_char": 0.20589394237909764
+  },
+  {
+   "lang": "yo",
+   "sentences": 1012,
+   "chars": 126848,
+   "tokens": 73947,
+   "nll_nats": 188698.41289138794,
+   "bpc": 2.1461455009304315,
+   "tokens_per_char": 0.5829575554994955
+  },
+  {
+   "lang": "ha",
+   "sentences": 1012,
+   "chars": 140069,
+   "tokens": 53580,
+   "nll_nats": 136285.1463394165,
+   "bpc": 1.4037217712034986,
+   "tokens_per_char": 0.38252575516352655
+  },
+  {
+   "lang": "ig",
+   "sentences": 1012,
+   "chars": 134560,
+   "tokens": 65212,
+   "nll_nats": 164753.47548675537,
+   "bpc": 1.7664166323867672,
+   "tokens_per_char": 0.4846313912009512
+  }
+ ]
+}

@@ -1,0 +1,41 @@
+{
+ "model": "/workspace/work/release",
+ "rows": [
+  {
+   "lang": "en",
+   "sentences": 1012,
+   "chars": 131966,
+   "tokens": 27114,
+   "nll_nats": 92840.35070800781,
+   "bpc": 1.0149607744482294,
+   "tokens_per_char": 0.20546201294272767
+  },
+  {
+   "lang": "yo",
+   "sentences": 1012,
+   "chars": 126848,
+   "tokens": 46603,
+   "nll_nats": 203950.5415840149,
+   "bpc": 2.3196143016040978,
+   "tokens_per_char": 0.3673924697275479
+  },
+  {
+   "lang": "ha",
+   "sentences": 1012,
+   "chars": 140069,
+   "tokens": 33838,
+   "nll_nats": 147105.4598312378,
+   "bpc": 1.515169790504804,
+   "tokens_per_char": 0.24158093511055265
+  },
+  {
+   "lang": "ig",
+   "sentences": 1012,
+   "chars": 134560,
+   "tokens": 38612,
+   "nll_nats": 176923.7310066223,
+   "bpc": 1.8969009314716627,
+   "tokens_per_char": 0.2869500594530321
+  }
+ ]
+}

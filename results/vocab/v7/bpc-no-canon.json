@@ -1,0 +1,41 @@
+{
+ "model": "/workspace/work/no-canon",
+ "rows": [
+  {
+   "lang": "en",
+   "sentences": 1012,
+   "chars": 131966,
+   "tokens": 27114,
+   "nll_nats": 92877.924533844,
+   "bpc": 1.0153715436781907,
+   "tokens_per_char": 0.20546201294272767
+  },
+  {
+   "lang": "yo",
+   "sentences": 1012,
+   "chars": 126848,
+   "tokens": 46603,
+   "nll_nats": 203756.23901367188,
+   "bpc": 2.317404417690549,
+   "tokens_per_char": 0.3673924697275479
+  },
+  {
+   "lang": "ha",
+   "sentences": 1012,
+   "chars": 140069,
+   "tokens": 33838,
+   "nll_nats": 147218.03158187866,
+   "bpc": 1.516329266951368,
+   "tokens_per_char": 0.24158093511055265
+  },
+  {
+   "lang": "ig",
+   "sentences": 1012,
+   "chars": 134560,
+   "tokens": 38612,
+   "nll_nats": 176828.8454093933,
+   "bpc": 1.8958836084887996,
+   "tokens_per_char": 0.2869500594530321
+  }
+ ]
+}

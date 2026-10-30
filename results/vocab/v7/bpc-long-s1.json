@@ -1,0 +1,41 @@
+{
+ "model": "/workspace/work/long-s1",
+ "rows": [
+  {
+   "lang": "en",
+   "sentences": 1012,
+   "chars": 131966,
+   "tokens": 27114,
+   "nll_nats": 92469.30570602417,
+   "bpc": 1.0109043903469577,
+   "tokens_per_char": 0.20546201294272767
+  },
+  {
+   "lang": "yo",
+   "sentences": 1012,
+   "chars": 126848,
+   "tokens": 46603,
+   "nll_nats": 204113.10752105713,
+   "bpc": 2.3214632315926536,
+   "tokens_per_char": 0.3673924697275479
+  },
+  {
+   "lang": "ha",
+   "sentences": 1012,
+   "chars": 140069,
+   "tokens": 33838,
+   "nll_nats": 147053.79539108276,
+   "bpc": 1.514637652547069,
+   "tokens_per_char": 0.24158093511055265
+  },
+  {
+   "lang": "ig",
+   "sentences": 1012,
+   "chars": 134560,
+   "tokens": 38612,
+   "nll_nats": 176465.32305526733,
+   "bpc": 1.8919860765510037,
+   "tokens_per_char": 0.2869500594530321
+  }
+ ]
+}

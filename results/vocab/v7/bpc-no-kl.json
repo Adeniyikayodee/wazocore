@@ -1,0 +1,41 @@
+{
+ "model": "/workspace/work/no-kl",
+ "rows": [
+  {
+   "lang": "en",
+   "sentences": 1012,
+   "chars": 131966,
+   "tokens": 27114,
+   "nll_nats": 93731.7792892456,
+   "bpc": 1.0247061603313996,
+   "tokens_per_char": 0.20546201294272767
+  },
+  {
+   "lang": "yo",
+   "sentences": 1012,
+   "chars": 126848,
+   "tokens": 46603,
+   "nll_nats": 206897.84385681152,
+   "bpc": 2.353135195689653,
+   "tokens_per_char": 0.3673924697275479
+  },
+  {
+   "lang": "ha",
+   "sentences": 1012,
+   "chars": 140069,
+   "tokens": 33838,
+   "nll_nats": 148074.54164123535,
+   "bpc": 1.5251512248086054,
+   "tokens_per_char": 0.24158093511055265
+  },
+  {
+   "lang": "ig",
+   "sentences": 1012,
+   "chars": 134560,
+   "tokens": 38612,
+   "nll_nats": 177391.24753570557,
+   "bpc": 1.9019134446854116,
+   "tokens_per_char": 0.2869500594530321
+  }
+ ]
+}

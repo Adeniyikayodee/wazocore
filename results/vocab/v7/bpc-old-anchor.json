@@ -1,0 +1,41 @@
+{
+ "model": "/workspace/work/old-anchor",
+ "rows": [
+  {
+   "lang": "en",
+   "sentences": 1012,
+   "chars": 131966,
+   "tokens": 27114,
+   "nll_nats": 91761.68887329102,
+   "bpc": 1.0031684940143137,
+   "tokens_per_char": 0.20546201294272767
+  },
+  {
+   "lang": "yo",
+   "sentences": 1012,
+   "chars": 126848,
+   "tokens": 46603,
+   "nll_nats": 206982.8561477661,
+   "bpc": 2.3541020758184277,
+   "tokens_per_char": 0.3673924697275479
+  },
+  {
+   "lang": "ha",
+   "sentences": 1012,
+   "chars": 140069,
+   "tokens": 33838,
+   "nll_nats": 149292.9342727661,
+   "bpc": 1.5377005327023228,
+   "tokens_per_char": 0.24158093511055265
+  },
+  {
+   "lang": "ig",
+   "sentences": 1012,
+   "chars": 134560,
+   "tokens": 38612,
+   "nll_nats": 179128.64126968384,
+   "bpc": 1.9205410407323944,
+   "tokens_per_char": 0.2869500594530321
+  }
+ ]
+}
