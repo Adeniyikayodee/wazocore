@@ -1078,5 +1078,365 @@
    ],
    "lower95": -0.39644704393808894
   }
+ },
+ "control vs n-atlas | afrimgsm_eng": {
+  "accuracy": {
+   "delta": 0.7999999999999972,
+   "ci95": [
+    -5.20000000000001,
+    7.199999999999989
+   ],
+   "lower95": -4.399999999999999
+  }
+ },
+ "release vs control | afrimgsm_eng": {
+  "accuracy": {
+   "delta": -6.000000000000007,
+   "ci95": [
+    -11.999999999999993,
+    -0.3999999999999986
+   ],
+   "lower95": -10.800000000000004
+  }
+ },
+ "release vs n-atlas | afrimgsm_eng": {
+  "accuracy": {
+   "delta": -5.20000000000001,
+   "ci95": [
+    -10.800000000000011,
+    0.7999999999999972
+   ],
+   "lower95": -10.0
+  }
+ },
+ "control vs n-atlas | afrimgsm_hau": {
+  "accuracy": {
+   "delta": -1.6000000000000014,
+   "ci95": [
+    -8.399999999999999,
+    5.199999999999996
+   ],
+   "lower95": -7.200000000000003
+  }
+ },
+ "release vs control | afrimgsm_hau": {
+  "accuracy": {
+   "delta": -5.199999999999996,
+   "ci95": [
+    -11.200000000000003,
+    0.8000000000000007
+   ],
+   "lower95": -10.000000000000007
+  }
+ },
+ "release vs n-atlas | afrimgsm_hau": {
+  "accuracy": {
+   "delta": -6.799999999999997,
+   "ci95": [
+    -13.2,
+    -0.4000000000000057
+   ],
+   "lower95": -12.0
+  }
+ },
+ "control vs n-atlas | afrimgsm_ibo": {
+  "accuracy": {
+   "delta": -9.200000000000003,
+   "ci95": [
+    -14.400000000000002,
+    -4.0
+   ],
+   "lower95": -13.600000000000001
+  }
+ },
+ "release vs control | afrimgsm_ibo": {
+  "accuracy": {
+   "delta": -2.0,
+   "ci95": [
+    -7.1999999999999975,
+    3.599999999999998
+   ],
+   "lower95": -6.399999999999999
+  }
+ },
+ "release vs n-atlas | afrimgsm_ibo": {
+  "accuracy": {
+   "delta": -11.200000000000003,
+   "ci95": [
+    -17.199999999999996,
+    -5.599999999999998
+   ],
+   "lower95": -16.0
+  }
+ },
+ "control vs n-atlas | afrimgsm_yor": {
+  "accuracy": {
+   "delta": -12.000000000000004,
+   "ci95": [
+    -17.6,
+    -6.0000000000000036
+   ],
+   "lower95": -16.400000000000002
+  }
+ },
+ "release vs control | afrimgsm_yor": {
+  "accuracy": {
+   "delta": -0.8000000000000007,
+   "ci95": [
+    -6.399999999999995,
+    4.799999999999997
+   ],
+   "lower95": -5.200000000000003
+  }
+ },
+ "release vs n-atlas | afrimgsm_yor": {
+  "accuracy": {
+   "delta": -12.800000000000004,
+   "ci95": [
+    -18.8,
+    -6.400000000000002
+   ],
+   "lower95": -18.0
+  }
+ },
+ "control vs n-atlas | afrimmlu_direct_eng": {
+  "accuracy": {
+   "delta": -0.3999999999999986,
+   "ci95": [
+    -3.5999999999999943,
+    2.799999999999997
+   ],
+   "lower95": -3.000000000000007
+  }
+ },
+ "release vs control | afrimmlu_direct_eng": {
+  "accuracy": {
+   "delta": 1.2000000000000028,
+   "ci95": [
+    -1.7999999999999972,
+    4.20000000000001
+   ],
+   "lower95": -1.3999999999999986
+  }
+ },
+ "release vs n-atlas | afrimmlu_direct_eng": {
+  "accuracy": {
+   "delta": 0.8000000000000043,
+   "ci95": [
+    -2.4000000000000057,
+    4.199999999999996
+   ],
+   "lower95": -1.9999999999999858
+  }
+ },
+ "control vs n-atlas | afrimmlu_direct_hau": {
+  "accuracy": {
+   "delta": 0.3999999999999986,
+   "ci95": [
+    -2.999999999999993,
+    3.6000000000000014
+   ],
+   "lower95": -2.200000000000003
+  }
+ },
+ "release vs control | afrimmlu_direct_hau": {
+  "accuracy": {
+   "delta": -3.0000000000000036,
+   "ci95": [
+    -7.0000000000000036,
+    1.0
+   ],
+   "lower95": -6.399999999999999
+  }
+ },
+ "release vs n-atlas | afrimmlu_direct_hau": {
+  "accuracy": {
+   "delta": -2.600000000000005,
+   "ci95": [
+    -7.0000000000000036,
+    1.6000000000000014
+   ],
+   "lower95": -6.200000000000003
+  }
+ },
+ "control vs n-atlas | afrimmlu_direct_ibo": {
+  "accuracy": {
+   "delta": 1.6000000000000014,
+   "ci95": [
+    -1.8000000000000043,
+    5.0
+   ],
+   "lower95": -1.2000000000000028
+  }
+ },
+ "release vs control | afrimmlu_direct_ibo": {
+  "accuracy": {
+   "delta": -1.8000000000000043,
+   "ci95": [
+    -6.399999999999999,
+    2.6000000000000014
+   ],
+   "lower95": -5.600000000000001
+  }
+ },
+ "release vs n-atlas | afrimmlu_direct_ibo": {
+  "accuracy": {
+   "delta": -0.20000000000000284,
+   "ci95": [
+    -4.599999999999994,
+    4.199999999999996
+   ],
+   "lower95": -3.8000000000000007
+  }
+ },
+ "control vs n-atlas | afrimmlu_direct_yor": {
+  "accuracy": {
+   "delta": -1.0,
+   "ci95": [
+    -4.599999999999998,
+    2.400000000000002
+   ],
+   "lower95": -4.0
+  }
+ },
+ "release vs control | afrimmlu_direct_yor": {
+  "accuracy": {
+   "delta": 0.20000000000000284,
+   "ci95": [
+    -3.7999999999999936,
+    4.0
+   ],
+   "lower95": -3.0000000000000036
+  }
+ },
+ "release vs n-atlas | afrimmlu_direct_yor": {
+  "accuracy": {
+   "delta": -0.7999999999999972,
+   "ci95": [
+    -5.0,
+    3.3999999999999986
+   ],
+   "lower95": -4.399999999999995
+  }
+ },
+ "control vs n-atlas | afrixnli_eng": {
+  "accuracy": {
+   "delta": -6.166666666666671,
+   "ci95": [
+    -9.166666666666671,
+    -3.1666666666666714
+   ],
+   "lower95": -8.500000000000014
+  }
+ },
+ "release vs control | afrixnli_eng": {
+  "accuracy": {
+   "delta": -1.6666666666666572,
+   "ci95": [
+    -4.666666666666671,
+    1.3333333333333428
+   ],
+   "lower95": -4.166666666666671
+  }
+ },
+ "release vs n-atlas | afrixnli_eng": {
+  "accuracy": {
+   "delta": -7.833333333333329,
+   "ci95": [
+    -10.833333333333329,
+    -4.833333333333343
+   ],
+   "lower95": -10.333333333333329
+  }
+ },
+ "control vs n-atlas | afrixnli_hau": {
+  "accuracy": {
+   "delta": -3.166666666666657,
+   "ci95": [
+    -6.5,
+    0.1666666666666714
+   ],
+   "lower95": -6.0
+  }
+ },
+ "release vs control | afrixnli_hau": {
+  "accuracy": {
+   "delta": -1.500000000000007,
+   "ci95": [
+    -5.833333333333336,
+    2.8333333333333286
+   ],
+   "lower95": -5.000000000000007
+  }
+ },
+ "release vs n-atlas | afrixnli_hau": {
+  "accuracy": {
+   "delta": -4.666666666666664,
+   "ci95": [
+    -8.5,
+    -0.6666666666666714
+   ],
+   "lower95": -7.833333333333336
+  }
+ },
+ "control vs n-atlas | afrixnli_ibo": {
+  "accuracy": {
+   "delta": -4.333333333333329,
+   "ci95": [
+    -7.499999999999993,
+    -1.0
+   ],
+   "lower95": -6.999999999999993
+  }
+ },
+ "release vs control | afrixnli_ibo": {
+  "accuracy": {
+   "delta": -4.833333333333336,
+   "ci95": [
+    -8.833333333333336,
+    -0.8333333333333357
+   ],
+   "lower95": -8.166666666666671
+  }
+ },
+ "release vs n-atlas | afrixnli_ibo": {
+  "accuracy": {
+   "delta": -9.166666666666664,
+   "ci95": [
+    -13.166666666666664,
+    -5.000000000000007
+   ],
+   "lower95": -12.5
+  }
+ },
+ "control vs n-atlas | afrixnli_yor": {
+  "accuracy": {
+   "delta": -4.499999999999993,
+   "ci95": [
+    -7.666666666666671,
+    -1.3333333333333357
+   ],
+   "lower95": -7.166666666666671
+  }
+ },
+ "release vs control | afrixnli_yor": {
+  "accuracy": {
+   "delta": -5.333333333333329,
+   "ci95": [
+    -9.166666666666671,
+    -1.5
+   ],
+   "lower95": -8.500000000000007
+  }
+ },
+ "release vs n-atlas | afrixnli_yor": {
+  "accuracy": {
+   "delta": -9.833333333333321,
+   "ci95": [
+    -13.833333333333336,
+    -5.666666666666664
+   ],
+   "lower95": -13.333333333333336
+  }
  }
 }
