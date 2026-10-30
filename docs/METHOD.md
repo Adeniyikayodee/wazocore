@@ -256,8 +256,9 @@ throttling; no temperature was recorded.
 Preregistered in [PLAN-v7.md](PLAN-v7.md) before any output existed. Every
 model trains on `gold` for 12M tokens. Test: NTREX-128 lines 500 to 1996,
 1,497 sentences per language that no decision has used, in both directions.
-chrF++ differences with 95% intervals; AfriCOMET agrees in sign throughout
-(`results/vocab/v7/analysis.json`).
+chrF++ differences with 95% intervals (`results/vocab/v7/analysis.json`).
+AfriCOMET never contradicts a chrF++ difference whose interval excludes
+zero, but does not confirm all of them; the exceptions are noted.
 
 **The release on unseen text**, against the original:
 
@@ -267,7 +268,9 @@ chrF++ differences with 95% intervals; AfriCOMET agrees in sign throughout
 | X → English | −0.7 (−1.2, −0.2) | −0.1 (−0.6, +0.4) | +1.3 (+0.8, +1.8) |
 
 Non-inferior at 1.0 in five of six; Yoruba → English is not shown
-non-inferior (one-sided bound −1.1).
+non-inferior (one-sided bound −1.1). AfriCOMET does not confirm that
+shortfall (−0.3, interval including zero) and puts Hausa → English above
+the original (+0.5, +0.0 to +0.9).
 
 **The cost of the vocabulary**, three release seeds against three control
 seeds at the same budget, averaged per side:
@@ -300,7 +303,8 @@ at most 0.7 (Yoruba English → X) and 0.4 elsewhere.
   about four to eight times the seed spread. The standard recipe (`fvt`, after
   FVT) loses the same.
 - In return those arms gain 0.7 to 1.0 in Igbo English → X, above the seed
-  spread; the Yoruba gains are within it.
+  spread, and AfriCOMET confirms two of three. The Yoruba gains (0.8 to
+  1.1) pass narrowly on chrF++ and AfriCOMET confirms none.
 - The canonical penalty and calibration change nothing measurable.
 
 **Comprehension and reasoning.** IrokoBench (AfriXNLI, AfriMMLU, AfriMGSM),
