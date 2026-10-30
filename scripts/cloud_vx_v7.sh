@@ -110,12 +110,12 @@ for u in $UNITS; do
             rm -rf $M/release
         fi ;;
     control) train control-s0 0 n-atlas ;;
-    fvt)     train fvt 0 init-fvt --anchor old --kl-weight 0 ;;
+    fvt)     train fvt 0 init-fvt --anchor old --kl-weight 0; rm -rf "${M:?}/init-fvt" ;;
     ablate)
         train no-canon 0 init-v6 --anchor canonical --canon-weight 0
         train no-kl 0 init-v6 --anchor old --canon-weight 1.0 --kl-weight 0
         train old-anchor 0 init-v6 --anchor old --canon-weight 1.0
-        train no-calib 0 init-nocal $CANON ;;
+        train no-calib 0 init-nocal $CANON; rm -rf "${M:?}/init-nocal" ;;
     seeds)
         train long-s1 1 init-v6 $CANON
         train long-s2 2 init-v6 $CANON
