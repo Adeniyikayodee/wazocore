@@ -66,8 +66,8 @@ licence.
 ## Out of scope
 
 - Any use the licence prohibits (see Licence).
-- Tasks that were not evaluated: dialogue, reasoning, translation into
-  English, and English quality (see Limitations).
+- Dialogue, which was not evaluated, and reasoning, which got worse (see
+  Limitations).
 - Applications that cannot handle a failed request or a looping reply. Both
   occur at the rates under Limitations and need handling in the client.
 
@@ -135,6 +135,9 @@ All numbers compare WazoCore with the original N-ATLaS.
 | chrF++ change, full precision | +2.2 (+1.5, +2.9) | −0.4 (−0.8, +0.1) | +0.2 (−0.4, +0.8) |
 | chrF++ change, shipped Q4_K_M file | +1.7 (+0.3, +3.1) | −0.3 (−1.1, +0.6) | −0.1 (−1.4, +1.2) |
 | chrF++ change, same training data and no new tokens | +2.3 (+1.6, +3.1) | +0.6 (+0.1, +1.1) | +1.2 (+0.6, +1.8) |
+| chrF++ change, unseen sentences, English → X | +1.6 (+0.9, +2.2) | −0.3 (−0.8, +0.1) | +0.7 (+0.2, +1.2) |
+| chrF++ change, unseen sentences, X → English | −0.7 (−1.2, −0.2) | −0.1 (−0.6, +0.4) | +1.3 (+0.8, +1.8) |
+| Cost of the new tokens, English → X (against no new tokens, 3 seeds each) | +0.2 (−0.3, +0.6) | −1.2 (−1.6, −0.9) | −0.8 (−1.1, −0.5) |
 
 \*19 of 20 sentences: one WazoCore reply contained a broken character and
 the server returned an error (see Limitations).
@@ -150,9 +153,13 @@ the server returned an error (see Limitations).
   language) and FLORES-200 (200), pooled over two independent training runs.
 - **Quality of the shipped file.** The two Q4_K_M files compared with each
   other in llama.cpp on 250 NTREX-128 sentences per language.
-- **Control.** The last row is the original model trained on the same data
-  with no new tokens. It separates the effect of the vocabulary from the
-  effect of the training data.
+- **Control.** The original model trained on the same data with no new
+  tokens. It separates the effect of the vocabulary from the effect of the
+  training data.
+- **Unseen sentences.** 1,497 NTREX-128 sentences per language that no
+  decision used, in both directions. The last row compares three training
+  runs of each model at the same budget: the new tokens cost about one
+  point in Hausa and Igbo.
 
 The protocol, the full tables and the command behind each number are in
 [`docs/METHOD.md`](https://github.com/Adeniyikayodee/wazocore/blob/main/docs/METHOD.md).
@@ -162,10 +169,12 @@ The protocol, the full tables and the command behind each number are in
 | Limit | What to expect | What to do |
 |---|---|---|
 | Broken characters | About 1 reply in 1,000 (4 of 4,200) has half of a letter such as ṣ or ƙ, and the request fails. The original does not do this | Retry with sampling |
-| Yoruba loops | 5 and 11 of 700 replies loop under greedy decoding, against 2 for the original | Repetition penalty 1.1, Yoruba only. LM Studio applies it to every request by default |
+| Yoruba loops | 18 to 23 of 1,497 replies loop under greedy decoding, against 7 for the original. The new tokens cause most of them | Repetition penalty 1.1, Yoruba only. LM Studio applies it to every request by default |
 | Hausa | 0.3 to 0.4 chrF++ below the original. The intervals include zero | n/a |
+| Yoruba → English | 0.7 chrF++ below the original | n/a |
+| Reasoning | Inference (AfriXNLI) 5 to 10 points below the original in every language, English included; maths (AfriMGSM) 5 to 13 below. Knowledge (AfriMMLU) unchanged | Use the original for reasoning |
 | Input form | Decomposed Unicode loses most of the token saving | Normalise to NFC |
-| Not scored | Dialogue, reasoning, translation into English, English quality | n/a |
+| Not scored | Dialogue | n/a |
 
 Measurements and the full list are in sections 5 and 6 of
 [`docs/METHOD.md`](https://github.com/Adeniyikayodee/wazocore/blob/main/docs/METHOD.md).
