@@ -300,7 +300,7 @@ at most 0.7 (Yoruba English → X) and 0.4 elsewhere.
 
 - The projected anchor is the part that matters: without it, or with the
   anchor in the original's tokenisation, X → English falls 1.6 to 3.2,
-  about four to eight times the seed spread. The standard recipe (`fvt`, after
+  5 to 15 times the seed spread. The standard recipe (`fvt`, after
   FVT) loses the same.
 - In return those arms gain 0.7 to 1.0 in Igbo English → X, above the seed
   spread, and AfriCOMET confirms two of three. The Yoruba gains (0.8 to
