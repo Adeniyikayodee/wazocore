@@ -114,7 +114,8 @@ for u in $UNITS; do
     ablate)
         train no-canon 0 init-v6 --anchor canonical --canon-weight 0
         train no-kl 0 init-v6 --anchor old --canon-weight 1.0 --kl-weight 0
-        train old-anchor 0 init-v6 --anchor old --canon-weight 1.0
+        # two forward passes per micro-batch: same windows per step, half the peak
+        BATCH=4 ACCUM=4 KL_BATCH=2 train old-anchor 0 init-v6 --anchor old --canon-weight 1.0
         train no-calib 0 init-nocal $CANON; rm -rf "${M:?}/init-nocal" ;;
     seeds)
         train long-s1 1 init-v6 $CANON
