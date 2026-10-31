@@ -233,3 +233,37 @@ def looping(text: str, unit: tuple[int, int] = (2, 6), repeats: int = 6) -> bool
 
     lo, hi = unit
     return re.search(rf"(.{{{lo},{hi}}})\1{{{repeats - 1},}}", text) is not None
+
+
+def word_ngrams(text: str, n: int = 13) -> set[tuple[str, ...]]:
+    """Word `n`-grams of `text` after NFC and lower-casing, for the v8
+    contamination check. A text shorter than `n` words has none."""
+    import unicodedata
+
+    words = unicodedata.normalize("NFC", text).lower().split()
+    return {tuple(words[i:i + n]) for i in range(len(words) - n + 1)}
+
+
+def aya_messages(row: dict) -> list[dict] | None:
+    """One Aya Dataset row (CohereLabs/aya_dataset, human-written) as a
+    user/assistant conversation in NFC, or None if either side is empty."""
+    import unicodedata
+
+    q, a = (unicodedata.normalize("NFC", (row.get(k) or "").strip()) for k in ("inputs", "targets"))
+    return [{"role": "user", "content": q}, {"role": "assistant", "content": a}] if q and a else None
+
+
+def fill_share(costs: Sequence[int], target: int, seed: int) -> tuple[list[int], int]:
+    """Indices of items, in an order fixed by `seed`, whose costs first add
+    up to at least `target`, repeating the order if one pass is short.
+    Returns the indices and the number of passes started beyond the first."""
+    if target <= 0 or not costs or not any(costs):
+        return [], 0
+    order = list(range(len(costs)))
+    random.Random(seed).shuffle(order)
+    picked, total = [], 0
+    while total < target:
+        i = order[len(picked) % len(order)]
+        picked.append(i)
+        total += costs[i]
+    return picked, (len(picked) - 1) // len(order)

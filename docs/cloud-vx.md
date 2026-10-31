@@ -17,6 +17,7 @@ results under `/workspace/work/`.
 | `cloud_vx_v5.sh` | The on-policy distillation experiment (section 5 of `HISTORY.md`) | about 4 h |
 | `cloud_vx_v6.sh` | The release (`METHOD.md`). `ARMS=long` builds it: expansion, human-translation data, training, a 700-sentence gate against the original and GGUF export. The default arms `fix`, `gold` and `control` and the optional `small` and `mbr` are the experiments behind it | `long` about 1.5 h; the three default arms 2.6 h; `small` 50 min; `mbr` adds about 2 h (not run) |
 | `cloud_vx_v7.sh` | The open questions of `METHOD.md` section 6, as fixed in `PLAN-v7.md`: held-out test, matched control, ablations, the standard recipe, three seeds, IrokoBench, AfriCOMET. Every step is skipped once its result exists. Trains nothing for release | about 20 h |
+| `cloud_vx_v8.sh` | Instruction data, as fixed in `PLAN-v8.md`: Aya mixed in at 20% of training (`v8_aya.py` filters it against the test sets), a matched control, release seed 1 on IrokoBench, and an exploratory AfriXNLI check of the release with original tokens. Built like v7 | about 8 h |
 | `cloud_gguf.sh` | GGUF export, shared by the pipelines. `IMATRIX=/workspace/work/data/wiki` also writes a file quantised with an importance matrix (not yet run or gated) | about 5 min; the importance matrix is untimed |
 
 ## Run it
@@ -64,7 +65,9 @@ results under `/workspace/work/`.
 
 Community pods cost about a third less than Secure ones, but run on other
 people's machines: a host can disappear, there is no network volume, and the
-host owner has physical access. `cloud_vx_v7.sh` is built for that.
+host owner has physical access. `cloud_vx_v7.sh` and `cloud_vx_v8.sh` are
+built for that. The commands below are for v7; for v8 run
+`cloud_vx_v8.sh` and pull with `RUN=v8`.
 
 - **Deploy** an A100 80GB (PCIe or SXM) with a 200 GB container disk and no
   volume, then upload and log in as above, with a fine-grained Hugging Face
@@ -88,8 +91,8 @@ host owner has physical access. `cloud_vx_v7.sh` is built for that.
   finished. It refuses to continue if the training data's hashes differ from
   the first pod's. A new pod can reuse an old address with a new host key;
   clear it with `ssh-keygen -R "[HOST]:PORT"`.
-- **Nothing private leaves the pod.** v7 downloads the public release, keeps
-  weights only while it scores them, and writes nothing to Hugging Face.
+- **Nothing private leaves the pod.** v7 and v8 download the public release, keep
+  weights only while they score them, and write nothing to Hugging Face.
 
 ## Outputs
 
