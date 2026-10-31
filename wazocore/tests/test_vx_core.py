@@ -141,3 +141,32 @@ def test_smol_pairs_read_sentence_and_document_records_in_nfc():
     assert smol_pairs({"id": 1, "sl": "en", "tl": "yo", "src": " Good morning. ", "trg": "É "}) == [("Good morning.", "É")]
     doc = {"id": "t", "srcs": ["One.", "", "Three."], "trgs": ["Ọkan.", "x", "Mẹta."], "sep": []}
     assert smol_pairs(doc) == [("One.", "Ọkan."), ("Three.", "Mẹta.")]
+
+
+def test_word_ngrams_normalise_and_skip_short_text():
+    from wazocore.vx_core import word_ngrams
+
+    decomposed = "Ọmọ".replace("Ọ", "Ọ")  # letter + combining dot below
+    assert word_ngrams(f"{decomposed} lọ si ile", 2) == word_ngrams("ọmọ LỌ si ile", 2)
+    assert word_ngrams("one two three", 4) == set()
+    assert len(word_ngrams(" ".join(str(i) for i in range(15)), 13)) == 3
+
+
+def test_aya_messages_need_both_sides():
+    from wazocore.vx_core import aya_messages
+
+    assert aya_messages({"inputs": " Kí ni? ", "targets": "Bẹ́ẹ̀ni"}) == [
+        {"role": "user", "content": "Kí ni?"}, {"role": "assistant", "content": "Bẹ́ẹ̀ni"}]
+    assert aya_messages({"inputs": "q", "targets": "  "}) is None
+    assert aya_messages({"inputs": None, "targets": "a"}) is None
+
+
+def test_fill_share_stops_at_target_and_counts_repeats():
+    from wazocore.vx_core import fill_share
+
+    picked, repeats = fill_share([5, 5, 5, 5], 12, seed=0)
+    assert len(picked) == 3 and len(set(picked)) == 3 and repeats == 0
+    picked, repeats = fill_share([5, 5], 21, seed=0)
+    assert len(picked) == 5 and repeats == 2 and picked[:2] == picked[2:4]
+    assert fill_share([3, 4], 7, seed=1) == fill_share([3, 4], 7, seed=1)
+    assert fill_share([1], 0, seed=0) == ([], 0) and fill_share([0, 0], 5, seed=0) == ([], 0)
