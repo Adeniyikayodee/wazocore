@@ -178,4 +178,10 @@ triggered, is about 9 more. See `docs/cloud-vx.md`.
 
 ## Deviations
 
-None yet.
+- **31 October 2026, before any result: Aya order and tokenizer.** If Aya
+  holds more tokens than the share needs, rows are taken in a fixed
+  shuffled order (seed 0) until it is met. Shares are counted with the
+  release's tokenizer; `control-inst` trains on the same file, as v7's
+  control did, so its share under the original tokenizer differs
+  slightly and is reported (`aya-report.json`). Written while building
+  `scripts/v8_aya.py`; no v8 output existed.
