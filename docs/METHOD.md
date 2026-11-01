@@ -320,11 +320,70 @@ control − original. Vocabulary effect: release − control.
 Intervals are 6 to 13 points wide on AfriMGSM (250 items), so its single
 cells are weak. The pattern is not: inference and maths fall after training,
 by about as much from the recipe as from the vocabulary; knowledge does not.
-The training mixture is translation only.
+The training mixture is translation only. v8 (4.5) measures the seed spread
+of these numbers and tests instruction data as a remedy.
 
 **English.** Bits per character on FLORES devtest: original 1.228, release
 1.015, control 1.005. English text is modelled better, not worse; English
 reasoning (above) is the cost.
+
+### 4.5 Instruction data and seed spread (v8)
+
+Preregistered in [PLAN-v8.md](PLAN-v8.md) before any output existed.
+`inst` moves 20% of training tokens from the translation conversations to
+Aya Dataset conversations (`CohereLabs/aya_dataset`, written by fluent
+speakers) in the four languages; everything else is the release recipe.
+`control-inst` is the same without new tokens; `long-s1` is the release
+retrained at seed 1, scored on IrokoBench. The release, `control` (seed 0)
+and the original are v7's files. Paired over items or sentences, 95%
+intervals (`results/vocab/v8/analysis.json`).
+
+**Data.** Of 20,748 Aya rows in the four languages, 5,378 exact duplicates
+and 3 empty rows are dropped; none shares a 13-word sequence with
+IrokoBench, FLORES-200 or NTREX-128. 6,835 rows (2.2M tokens) fill the share
+without repeats. The trainer consumes 20.1% instruction tokens for `inst`
+and 22.2% for `control-inst`, whose original tokenizer splits Aya into more
+tokens (`results/vocab/v8/aya-report.json`).
+
+**R**, the primary endpoint: accuracy over AfriXNLI and AfriMGSM in Yoruba,
+Hausa and Igbo pooled (2,550 items).
+
+| Model | R |
+|---|---|
+| Original | 50.8 |
+| `control` | 45.7 |
+| `control-inst` | 45.7 |
+| Release, seed 1 (`long-s1`) | 44.2 |
+| Release, seed 0 | 42.2 |
+| `inst` | 41.5 |
+
+- **Instruction data does not recover reasoning.** `inst` − release is
+  −0.7 (−2.1, +0.6); it recovers −8% of the loss (−28%, +7%). Without new
+  tokens it does nothing either: `control-inst` − `control` is +0.0 (−1.4,
+  +1.4). By the plan, no stage 2.
+- **Translation holds.** `inst` against the release is non-inferior in all
+  six directions: chrF++ within 0.3 in five, +0.9 (+0.5, +1.4) from Yoruba;
+  AfriCOMET within 0.4 in five, +1.0 from Yoruba. Against the original it
+  is non-inferior in all six, including Yoruba → English (+0.2, one-sided
+  bound −0.2), which the release fails.
+- **Seed spread.** Release seeds 0 and 1 differ by 2.0 on R (+0.6, +3.4),
+  and by up to 4.4 on a single task (AfriMGSM English). One pair of seeds,
+  so a rough guide.
+- **The vocabulary still costs reasoning, but less clearly than v7 showed.**
+  `inst` − `control-inst` is −4.2 (−5.9, −2.5), one seed each. Release −
+  `control` is −3.5 (−5.3, −1.6) with seed 0, but −1.5 (−3.5, +0.5) with
+  seed 1 and −2.5 (−4.3, −0.7) averaged. Single cells of the 4.4 table under
+  about 4.5 points are within seed noise.
+- **The vocabulary still costs translation.** `inst` − `control-inst` is
+  −1.4 and −1.1 chrF++ from English into Hausa and Igbo, the pattern of the
+  three-seed comparison in 4.4.
+
+**Exploratory: reading with original tokens.** The release, scored on
+AfriXNLI with prompts and options in the original tokenizer (no new input
+row used), changes by 0.0 pooled over Yoruba, Hausa and Igbo (−1.4, +1.5;
+1,800 items) and by exactly 0.0 in English; `control` is 3.9 higher (+1.6,
++6.3). The vocabulary's inference cost is in the trained weights, not in
+reading the new tokens. Not part of the decisions.
 
 ## 5. Known defects and workarounds
 
@@ -376,15 +435,18 @@ One prompt shows that a retry usually works, not how often.
 
 - **Test-set reuse.** Section 4.1 chose the release on its 700 sentences.
   Section 4.4 scores 1,497 others per language that no decision used.
-- **Seeds.** Three seeds for the release and control; the ablations and
-  IrokoBench have one, judged against the release's seed spread.
+- **Seeds.** Three seeds for the release and control; the ablations,
+  `inst` and `control-inst` have one, judged against the release's seed
+  spread. On IrokoBench the release has two seeds and every other model
+  one (4.5).
 - **Evaluation scope.** Translation is scored in news text (NTREX-128) and
   FLORES-200, both directions. Dialogue is not scored; native-speaker
   judgement is being collected with the blind A/B kit in `tester-kit/`.
 - **Reasoning.** The release scores lower than the original on inference
   in every language, English included, and on maths in all four
-  (English's interval reaches zero) (4.4). The training mixture has no general
-  instruction data.
+  (English's interval reaches zero) (4.4). 20% Aya instruction data does
+  not prevent it (4.5); larger shares, other sources, maths data and a
+  separate instruction-tuning stage are untested.
 - **Hausa** is 0.3 to 0.4 chrF++ below the original English → Hausa in
   every test, with intervals that include zero; against matched control the vocabulary costs
   it 1.2.
@@ -426,5 +488,6 @@ Paths are relative to the repository root. `V` is `uv run --project wazocore
 | Speed, GPU (4.3) | `scripts/paired_vx.sh LABEL 4 20 99 FILE.gguf` | `results/vocab/LABEL-paired.json` |
 | Whole request (4.3) | Mean of `prompt_ms + gen_ms` over the paired samples in the two files above | n/a |
 | v7 (4.4) | `bash scripts/cloud_vx_v7.sh` on the GPU host, `scripts/cloud_pull.sh` on the laptop, then `uv run --project wazocore --with sacrebleu python scripts/v7_analysis.py results/vocab/v7` | `results/vocab/v7/analysis.json` |
+| v8 (4.5) | `bash scripts/cloud_vx_v8.sh` on the GPU host, `RUN=v8 scripts/cloud_pull.sh` on the laptop, then `uv run --project wazocore --with sacrebleu python scripts/v8_analysis.py results/vocab/v7 results/vocab/v8` | `results/vocab/v8/analysis.json` |
 | Repetition penalty (5) | `SAMPLER='{"repeat_penalty": 1.1}' python scripts/gguf_quality.py 250 OUT NAME FILE.gguf`, then `V score` against the plain file | `results/vocab/gguf-quality/` |
 | Retry (5) | `uv run --project wazocore python scripts/retry_probe.py FILE.gguf OUT.json` | `results/vocab/gguf-quality/retry-v6-long.json` |
