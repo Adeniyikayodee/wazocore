@@ -1,0 +1,41 @@
+{
+ "model": "/workspace/work/inst",
+ "rows": [
+  {
+   "lang": "en",
+   "sentences": 1012,
+   "chars": 131966,
+   "tokens": 27114,
+   "nll_nats": 92020.23581695557,
+   "bpc": 1.0059950129166209,
+   "tokens_per_char": 0.20546201294272767
+  },
+  {
+   "lang": "yo",
+   "sentences": 1012,
+   "chars": 126848,
+   "tokens": 46603,
+   "nll_nats": 200986.41384887695,
+   "bpc": 2.285902044540171,
+   "tokens_per_char": 0.3673924697275479
+  },
+  {
+   "lang": "ha",
+   "sentences": 1012,
+   "chars": 140069,
+   "tokens": 33838,
+   "nll_nats": 147049.74683761597,
+   "bpc": 1.5145959528989719,
+   "tokens_per_char": 0.24158093511055265
+  },
+  {
+   "lang": "ig",
+   "sentences": 1012,
+   "chars": 134560,
+   "tokens": 38612,
+   "nll_nats": 176882.86671829224,
+   "bpc": 1.8964628019671796,
+   "tokens_per_char": 0.2869500594530321
+  }
+ ]
+}

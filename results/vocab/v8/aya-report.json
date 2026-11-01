@@ -1,0 +1,58 @@
+{
+ "aya": {
+  "dataset": "CohereLabs/aya_dataset",
+  "revision": "f9ea04583f02a8f86404ff6c58bf75fe637df8a2"
+ },
+ "irokobench_revisions": {
+  "masakhane/afrixnli": "e3ca06b30f3e7af2a86f6c8609ea76fee326bc56",
+  "masakhane/afrimmlu": "96f247619673906ae4c321a3232afc67b98ea57e",
+  "masakhane/afrimgsm": "8e4268d2b94941f18f63f694cf48e4ae26fbec65"
+ },
+ "ngram": 13,
+ "rows": {
+  "Yoruba": 11758,
+  "Hausa": 3512,
+  "English": 3944,
+  "Igbo": 1534
+ },
+ "dropped": {
+  "duplicate": 5378,
+  "empty": 3
+ },
+ "kept": {
+  "Yoruba": 6669,
+  "Hausa": 3408,
+  "English": 3871,
+  "Igbo": 1419
+ },
+ "tokens": {
+  "gold": 7246011,
+  "aya_available": 5235703,
+  "aya_target": 2229542,
+  "aya_used": 2230015,
+  "aya_rows_used": 6835,
+  "aya_repeats": 0
+ },
+ "used_by_language": {
+  "Yoruba": 2931,
+  "English": 1746,
+  "Hausa": 1528,
+  "Igbo": 630
+ },
+ "consumed": {
+  "release_tokenizer": {
+   "windows_in_file": 18507,
+   "windows_taken": 19911,
+   "passes": 1.08,
+   "instruction_share_of_chat": 0.2365,
+   "instruction_share_of_training": 0.201
+  },
+  "original_tokenizer": {
+   "windows_in_file": 23013,
+   "windows_taken": 19911,
+   "passes": 0.87,
+   "instruction_share_of_chat": 0.2612,
+   "instruction_share_of_training": 0.222
+  }
+ }
+}
